@@ -25,15 +25,15 @@ namespace N2.Web.Mvc.Html
 
 
 
-		public static Displayable DisplayContent<TItem>(this HtmlHelper<TItem> helper,
-		                                         Expression<Func<TItem, object>> expression)
+		public static Displayable DisplayContent<TItem, TProp>(this HtmlHelper<TItem> helper,
+												 Expression<Func<TItem, TProp>> expression)
 			where TItem : ContentItem
 		{
             var member = (MemberExpression) expression.Body;
 			return helper.DisplayContent(member.Member.Name);
 		}
 
-		public static Displayable DisplayContent<TItem>(this HtmlHelper helper, TItem item, Expression<Func<TItem, object>> expression)
+		public static Displayable DisplayContent<TItem, TProp>(this HtmlHelper helper, TItem item, Expression<Func<TItem, TProp>> expression)
 			where TItem : ContentItem
 		{
             var member = (MemberExpression) expression.Body;
@@ -55,15 +55,15 @@ namespace N2.Web.Mvc.Html
 
 
 
-        public static void RenderDisplay<TItem>(this HtmlHelper<TItem> helper,
-                                                 Expression<Func<TItem, object>> expression)
+		public static void RenderDisplay<TItem, TProp>(this HtmlHelper<TItem> helper,
+												 Expression<Func<TItem, TProp>> expression)
             where TItem : ContentItem
         {
             var member = (MemberExpression)expression.Body;
             helper.RenderDisplay(member.Member.Name);
         }
 
-        public static void RenderDisplay<TItem>(this HtmlHelper helper, TItem item, Expression<Func<TItem, object>> expression)
+		public static void RenderDisplay<TItem, TProp>(this HtmlHelper helper, TItem item, Expression<Func<TItem, TProp>> expression)
             where TItem : ContentItem
         {
             var member = (MemberExpression)expression.Body;
