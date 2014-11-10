@@ -329,9 +329,9 @@
     <Content Include="N2\Files\Resize.ashx" />
     <Content Include="N2\Top.master" />
     <Content Include="N2\Resources\KeepAlive\Ping.ashx" />
-    <Content Include="Web.config">
+    <None Include="Web.config">
       <SubType>Designer</SubType>
-    </Content>
+    </None>
     <Content Include="N2\Search\IndexInfo.ashx" />
     <Content Include="N2\log4net.config" />
     <Content Include="N2\Resources\RedirectHandler.ashx" />
