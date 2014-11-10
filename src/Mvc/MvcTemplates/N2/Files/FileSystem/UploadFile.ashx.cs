@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using N2.Definitions;
 using System.Text.RegularExpressions;
+using N2.Details;
 
 namespace N2.Management.Files.FileSystem
 {
@@ -63,6 +64,7 @@ namespace N2.Management.Files.FileSystem
 
 			var fileUpload = context.Request.Files[0];
 			var inputStream = fileUpload.InputStream;
+			fileName = Regex.Replace(fileName, EditableFileUploadAttribute.InvalidCharactersExpression, "-");
 			var virtualPath = Url.Combine(selection.SelectedItem.Url, fileName);
 
 			if (!IsFilenameTrusted(fileName))
@@ -96,6 +98,7 @@ namespace N2.Management.Files.FileSystem
 			{
 				var file = context.Request.Files[i];
 				var fileName = Path.GetFileName(file.FileName);
+				fileName = Regex.Replace(fileName, EditableFileUploadAttribute.InvalidCharactersExpression, "-");
 				var virtualPath = Url.Combine(((IFileSystemNode)selection.SelectedItem).LocalUrl, fileName);
 
 				if (!IsFilenameTrusted(fileName))
