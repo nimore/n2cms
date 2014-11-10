@@ -339,6 +339,7 @@
     <Content Include="packages.config" />
     <Content Include="N2\Installation\UpgradeVersion.ashx" />
     <Content Include="N2\Resources\Js\jquery-1.11.0.min.map" />
+    <None Include="Properties\PublishProfiles\Live Golf Event.pubxml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Framework\AssemblyVersion.cs">
@@ -1345,7 +1346,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="N2\Content\Wizard\Img\" />
-    <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="N2\Content\LinkTracker\App_LocalResources\Default.aspx.resx" />
