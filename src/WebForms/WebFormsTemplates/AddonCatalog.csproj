@@ -24,6 +24,8 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -143,6 +145,10 @@
       <Name>N2</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Mvc\MvcTemplates\N2.Management.csproj">
+      <Project>{10f7c179-b92d-4fca-b78c-011e428d0ca3}</Project>
+      <Name>N2.Management</Name>
+    </ProjectReference>
     <ProjectReference Include="N2.Templates.csproj">
       <Project>{D42D096E-399D-4618-AEB4-9B023BA1316D}</Project>
       <Name>N2.Templates</Name>
@@ -196,4 +202,5 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
 </Project>

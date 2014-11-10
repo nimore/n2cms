@@ -1,8 +1,8 @@
-<%@ Page MasterPageFile="Framed.Master" Language="C#" AutoEventWireup="true" CodeBehind="New.aspx.cs" Inherits="N2.Edit.New" Title="Create new item" meta:resourceKey="DefaultResource" %>
+﻿<%@ Page MasterPageFile="Framed.Master" Language="C#" AutoEventWireup="true" CodeBehind="New.aspx.cs" Inherits="N2.Edit.New" Title="Create new item" meta:resourceKey="DefaultResource" %>
 <%@ Register TagPrefix="edit" Namespace="N2.Edit.Web.UI.Controls" Assembly="N2.Management" %>
 <%@ Import namespace="N2.Definitions"%>
 <asp:Content ContentPlaceHolderID="Toolbar" ID="ct" runat="server">
-    <edit:CancelLink ID="hlCancel" runat="server" meta:resourceKey="hlCancel">Cancel</edit:CancelLink>
+    <edit:CancelLink ID="hlCancel" runat="server" meta:resourceKey="hlCancel" CssClass="btn">Close</edit:CancelLink>
 </asp:Content>
 <asp:Content ContentPlaceHolderID="Content" ID="cc" runat="server">
 	<asp:CustomValidator ID="cvPermission" CssClass="alert alert-margin" ErrorMessage="Not authorized" Display="Dynamic" runat="server" />

@@ -24,6 +24,8 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -66,6 +68,10 @@
       <Name>N2</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Mvc\MvcTemplates\N2.Management.csproj">
+      <Project>{10f7c179-b92d-4fca-b78c-011e428d0ca3}</Project>
+      <Name>N2.Management</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Addons\Wiki\Fragment.cs" />
@@ -85,6 +91,7 @@
     <Compile Include="Addons\Wiki\Renderers\InternalLinkRenderer.cs" />
     <Compile Include="Addons\Wiki\Renderers\LineRenderer.cs" />
     <Compile Include="Addons\Wiki\Renderers\ListRenderer.cs" />
+    <Compile Include="Addons\Wiki\Renderers\NewLineRenderer.cs" />
     <Compile Include="Addons\Wiki\Renderers\OrderedListItemRenderer.cs" />
     <Compile Include="Addons\Wiki\Renderers\TemplateRenderer.cs" />
     <Compile Include="Addons\Wiki\Renderers\TextRenderer.cs" />
@@ -318,4 +325,5 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
 </Project>

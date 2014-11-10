@@ -1,323 +1,332 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using N2.Persistence;
 using N2.Persistence.NH;
+using N2.Persistence.Proxying;
 
 namespace N2.Tests.Fakes
 {
-	public class FakeContentItemRepository : FakeRepository<ContentItem>, IContentItemRepository
-	{
-		public IEnumerable<DiscriminatorCount> FindDescendantDiscriminators(ContentItem ancestor)
-		{
-			throw new NotImplementedException();
-		}
-
-		public IEnumerable<ContentItem> FindDescendants(ContentItem ancestor, string discriminator)
-		{
-			throw new NotImplementedException();
-		}
-
-		public IEnumerable<ContentItem> FindReferencing(ContentItem linkTarget)
-		{
-			throw new NotImplementedException();
-		}
-
-		public int RemoveReferencesToRecursive(ContentItem target)
-		{
-			return 0;
-		}
-	}
-
-
-	public class FakeRepository<TEntity> : INHRepository<TEntity> where TEntity : class
-	{
-		private string lastOperation;
-		public int maxID;
-		public Dictionary<object, TEntity> database = new Dictionary<object, TEntity>();
-		private FakeTransaction transaction;
-
-		public FakeRepository()
+    public class FakeContentItemRepository : FakeRepository<ContentItem>, IContentItemRepository
+    {
+		public FakeContentItemRepository(IProxyFactory proxyFactory = null)
+			: base(proxyFactory)
 		{
 		}
 
-		public string LastOperation
+        public IEnumerable<DiscriminatorCount> FindDescendantDiscriminators(ContentItem ancestor)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<ContentItem> FindDescendants(ContentItem ancestor, string discriminator)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<ContentItem> FindReferencing(ContentItem linkTarget)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int RemoveReferencesToRecursive(ContentItem target)
+        {
+            return 0;
+        }
+    }
+
+
+    public class FakeRepository<TEntity> : IRepository<TEntity> where TEntity : class
+    {
+        private string lastOperation;
+        public int maxID;
+        public Dictionary<object, TEntity> database = new Dictionary<object, TEntity>();
+        private FakeTransaction transaction;
+		private IProxyFactory proxies;
+
+		public FakeRepository(IProxyFactory proxyFactory = null)
 		{
-			get { return lastOperation; }
-			set { lastOperation = value; }
+			this.proxies = proxyFactory ?? new InterceptingProxyFactory();
 		}
 
-		#region IRepository<TKey,TEntity> Members
-
-		public TEntity Get(object id)
-		{
-			LastOperation = "Get(" + id + ")";
+        public string LastOperation
+        {
+            get { return lastOperation; }
+            set { lastOperation = value; }
+        }
+
+        #region IRepository<TKey,TEntity> Members
+
+        public TEntity Get(object id)
+        {
+            LastOperation = "Get(" + id + ")";
+
+            if (database.ContainsKey(id))
+                return database[id];
+            return null;
+        }
+
+        public T Get<T>(object id)
+        {
+            LastOperation = "Get<" + typeof(T).Name + ">(" + id + ")";
+
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<TEntity> Find(string propertyName, object value)
+        {
+            return Find(new Parameter(propertyName, value));
+        }
 
-			if (database.ContainsKey(id))
-				return database[id];
-			return null;
-		}
+        public IEnumerable<TEntity> Find(params Parameter[] propertyValuesToMatchAll)
+        {
+            return database.Values.Where(item => propertyValuesToMatchAll.All(p => p.IsMatch(item)));
+        }
 
-		public T Get<T>(object id)
-		{
-			LastOperation = "Get<" + typeof(T).Name + ">(" + id + ")";
-
-			throw new NotImplementedException();
-		}
+        public TEntity Load(object id)
+        {
+            LastOperation = "Load(" + id + ")";
 
-		public IEnumerable<TEntity> Find(string propertyName, object value)
-		{
-			return Find(new Parameter(propertyName, value));
-		}
+            return database[id];
+        }
 
-		public IEnumerable<TEntity> Find(params Parameter[] propertyValuesToMatchAll)
-		{
-			return database.Values.Where(item => propertyValuesToMatchAll.All(p => p.IsMatch(item)));
-		}
+        public void Delete(TEntity entity)
+        {
+            LastOperation = "Delete(" + entity + ")";
 
-		public TEntity Load(object id)
-		{
-			LastOperation = "Load(" + id + ")";
+            database.Remove(GetKey(entity));
+        }
 
-			return database[id];
-		}
+        public virtual void Save(TEntity entity)
+        {
+            LastOperation = "Save(" + entity + ")";
 
-		public void Delete(TEntity entity)
-		{
-			LastOperation = "Delete(" + entity + ")";
+            object key = GetKey(entity);
+			proxies.OnSaving(entity);
+            database[key] = entity;
 
-			database.Remove(GetKey(entity));
-		}
+            if (key is int)
+                maxID = Math.Max(maxID, (int)key);
+        }
 
-		public virtual void Save(TEntity entity)
-		{
-			LastOperation = "Save(" + entity + ")";
+        protected virtual object GetKey(TEntity entity)
+        {
+            var q = database.Keys.Where(k => database[k] == entity);
+            if (q.Count() > 0)
+                return q.Single();
+            var p = entity.GetType().GetProperty("ID");
+            object key = p.GetValue(entity, new object[0]);
+            if (key is int && (int)key == 0)
+                key = ++maxID;
 
-			object key = GetKey(entity);
-			database[key] = entity;
+            p.SetValue(entity, key, new object[0]);
+            return key;
+        }
 
-			if (key is int)
-				maxID = Math.Max(maxID, (int)key);
-		}
+        public void Update(TEntity entity)
+        {
+            LastOperation = "Update(" + entity + ")";
 
-		protected virtual object GetKey(TEntity entity)
-		{
-			var q = database.Keys.Where(k => database[k] == entity);
-			if (q.Count() > 0)
-				return q.Single();
-			var p = entity.GetType().GetProperty("ID");
-			object key = p.GetValue(entity, new object[0]);
-			if (key is int && (int)key == 0)
-				key = ++maxID;
+            database[GetKey(entity)] = entity;
+        }
 
-			p.SetValue(entity, key, new object[0]);
-			return key;
-		}
+        public void SaveOrUpdate(TEntity entity)
+        {
+            LastOperation = "SaveOrUpdate(" + entity + ")";
 
-		public void Update(TEntity entity)
-		{
-			LastOperation = "Update(" + entity + ")";
+            Save(entity);
+        }
 
-			database[GetKey(entity)] = entity;
-		}
+        public bool Exists()
+        {
+            LastOperation = "Exists()";
 
-		public void SaveOrUpdate(TEntity entity)
-		{
-			LastOperation = "SaveOrUpdate(" + entity + ")";
+            return true;
+        }
 
-			Save(entity);
-		}
+        public long Count()
+        {
+            LastOperation = "Count()";
 
-		public bool Exists()
-		{
-			LastOperation = "Exists()";
+            return database.Count;
+        }
 
-			return true;
-		}
+        public void Flush()
+        {
+            LastOperation = "Flush()";
+        }
 
-		public long Count()
-		{
-			LastOperation = "Count()";
+        private class FakeTransaction : ITransaction
+        {
 
-			return database.Count;
-		}
+            #region ITransaction Members
 
-		public void Flush()
-		{
-			LastOperation = "Flush()";
-		}
+            public void Commit()
+            {
+                Committed(this, new EventArgs());
+            }
 
-		private class FakeTransaction : ITransaction
-		{
+            public void Rollback()
+            {
+                Rollbacked(this, new EventArgs());
+            }
 
-			#region ITransaction Members
+            #endregion
 
-			public void Commit()
-			{
-				Committed(this, new EventArgs());
-			}
+            #region IDisposable Members
 
-			public void Rollback()
-			{
-				Rollbacked(this, new EventArgs());
-			}
+            public void Dispose()
+            {
+                Disposed(this, new EventArgs());
+            }
 
-			#endregion
+            #endregion
 
-			#region IDisposable Members
 
-			public void Dispose()
-			{
-				Disposed(this, new EventArgs());
-			}
+            /// <summary>Invoked after the transaction has been committed.</summary>
+            public event EventHandler Committed = delegate { };
 
-			#endregion
+            /// <summary>Invoked after the transaction has been rollbacked.</summary>
+            public event EventHandler Rollbacked = delegate { };
 
+            /// <summary>Invoked after the transaction has closed and is disposed.</summary>
+            public event EventHandler Disposed = delegate { };
+        }
 
-			/// <summary>Invoked after the transaction has been committed.</summary>
-			public event EventHandler Committed = delegate { };
+        public ITransaction BeginTransaction()
+        {
+            LastOperation = "BeginTransaction()";
 
-			/// <summary>Invoked after the transaction has been rollbacked.</summary>
-			public event EventHandler Rollbacked = delegate { };
+            return transaction = new FakeTransaction();
+        }
 
-			/// <summary>Invoked after the transaction has closed and is disposed.</summary>
-			public event EventHandler Disposed = delegate { };
-		}
+        public ITransaction GetTransaction()
+        {
+            LastOperation = "GetTransaction()";
 
-		public ITransaction BeginTransaction()
-		{
-			LastOperation = "BeginTransaction()";
+            return transaction;
+        }
 
-			return transaction = new FakeTransaction();
-		}
+        #endregion
 
-		public ITransaction GetTransaction()
-		{
-			LastOperation = "GetTransaction()";
+        #region IDisposable Members
 
-			return transaction;
-		}
+        public void Dispose()
+        {
+            LastOperation = "Dispose()";
+        }
 
-		#endregion
+        #endregion
 
-		#region IDisposable Members
+        #region INHRepository<int,TEntity> Members
 
-		public void Dispose()
-		{
-			LastOperation = "Dispose()";
-		}
+        public ICollection<TEntity> FindAll(NHibernate.Criterion.Order order, params NHibernate.Criterion.ICriterion[] criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		#endregion
+        public ICollection<TEntity> FindAll(NHibernate.Criterion.DetachedCriteria criteria, params NHibernate.Criterion.Order[] orders)
+        {
+            throw new NotImplementedException();
+        }
 
-		#region INHRepository<int,TEntity> Members
+        public ICollection<TEntity> FindAll(NHibernate.Criterion.DetachedCriteria criteria, int firstResult, int maxResults, params NHibernate.Criterion.Order[] orders)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(NHibernate.Criterion.Order order, params NHibernate.Criterion.ICriterion[] criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public ICollection<TEntity> FindAll(NHibernate.Criterion.Order[] orders, params NHibernate.Criterion.ICriterion[] criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(NHibernate.Criterion.DetachedCriteria criteria, params NHibernate.Criterion.Order[] orders)
-		{
-			throw new NotImplementedException();
-		}
+        public ICollection<TEntity> FindAll(params NHibernate.Criterion.ICriterion[] criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(NHibernate.Criterion.DetachedCriteria criteria, int firstResult, int maxResults, params NHibernate.Criterion.Order[] orders)
-		{
-			throw new NotImplementedException();
-		}
+        public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, params NHibernate.Criterion.ICriterion[] criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(NHibernate.Criterion.Order[] orders, params NHibernate.Criterion.ICriterion[] criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, NHibernate.Criterion.Order selectionOrder, params NHibernate.Criterion.ICriterion[] criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(params NHibernate.Criterion.ICriterion[] criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, NHibernate.Criterion.Order[] selectionOrder, params NHibernate.Criterion.ICriterion[] criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, params NHibernate.Criterion.ICriterion[] criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public ICollection<TEntity> FindAll(string namedQuery, params Parameter[] parameters)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, NHibernate.Criterion.Order selectionOrder, params NHibernate.Criterion.ICriterion[] criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, string namedQuery, params Parameter[] parameters)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, NHibernate.Criterion.Order[] selectionOrder, params NHibernate.Criterion.ICriterion[] criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public TEntity FindOne(params NHibernate.Criterion.ICriterion[] criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(string namedQuery, params Parameter[] parameters)
-		{
-			throw new NotImplementedException();
-		}
+        public TEntity FindOne(NHibernate.Criterion.DetachedCriteria criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public ICollection<TEntity> FindAll(int firstResult, int numberOfResults, string namedQuery, params Parameter[] parameters)
-		{
-			throw new NotImplementedException();
-		}
+        public TEntity FindOne(string namedQuery, params Parameter[] parameters)
+        {
+            throw new NotImplementedException();
+        }
 
-		public TEntity FindOne(params NHibernate.Criterion.ICriterion[] criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public TEntity FindFirst(NHibernate.Criterion.DetachedCriteria criteria, params NHibernate.Criterion.Order[] orders)
+        {
+            throw new NotImplementedException();
+        }
 
-		public TEntity FindOne(NHibernate.Criterion.DetachedCriteria criteria)
-		{
-			throw new NotImplementedException();
-		}
+        public TEntity FindFirst(params NHibernate.Criterion.Order[] orders)
+        {
+            throw new NotImplementedException();
+        }
 
-		public TEntity FindOne(string namedQuery, params Parameter[] parameters)
-		{
-			throw new NotImplementedException();
-		}
+        public bool Exists(NHibernate.Criterion.DetachedCriteria criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public TEntity FindFirst(NHibernate.Criterion.DetachedCriteria criteria, params NHibernate.Criterion.Order[] orders)
-		{
-			throw new NotImplementedException();
-		}
+        public long Count(NHibernate.Criterion.DetachedCriteria criteria)
+        {
+            throw new NotImplementedException();
+        }
 
-		public TEntity FindFirst(params NHibernate.Criterion.Order[] orders)
-		{
-			throw new NotImplementedException();
-		}
+        #endregion
 
-		public bool Exists(NHibernate.Criterion.DetachedCriteria criteria)
-		{
-			throw new NotImplementedException();
-		}
-
-		public long Count(NHibernate.Criterion.DetachedCriteria criteria)
-		{
-			throw new NotImplementedException();
-		}
-
-		#endregion
-
-		public IEnumerable<TEntity> Find(IParameter parameters)
-		{
+        public IEnumerable<TEntity> Find(IParameter parameters)
+        {
             return database.Values.Where(item => parameters.IsMatch(item));
-		}
-		
-		public IEnumerable<IDictionary<string, object>> Select(IParameter parameters, params string[] properties)
-		{
-			return Find(parameters)
-				.Select(r =>
-				{
-					var row = new Dictionary<string, object>();
-					for (int i = 0; i < properties.Length; i++)
-						row[properties[i]] = N2.Utility.GetProperty(r, properties[i]);
-					return row;
-				});
-		}
+        }
+        
+        public IEnumerable<IDictionary<string, object>> Select(IParameter parameters, params string[] properties)
+        {
+            return Find(parameters)
+                .Select(r =>
+                {
+                    var row = new Dictionary<string, object>();
+                    for (int i = 0; i < properties.Length; i++)
+                        row[properties[i]] = N2.Utility.GetProperty(r, properties[i]);
+                    return row;
+                });
+        }
 
-		public long Count(IParameter parameters)
-		{
-			return Find(parameters).Count();
-		}
-	}
+        public long Count(IParameter parameters)
+        {
+            return Find(parameters).Count();
+        }
+    }
 }

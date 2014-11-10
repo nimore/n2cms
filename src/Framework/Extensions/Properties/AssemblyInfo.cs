@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using N2.Linq;
@@ -47,3 +47,6 @@ using N2.Web.Mvc.Html;
 [assembly: TypeForwardedTo(typeof(DroppableZoneHelper))]
 [assembly: TypeForwardedTo(typeof(ZoneExtensions))]
 [assembly: TypeForwardedTo(typeof(ZoneHelper))]
+
+[assembly: TypeForwardedTo(typeof(ControllerFactoryConfigurator))]
+[assembly: TypeForwardedTo(typeof(ServiceLocatingControllerFactory))]
