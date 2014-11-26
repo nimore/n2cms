@@ -330,6 +330,7 @@
     <Content Include="N2\Top.master" />
     <Content Include="N2\Resources\KeepAlive\Ping.ashx" />
     <None Include="Properties\PublishProfiles\Dev Golf Event.pubxml" />
+    <None Include="Properties\PublishProfiles\Release Package.pubxml" />
     <None Include="Web.config">
       <SubType>Designer</SubType>
     </None>
