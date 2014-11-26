@@ -21,7 +21,7 @@ namespace N2.Edit.Web.UI.Controls
 				return;
 			}
 
-			writer.Write("<div class='btn-group dropup'>");
+			writer.Write("<div class='btn-group dropdown'>");
 			
 			visibleChildren[0].CssClass += " btn " + CssClass;
 			visibleChildren[0].RenderControl(writer);
