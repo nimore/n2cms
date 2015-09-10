@@ -32,7 +32,8 @@ namespace N2.Security.AspNet.Identity
         : IUserStore<TUser, int>, // todo: IQueryableUserStore<TUser,int> 
           IUserPasswordStore<TUser, int>, IUserSecurityStampStore<TUser, int>, 
           IUserLoginStore<TUser, int>, IUserRoleStore<TUser, int>, // todo: IUserClaimStore<TUser, int>
-          IUserEmailStore<TUser, int>, IUserLockoutStore<TUser, int>, IUserPhoneNumberStore<TUser,int>
+          IUserEmailStore<TUser, int>, IUserLockoutStore<TUser, int>, IUserPhoneNumberStore<TUser,int>,
+          IUserTwoFactorStore<TUser, int>
           where TUser : ContentUser
     {
         private readonly N2.Engine.Logger<IdentityUserStore<TUser>> logger;
@@ -625,5 +626,18 @@ namespace N2.Security.AspNet.Identity
 
         #endregion
 
-    }
+		#region IUserTwoFactorStore
+		
+		public Task<bool> GetTwoFactorEnabledAsync(TUser user)
+		{
+			return Task.FromResult(false);
+		}
+
+		public Task SetTwoFactorEnabledAsync(TUser user, bool enabled)
+		{
+			throw new NotImplementedException();
+		}
+
+		#endregion
+	}
 }
