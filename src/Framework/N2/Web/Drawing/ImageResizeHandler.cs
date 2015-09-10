@@ -47,12 +47,12 @@ namespace N2.Web.Drawing
                 if (fs.FileExists(imageUrl))
                 {					
                     //string path = context.Server.MapPath(imageUrl);
-					if (CacheUtility.IsUnmodifiedSince(context.Request, fs.GetFile(imageUrl).Updated))
+                    if (CacheUtility.IsUnmodifiedSince(context.Request, fs.GetFile(imageUrl).Updated))
                     {
                         CacheUtility.NotModified(context.Response);
                     }
 
-                    context.Response.ContentType = GetContentType(imageUrl);
+                    context.Response.ContentType = MimeMapping.GetMimeMapping(imageUrl);
 
                     string extension = VirtualPathUtility.GetExtension(imageUrl);
                     ImageResizer ir = N2.Context.Current.Resolve<ImageResizer>();
@@ -69,23 +69,6 @@ namespace N2.Web.Drawing
                     throw new HttpException(404, "Not found");
                 }
             }            
-        }
-
-        private static string GetContentType(string filename)
-        {
-            var extension = Path.GetExtension(filename).ToLower();
-            switch (extension)
-            {
-                case ".gif":
-                    return "image/gif";
-                case ".png":
-                    return "image/png";
-                case ".jpg":
-                case ".jpeg":
-                    return "image/jpeg";				
-                default:
-                    return "application/x-" + extension.TrimStart('.');
-            }
         }
 
         public bool IsReusable
