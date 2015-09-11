@@ -76,7 +76,7 @@ namespace N2.Management.Files
         private Stream GetInputStream(IFileSystem fs, string url)
         {
             byte[] image;
-            using (var s = fs.OpenFile(url))
+            using (var s = fs.OpenFile(url, readOnly: true))
             {
                 image = new byte[s.Length];
                 s.Read(image, 0, image.Length);

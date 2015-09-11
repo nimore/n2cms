@@ -54,14 +54,19 @@ namespace N2.Web.Drawing
 
                     context.Response.ContentType = MimeMapping.GetMimeMapping(imageUrl);
 
-                    string extension = VirtualPathUtility.GetExtension(imageUrl);
                     ImageResizer ir = N2.Context.Current.Resolve<ImageResizer>();
 
                     CacheUtility.SetValidUntilExpires(context.Response, TimeSpan.FromDays(7));
                     using (var s = fs.OpenFile(imageUrl, readOnly: true))
                     {
-                        var resized = ir.GetResizedBytes(s, new ImageResizeParameters(width, height, mode));
-                        context.Response.BinaryWrite(resized);
+						if (s.Length > 0)
+						{
+							ir.Resize(s, new ImageResizeParameters(width, height, mode), context.Response.OutputStream);
+						}
+						else
+						{
+							throw new HttpException(404, "Not found");
+						}
                     }
                 }
                 else

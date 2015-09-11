@@ -153,7 +153,7 @@ namespace N2.Edit.FileSystem.Items
 
         public string ReadFile()
         {
-            using (var fs = FileSystem.OpenFile(LocalUrl))
+            using (var fs = FileSystem.OpenFile(LocalUrl, readOnly: true))
             using (var sr = new StreamReader(fs))
             {
                 return sr.ReadToEnd();

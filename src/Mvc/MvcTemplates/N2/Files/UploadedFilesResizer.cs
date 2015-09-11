@@ -61,14 +61,7 @@ namespace N2.Management.Files
 			{
 				if (size.Width <= 0 && size.Height <= 0)
 				{
-					using (var destinationStream = files.OpenFile(resizedPath))
-					{
-						int b;
-						while ((b = sourceStream.ReadByte()) != -1)
-						{
-							destinationStream.WriteByte((byte)b);
-						}
-					}
+					files.WriteFile(resizedPath, sourceStream);
 				}
 				else
 				{
@@ -98,7 +91,7 @@ namespace N2.Management.Files
         public virtual byte[] GetImageBytes(string virtualPath)
         {
             byte[] image;
-            using (var s = files.OpenFile(virtualPath))
+            using (var s = files.OpenFile(virtualPath, readOnly: true))
             {
                 image = new byte[s.Length];
                 s.Read(image, 0, image.Length);
