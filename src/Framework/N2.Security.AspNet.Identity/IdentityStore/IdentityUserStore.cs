@@ -37,7 +37,7 @@ namespace N2.Security.AspNet.Identity
           where TUser : ContentUser
     {
         private readonly N2.Engine.Logger<IdentityUserStore<TUser>> logger;
-        private UserManager<TUser, int> userManager;
+        private static readonly Task CompletedTask = Task.FromResult(0);
 
         public IdentityUserStore(ItemBridge bridge)
         {
@@ -60,100 +60,120 @@ namespace N2.Security.AspNet.Identity
         #region IUserStore
 
         public virtual Task CreateAsync(TUser user)
-        {
-            return Task.FromResult(AddUser(user));
+        {			
+            return Task.FromResult(Create(user));
         }
 
         public virtual Task DeleteAsync(TUser user)
         {
-            return Task.FromResult(DeleteUser(user));
+            return Task.FromResult(Delete(user));
         }
 
         public virtual Task<TUser> FindByIdAsync(int userId)
         {
-            return Task.FromResult(FindUserByUserId(userId));
+            var userList = Bridge.GetUserContainer(false);
+            if (userList == null)
+            {
+                throw new InvalidOperationException("The user list does not exist.");
+            }
+
+            // TUser: see review questions on upgrading old users
+            return Task.FromResult(Bridge.Repository.Find(Parameter.Equal("Parent", userList), ContentUser.UserIdQueryParameter(userId))
+                .Select(u => ToApplicationUser(u))
+                .Where(u => (u != null))
+                .SingleOrDefault());
         }
 
         public virtual Task<TUser> FindByNameAsync(string userName)
         {
-            return Task.FromResult(FindUserByName(userName));
+            return Task.FromResult(FindByName(userName));
         }
 
         public virtual Task UpdateAsync(TUser user)
         {
-            return Task.FromResult(SaveUser(user));
+            return Task.FromResult(Update(user));
         }
 
         #endregion
+
         #region IQueryableUserStore (todo)
 
         // TODO: public IQueryable<TUser> Users { get; }
 
         #endregion
-        #region private: Users implemented on ItemBridge
-        private static string[] UserDefaultRoles = { "Everyone", "Members", "Writers" }; // TODO: should defaults be stored somewhere else?
 
-        private bool AddUser(TUser user)
+        #region private: Users implemented on ItemBridge
+        
+        ////private static string[] UserDefaultRoles = { "Everyone", "Members", "Writers" }; // TODO: should defaults be stored somewhere else?
+
+        internal TUser FindByName(string userName)
         {
-            bool result = SaveUser(user);
-            if (result && (UserDefaultRoles.Length > 0))
-                AddUserToRoles(user, UserDefaultRoles);
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", "userName");
+            }
+
+            ContentItem user = Bridge.GetUser(userName);
+
+            return ToApplicationUser(user);
+        }
+
+        private bool Create(TUser user)
+        {
+            bool result = Update(user);
+            ////if (result && (UserDefaultRoles.Length > 0))
+            ////	AddUserToRoles(user, UserDefaultRoles);
             return result;
         }
 
-        private bool SaveUser(TUser user)
+        internal bool Update(TUser user)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
+            }
+
             var userList = Bridge.GetUserContainer(true);
             user.Parent = userList;
             Bridge.Save(user); 
+
             return true;
         }
 
-        internal bool DeleteUser(TUser user)
+        internal bool Delete(TUser user)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
+            }
+
             var u = Bridge.GetUser(user.UserName);
             if (u == null)
+            {
                 return false;
+            }
+
             Bridge.Delete(user); 
+
             return true;
-        }
-
-        private TUser FindUserByUserId(int userId)
-        {
-            var userList = Bridge.GetUserContainer(false);
-            if (userList == null)
-                return null;
-
-            // TUser: see review questions on upgrading old users
-            return Bridge.Repository.Find(Parameter.Equal("Parent", userList), /*Parameter.TypeEqual(typeof(TUser)),*/ ContentUser.UserIdQueryParameter(userId))
-                .Select(u => ToApplicationUser(u)).Where(u => (u != null))
-                .FirstOrDefault();
-        }
-
-        internal TUser FindUserByName(string userName)
-        {
-            if (string.IsNullOrWhiteSpace(userName))
-                return null;
-            ContentItem user = Bridge.GetUser(userName);
-            return ToApplicationUser(user);
-        }
+        }        
 
         private TUser ToApplicationUser(ContentItem user)
         {
             var userT = user as TUser;
             if ((user != null) && (userT == null))
+            {
                 logger.WarnFormat("Unexpected user type found. Null user returned! Found: {0}, Expected: {1}", user.GetType().AssemblyQualifiedName, typeof(TUser).AssemblyQualifiedName);
+            }
+
             return userT; // will return null when not of required type (should be silently upgraded ?)
         }
 
         #endregion
+
         #region internal: Users (extended)
 
-        internal IEnumerable<TUser> GetUsers(int startIndex, int max)
+        public IEnumerable<TUser> GetUsers(int startIndex, int max)
         {
             return Bridge.GetUsers(startIndex, max).Select(u => ToApplicationUser(u)).Where(u => (u != null)); 
         }
@@ -170,181 +190,229 @@ namespace N2.Security.AspNet.Identity
         public virtual Task<string> GetPasswordHashAsync(TUser user)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            return Task.FromResult<string>(GetUserPasswordHash(user));
+            }
+
+            return Task.FromResult(user.PasswordHash);
         }
 
         public virtual Task<bool> HasPasswordAsync(TUser user)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            return Task.FromResult<bool>(!string.IsNullOrWhiteSpace(GetUserPasswordHash(user)));
+            }
+
+            return Task.FromResult(user.PasswordHash != null);
         }
 
         public virtual Task SetPasswordHashAsync(TUser user, string passwordHash)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            return Task.FromResult(SetPasswordHash(user, passwordHash));
+            }
+
+            user.PasswordHash = passwordHash;
+
+            return CompletedTask;
         }
 
-        #endregion
-        #region UserPassword implemented on ItemBridge
-
-        private string GetUserPasswordHash(TUser user) { return user.PasswordHash; }
-
-        private bool SetPasswordHash(TUser user, string passwordHash)
-        {
-            return UpdateUser(user, (storedUser) => { user.PasswordHash = storedUser .PasswordHash = passwordHash; });
-        }
-
-        #endregion
+        #endregion        
 
         #region IUserSecurityStampStore
 
         public virtual Task<string> GetSecurityStampAsync(TUser user)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            return Task.FromResult<string>(GetUserSecurityStamp(user));
+            }
+
+            return Task.FromResult(user.SecurityStamp);
         }
 
         public virtual Task SetSecurityStampAsync(TUser user, string stamp)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            return Task.FromResult(SetSecurityStamp(user, stamp));
+            }
+
+            user.SecurityStamp = stamp;
+
+            return CompletedTask;
         }
 
-        #endregion
-        #region SecurityStamp implemented on ItemBridge
-
-        private string GetUserSecurityStamp(TUser user) { return user.SecurityStamp; }
-
-        private bool SetSecurityStamp(TUser user, string stamp)
-        {
-            return UpdateUser(user, (storedUser) => { user.SecurityStamp = storedUser.SecurityStamp = stamp; });
-        }
-
-        #endregion
+        #endregion        
 
         #region IUserLoginStore
 
         public virtual Task AddLoginAsync(TUser user, UserLoginInfo login)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
             if (login == null)
+            {
                 throw new ArgumentNullException("login");
-            return Task.FromResult(AddUserLogin(user, login.LoginProvider, login.ProviderKey));
+            }
+
+            return Task.FromResult(Bridge.AddUserExternalLoginInfo(user, login.LoginProvider, login.ProviderKey));
         }
 
         public virtual Task<TUser> FindAsync(UserLoginInfo login)
         {
             if (login == null)
+            {
                 throw new ArgumentNullException("login");
-            return Task.FromResult(FindUserByLogin(login.LoginProvider, login.ProviderKey));
+            }
+
+            var loginItem = Bridge.FindUserExternalLoginInfo(login.LoginProvider, login.ProviderKey);			
+
+            return Task.FromResult((loginItem != null ? loginItem.Parent as TUser : null));
         }
 
         public virtual Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user)
         {
-            return Task.FromResult(FindUserLogins(user));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            IList<UserLoginInfo> logins = Bridge.FindUserExternalLoginInfos(user)
+                .Select(loginItem => new UserLoginInfo(loginItem.LoginProvider, loginItem.ProviderKey))
+                .ToList();
+
+            return Task.FromResult(logins);
         }
 
         public virtual Task RemoveLoginAsync(TUser user, UserLoginInfo login)
         {
-            if (login == null)
-                throw new ArgumentNullException("login");
-            return Task.FromResult(RemoveUserLogin(user, login.LoginProvider, login.ProviderKey));
-        }
-
-        #endregion
-        #region private: UserLogins implemented on Bridge
-
-        private bool AddUserLogin(TUser user, string loginProvider, string providerKey)
-        {
-            return Bridge.AddUserExternalLoginInfo(user, loginProvider, providerKey);
-        }
-
-        private TUser FindUserByLogin(string loginProvider, string providerKey)
-        {
-            var loginItem = Bridge.FindUserExternalLoginInfo(loginProvider, providerKey);
-            return (loginItem != null ? loginItem.Parent as TUser : null);
-        }
-
-        private IList<UserLoginInfo> FindUserLogins(TUser user)
-        {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            return Bridge.FindUserExternalLoginInfos(user)
-                .Select(loginItem => new UserLoginInfo(loginItem.LoginProvider, loginItem.ProviderKey))
-                .ToList();
+            }
+
+            if (login == null)
+            {
+                throw new ArgumentNullException("login");
+            }
+
+            return Task.FromResult(Bridge.DeleteUserExternalLoginInfo(user, login.LoginProvider, login.ProviderKey));
         }
-        
-        private bool RemoveUserLogin(TUser user, string loginProvider, string providerKey)
-        {
-            return Bridge.DeleteUserExternalLoginInfo(user, loginProvider, providerKey);
-        }
-        
-        #endregion
+
+        #endregion        
 
         #region IUserRoleStore
 
-        public virtual Task AddToRoleAsync(TUser user, string role)
+        public virtual Task AddToRoleAsync(TUser user, string roleName)
         {
-            return Task.FromResult(AddUserToRole(user, role));
+            AddToRole(user, roleName);
+            return CompletedTask;
         }
 
         public virtual Task<IList<string>> GetRolesAsync(TUser user)
         {
-            return Task.FromResult(GetUserRoles(user));
+            IList<string> roles = GetRoles(user);
+            return Task.FromResult(roles);
         }
 
-        public virtual Task<bool> IsInRoleAsync(TUser user, string role)
+        public virtual Task<bool> IsInRoleAsync(TUser user, string roleName)
         {
-            return Task.FromResult(IsUserInRole(user, role));
+            return Task.FromResult(IsInRole(user, roleName));
         }
 
-        public virtual Task RemoveFromRoleAsync(TUser user, string role)
+        public virtual Task RemoveFromRoleAsync(TUser user, string roleName)
         {
-            return Task.FromResult(RemoveUserFromRole(user, role));
+            RemoveFromRole(user, roleName);
+            return CompletedTask;            
         }
 
         #endregion
-        #region private: UserRoles implemented on ItemBridge
 
-        internal bool AddUserToRole(TUser user, string role)
-        {
-            return AddUserToRoles(user, new string[] { role });
-        }
-        private bool AddUserToRoles(TUser user, string[] roles)
-        {
-            return Bridge.AddUserToRoles(user, roles);
-        }
-        
-        private IList<string> GetUserRoles(TUser user)
+        #region private: UserRoles
+
+        internal bool IsInRole(TUser user, string roleName)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            return new List<string>(user.GetRoles());
+            }
+
+            if (string.IsNullOrWhiteSpace(roleName))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", "role");
+            }
+
+            return user.Roles.Contains(roleName);
         }
 
-        internal bool IsUserInRole(TUser user, string role)
+        internal string[] GetRoles(TUser user)
         {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
+            }
+
+            return user.GetRoles();
+        }
+
+        internal bool AddToRole(TUser user, string role)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
 
             if (string.IsNullOrWhiteSpace(role))
-                return false;
+            {
+                throw new ArgumentException("Value cannot be null or empty.", "role");
+            }
 
-            return user.Roles.Contains(role);
+            var userList = Bridge.GetUserContainer(false);
+            if (userList == null)
+            {
+                throw new InvalidOperationException("The user list does not exist.");
+            }
+
+            if (!userList.HasRole(role))
+            {
+                throw new InvalidOperationException(string.Format("The role {0} does not exist.", role));
+            }
+
+            if (!user.Roles.Contains(role))
+            {
+                user.Roles.Add(role);
+                return true;
+            }
+
+            return false;
         }
 
-        internal bool RemoveUserFromRole(TUser user, string role)
+        internal bool RemoveFromRole(TUser user, string role)
         {
-            return Bridge.RemoveUserFromRole(user, role);
-        }
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
 
-        #endregion
-        #region internal: Users and Roles (extended)
+            if (string.IsNullOrWhiteSpace(role))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", "role");
+            }
+
+            if (user.Roles.Contains(role))
+            {
+                user.Roles.Remove(role);
+                return true;
+            }
+
+            return false;            
+        }
 
         /// <summary> Exist one or more users in specified role? </summary>
         internal bool HasUsersInRole(string roleName)
@@ -356,93 +424,69 @@ namespace N2.Security.AspNet.Identity
         internal string[] GetUsersInRole(string roleName)
         {
             return Bridge.GetUsersInRole(roleName, int.MaxValue);
-        }
+        }        
 
-        /// <summary> Returns all roles specified user is in <seealso cref="GetUserRoles(TUser)"/></summary>
-        internal string[] GetRolesForUser(string userName)
-        {
-            TUser user = FindUserByName(userName);
-            if (user != null)
-                return user.GetRoles();
-            else
-                return new string[] { };
-        }
-
-        #endregion
-        // Seealso: RoleStore
+        #endregion        
 
         #region IUserEmailStore
 
         /// <summary> Returns user associated with the email, null: not found </summary>
         public Task<TUser> FindByEmailAsync(string email)
         {
-            return Task.FromResult(FindUserByEmail(email));
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException("Value cannor be null or empty.", "email");
+            }
+
+            return Task.FromResult(Bridge.FindUserByEmail(email) as TUser);
         }
 
         public Task<string> GetEmailAsync(TUser user)
         {
-            return Task.FromResult(GetUserEmail(user));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            return Task.FromResult(user.Email);
         }
 
         public Task<bool> GetEmailConfirmedAsync(TUser user)
         {
-            return Task.FromResult(IsUserEmailConfirmed(user)); 
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            // review: IsApproved semantics is questionable. Should we introduce a new property IsEmailConfirmed? 
+            return Task.FromResult(user.IsApproved); 
         }
 
         public Task SetEmailAsync(TUser user, string email)
         {
-            return Task.FromResult(SetUserEmail(user, email)); 
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            user.Email = email;
+
+            return CompletedTask; 
         }
 
         public Task SetEmailConfirmedAsync(TUser user, bool confirmed)
         {
-            return Task.FromResult(SetUserEmailConfirmed(user, confirmed)); 
-        }
-
-        #endregion
-        #region Email implemented on ItemBridge
-
-        private TUser FindUserByEmail(string email)
-        {
-            return Bridge.FindUserByEmail(email) as TUser;
-        }
-
-        private string GetUserEmail(TUser user) { return user.Email; }
-
-        internal bool SetUserEmail(TUser user, string email)
-        {
             if (user == null)
-                throw new ArgumentNullException("user");
-            lock(Bridge)
             {
-                var theUser = Bridge.GetUser(user.UserName) as ContentUser;
-                if (theUser == null)
-                    return false;
-                theUser.Email = user.Email = email;
-                Bridge.Save(theUser);
-                return true;
+                throw new ArgumentNullException("user");
             }
+
+            user.IsApproved = confirmed;
+
+            return CompletedTask; 
         }
 
-        // review: IsApproved semantics is questionable. Should we introduce a new property IsEmailConfirmed? 
-        private bool IsUserEmailConfirmed(TUser user) { return user.IsApproved; }
-
-        private bool SetUserEmailConfirmed(TUser user, bool confirmed)
-        {
-            if (user == null)
-                throw new ArgumentNullException("user");
-            lock (Bridge)
-            {
-                var theUser = Bridge.GetUser(user.UserName) as ContentUser;
-                if (theUser == null)
-                    return false;
-                theUser.IsApproved = user.IsApproved = confirmed;
-                Bridge.Save(theUser);
-                return true;
-            }
-        }
-
-        #endregion
+        #endregion        
 
         #region IUserLockoutStore
 
@@ -453,100 +497,103 @@ namespace N2.Security.AspNet.Identity
         /// </remarks>
         public Task<bool> GetLockoutEnabledAsync(TUser user)
         {
-            // admin cannot be locked out
-            return Task.FromResult(GetLockoutEnabled(user));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+            
+            ////bool isEnabled;
+            ////if (Bridge.IsAdmin(user.UserName))
+            ////{
+            ////	// admin cannot be locked out
+            ////	isEnabled = false;
+            ////}
+            ////else
+            ////{
+            ////	isEnabled = user.LockoutEnabled;
+            ////}
+
+            ////return Task.FromResult(isEnabled);
+            return Task.FromResult(user.LockoutEnabled);
         }
 
         /// <summary>  Sets whether the user can be locked out. </summary>
         public Task SetLockoutEnabledAsync(TUser user, bool enabled)
         {
-            // Not supported yet
-            return Task.FromResult(false);
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            ////if (!Bridge.IsAdmin(user.UserName))
+            ////{
+            ////	user.LockoutEnabled = enabled;
+            ////}
+            user.LockoutEnabled = enabled;
+
+            return CompletedTask;
         }
 
         /// <summary> Returns the DateTimeOffset that represents the end of a user's lockout, any time in the past should be considered not locked out </summary>
         public Task<DateTimeOffset> GetLockoutEndDateAsync(TUser user)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
             // Note: The functionallity is similar to (but different from) classic membership IsLockedOut, LastLockoutDate
-            return Task.FromResult(GetLockoutEndDate(user)); 
+            return Task.FromResult(user.LockedOutEndDate);
         }
 
         /// <summary> Locks a user out until the specified end date (set to a past date, to unlock a user). </summary>
         public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset lockoutEnd)
         {
-            return Task.FromResult(SetLockoutEndDate(user, lockoutEnd));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            user.LockedOutEndDate = new DateTimeOffset(DateTime.SpecifyKind(lockoutEnd.UtcDateTime, DateTimeKind.Utc));
+
+            return CompletedTask;
         }
 
         /// <summary> Returns the current number of failed access attempts. This number usually will be reset whenever the password is verified or the account is locked out. </summary>
         public Task<int> GetAccessFailedCountAsync(TUser user)
         {
-            return Task.FromResult(GetAccessFailedCount(user));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            return Task.FromResult(user.AccessFailedCount);
         }
 
         /// <summary> Incremented on an attempt to access the user has failed </summary>
         public Task<int> IncrementAccessFailedCountAsync(TUser user)
         {
-            return Task.FromResult(UpdateAccessFailedCount(user, false));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            user.AccessFailedCount++;
+
+            return Task.FromResult(user.AccessFailedCount);
         }
 
         /// <summary> Resets the access failed count, typically after the account is successfully accessed. </summary>
         public Task ResetAccessFailedCountAsync(TUser user)
         {
-            return Task.FromResult(UpdateAccessFailedCount(user,true));
-        }
-
-        #endregion
-        #region Lockout implemented on ItemBridge
-
-        private bool GetLockoutEnabled(TUser user)
-        {
             if (user == null)
+            {
                 throw new ArgumentNullException("user");
-            // admin cannot be locked out
-            return Bridge.IsAdmin(user.UserName);
-        }
+            }
 
-        private DateTimeOffset GetLockoutEndDate(TUser user)
-        {
-            if (user == null)
-                throw new ArgumentNullException("user");
-            // Note: The functionallity is similar to (but different from) classic membership IsLockedOut, LastLockoutDate
-            return user.LockedOutEndDate;
-        }
+            user.AccessFailedCount = 0;
 
-        private bool SetLockoutEndDate(TUser user, DateTimeOffset lockoutEnd)
-        {
-            return UpdateUser(user, (storedUser) => { user.LockedOutEndDate = storedUser.LockedOutEndDate = lockoutEnd; });
-        }
-
-        private int GetAccessFailedCount(TUser user)
-        {
-            if (user == null)
-                throw new ArgumentNullException("user");
-            return user.AccessFailedCount;
-        }
-
-        private int UpdateAccessFailedCount(TUser user, bool reset)
-        {
-            UpdateUser(user, (storedUser) => { user.AccessFailedCount = storedUser.AccessFailedCount = reset ? 0 : (1 + Math.Max(0, storedUser.AccessFailedCount)); });
-            return user.AccessFailedCount;
-        }
-
-        #endregion
-        #region
-
-        internal void UnlockUser(string userName)
-        {
-            var user = FindUserByName(userName);
-            if (user == null)
-                return;
-            UpdateUser(user, (user1) => { 
-                // classic membership:
-                user1.IsLockedOut = user.IsLockedOut = false;
-                // identity lock-out:
-                user1.AccessFailedCount = 0;
-                user1.LockedOutEndDate = DateTimeOffset.Now.AddSeconds(-1); 
-            });
+            return CompletedTask;
         }
 
         #endregion
@@ -555,89 +602,62 @@ namespace N2.Security.AspNet.Identity
 
         public Task<string> GetPhoneNumberAsync(TUser user)
         {
-            return Task.FromResult(GetPhoneNumber(user));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            return Task.FromResult(user.PhoneNumber);
         }
 
         public Task<bool> GetPhoneNumberConfirmedAsync(TUser user)
         {
-            return Task.FromResult(GetPhoneNumberConfirmed(user));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            return Task.FromResult(user.IsPhoneNumberConfirmed);
         }
 
         public Task SetPhoneNumberAsync(TUser user, string phoneNumber)
         {
-            return Task.FromResult(SetPhoneNumber(user, phoneNumber));
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            user.PhoneNumber = phoneNumber;
+
+            return CompletedTask;            
         }
 
         public Task SetPhoneNumberConfirmedAsync(TUser user, bool confirmed)
         {
-            return Task.FromResult(SetPhoneNumberConfirmed(user, confirmed));
-        }
-
-        #endregion
-        #region PhoneNumber implemented on ItemBridge
-
-        private string GetPhoneNumber(TUser user)
-        {
             if (user == null)
-                throw new ArgumentNullException("user");
-            return user.PhoneNumber;
-        }
-
-        private bool GetPhoneNumberConfirmed(TUser user)
-        {
-            if (user == null)
-                throw new ArgumentNullException("user");
-            return user.IsPhoneNumberConfirmed;
-        }
-
-        private bool SetPhoneNumber(TUser user, string phoneNumber)
-        {
-            return UpdateUser(user, (user1) => { user1.PhoneNumber = phoneNumber; });
-        }
-
-        private bool SetPhoneNumberConfirmed(TUser user, bool confirmed)
-        {
-            return UpdateUser(user, (storedUser) => { storedUser.IsPhoneNumberConfirmed = user.IsPhoneNumberConfirmed = confirmed; });
-        }
-    
-        #endregion
-
-        #region support
-
-        /// <summary> Update a User property (make sure no other properties are affected) </summary>
-        private bool UpdateUser(TUser user, Action<ContentUser> update)
-        {
-            if (user == null)
-                throw new ArgumentNullException("user");
-            lock (Bridge)
             {
-                var theUser = Bridge.GetUser(user.UserName) as ContentUser;
-                if (theUser == null)
-                {
-                    update(user);
-                    return false;
-                }
-                update(theUser);
-     
-                Bridge.Save(theUser);
-                return true;
+                throw new ArgumentNullException("user");
             }
+
+            user.IsPhoneNumberConfirmed = confirmed;
+
+            return CompletedTask;
+        }
+
+        #endregion        
+
+        #region IUserTwoFactorStore
+        
+        public Task<bool> GetTwoFactorEnabledAsync(TUser user)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task SetTwoFactorEnabledAsync(TUser user, bool enabled)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
-
-		#region IUserTwoFactorStore
-		
-		public Task<bool> GetTwoFactorEnabledAsync(TUser user)
-		{
-			return Task.FromResult(false);
-		}
-
-		public Task SetTwoFactorEnabledAsync(TUser user, bool enabled)
-		{
-			throw new NotImplementedException();
-		}
-
-		#endregion
-	}
+    }
 }

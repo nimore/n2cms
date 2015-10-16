@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using N2.Engine;
 using N2.Plugin;
@@ -97,9 +98,9 @@ namespace N2.Security.AspNet.Identity
         #region Users
 
         public override IAccountInfo FindUserByName(string userName)
-        {
-            // TUser user = UserManager.FindByName(userName);
-            TUser user = UserStore.FindUserByName(userName);
+        {            			
+            TUser user = UserStore.FindByName(userName);
+
             return ToAccountInfo(user);
         }
 
@@ -114,54 +115,80 @@ namespace N2.Security.AspNet.Identity
         }
 
         public override void UpdateUserEmail(string userName, string email)
-        {
-            // TUser user = UserManager.FindByName(userName);
-            TUser user = UserStore.FindUserByName(userName);
-            if (user != null)
-            {
-                UserStore.SetUserEmail(user, email);
-            }
+        {            
+            TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				throw new ArgumentException(string.Format("Unknown user {0}.", userName));
+			}
+            
+            UserStore.SetEmailAsync(user, email).Wait();
+			UserStore.SetEmailConfirmedAsync(user, false).Wait();
+			UserStore.SetSecurityStampAsync(user, Guid.NewGuid().ToString());
+
+			UserStore.Update(user);
         }
 
         public override void UnlockUser(string userName)
         {
-            UserStore.UnlockUser(userName);
+			TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				return;
+			}
+
+			var lockoutEnabled = UserStore.GetLockoutEnabledAsync(user).Result;
+			if (!lockoutEnabled)
+			{
+				throw new InvalidOperationException("Lockout is not enabled for this user.");
+			}
+
+			user.IsLockedOut = false;
+
+			UserStore.SetLockoutEndDateAsync(user, DateTime.UtcNow.AddSeconds(-1)).Wait();
+			UserStore.ResetAccessFailedCountAsync(user).Wait();
+			UserStore.Update(user);
         }
 
         public override bool ChangePassword(string userName, string newPassword)
         {
-            // TUser user = UserManager.FindByName(userName);
-            TUser user = UserStore.FindUserByName(userName);
-            if (user == null)
-                return false;
+			TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				return false;
+			}
 
-            /*
-            // variant a:
-            if (UserManager.HasPassword(user.Id))
-                UserManager.RemovePassword(user.Id);
-            var result = UserManager.AddPassword(user.Id, newPassword); // will store hash of the password 
-            return result.Succeeded;
-            */
+			var validationResult = UserManager.PasswordValidator.ValidateAsync(newPassword).Result;
+			if (!validationResult.Succeeded)
+			{
+				throw new ArgumentException("The password is not valid: " + string.Join("; ", validationResult.Errors));
+			}
 
-            // variant b:
             String newHashed = UserManager.PasswordHasher.HashPassword(newPassword);
             UserStore.SetPasswordHashAsync(user, newHashed).Wait();  // assuring password is changed before leaving the method
+			UserStore.Update(user);
+
             return true;
         }
 
         public override void DeleteUser(string userName)
         {
-            // TUser user = UserManager.FindByName(userName);
-            TUser user = UserStore.FindUserByName(userName);
-            if (user == null)
-                return;
-            UserStore.DeleteUser(user);
+			TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				return;
+			}
+
+            UserStore.Delete(user);
         }
 
         protected AccountInfo ToAccountInfo(ContentUser muser)
         {
-            if (muser == null)
-                return null;
+			if (muser == null)
+			{
+				return null;
+			}
+
             return new AccountInfo()
             {
                 UserName = muser.UserName,
@@ -194,13 +221,13 @@ namespace N2.Security.AspNet.Identity
         /// <summary> Add role to list of known roles <seealso cref="GetAllRoles"/></summary>
         public override void CreateRole(string roleName)
         {
-            RoleStore.AddRole(roleName);
+            RoleStore.Create(roleName);
         }
 
         /// <summary> Delete role from list of known roles <seealso cref="GetAllRoles"/> </summary>
         public override bool DeleteRole(string roleName)
         {
-            return RoleStore.DeleteRole(roleName);
+            return RoleStore.Delete(roleName);
         }
 
         #endregion
@@ -222,39 +249,50 @@ namespace N2.Security.AspNet.Identity
         /// <summary> Is specified user in specified role? </summary>
         public override bool IsUserInRole(string userName, string roleName)
         {
-            // TUser user = UserManager.FindByName(userName);
-            TUser user = UserStore.FindUserByName(userName);
-            if(user == null)
-                throw new ArgumentNullException(string.Format("Unknown user {0}",userName));
-            // return UserManager.IsInRole(user.UserId, roleName);
-            return UserStore.IsUserInRole(user, roleName);
+			TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				throw new ArgumentException(string.Format("Unknown user {0}.", userName));
+			}
+            
+            return UserStore.IsInRoleAsync(user, roleName).Result;
         }
 
         public override string[] GetRolesForUser(string userName)
         {
-            return UserStore.GetRolesForUser(userName);
+			TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				throw new ArgumentException(string.Format("Unknown user {0}.", userName));
+			}
+
+            return UserStore.GetRoles(user);
         }
 
         /// <summary> Add specified user in a role </summary>
         public override void AddUserToRole(string userName, string roleName)
-        {
-            // TUser user = UserManager.FindByName(userName);
-            TUser user = UserStore.FindUserByName(userName);
-            if(user == null)
-                throw new ArgumentNullException(string.Format("Unknown user {0}",userName));
-            // UserManager.AddToRole(user.UserId, roleName);
-            UserStore.AddUserToRole(user, roleName);
+        {            
+			TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				throw new ArgumentException(string.Format("Unknown user {0}.", userName));
+			}
+
+            UserStore.AddToRole(user, roleName);
+			UserStore.Update(user);
         }
 
         /// <summary> Removes specified user from role </summary>
         public override void RemoveUserFromRole(string userName, string roleName)
         {
-            // TUser user = UserManager.FindByName(userName);
-            TUser user = UserStore.FindUserByName(userName);
-            if (user == null)
-                throw new ArgumentNullException(string.Format("Unknown user {0}", userName));
-            // UserManager.RemoveFromRole(user.UserId, roleName);
-            UserStore.RemoveUserFromRole(user, roleName);
+			TUser user = UserStore.FindByName(userName);
+			if (user == null)
+			{
+				throw new ArgumentException(string.Format("Unknown user {0}.", userName));
+			}
+            
+            UserStore.RemoveFromRole(user, roleName);
+			UserStore.Update(user);
         }
 
         #endregion

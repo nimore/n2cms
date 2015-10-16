@@ -80,6 +80,9 @@ namespace N2.Security.AspNet.Identity
         /// <summary> Used to record when an attempt to access the user has failed. </summary>
         public int AccessFailedCount { get { return GetDetail<int>("AccessFailedCount", 0); } set { base.SetDetail<int>("AccessFailedCount", value, 0); } }
 
+        /// <summary> Used to record whether user lockout is enabled. </summary>
+        public bool LockoutEnabled { get { return GetDetail<bool>("LockoutEnabled", true); } set { base.SetDetail<bool>("LockoutEnabled", value, true); } }
+
         #endregion
 
         #region see IUserPhoneNumberStore

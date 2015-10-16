@@ -19,9 +19,9 @@ namespace N2.Security.AspNet.Identity
     /// No data migration is nessesary when moving from classic-membership to Identity.
     /// </remarks>
     [Service]
-    public class IdentityRoleStore : IRoleStore<IRole> // todo: IQueryableRoleStore<IRole>
+    public class IdentityRoleStore : IRoleStore<IRole>, IQueryableRoleStore<IRole>
     {
-        private RoleManager<IRole> roleManager;
+		////private RoleManager<IRole> roleManager;
 
         public IdentityRoleStore(ItemBridge bridge)
         {
@@ -32,34 +32,34 @@ namespace N2.Security.AspNet.Identity
 
         protected ItemBridge Bridge { get; private set; }
 
-        /// <summary> Returns Role manager that operates on the role store </summary>
-        public RoleManager<IRole> GetRoleManager() 
-        {
-            if (roleManager == null)
-            {
-                // Plain RoleManager is good enough:
-                roleManager = new RoleManager<IRole>(this);
-            }
-            return roleManager;
-        }
+		///// <summary> Returns Role manager that operates on the role store </summary>
+		////public RoleManager<IRole> GetRoleManager() 
+		////{
+		////	if (roleManager == null)
+		////	{
+		////		// Plain RoleManager is good enough:
+		////		roleManager = new RoleManager<IRole>(this);
+		////	}
+		////	return roleManager;
+		////}
 
-        private void CloseRoleManager()
-        {
-            if (roleManager != null)
-            {
-                roleManager.Dispose();
-                roleManager = null;
-            }
-        }
+		////private void CloseRoleManager()
+		////{
+		////	if (roleManager != null)
+		////	{
+		////		roleManager.Dispose();
+		////		roleManager = null;
+		////	}
+		////}
 
-        #region IDisposable
+		////#region IDisposable
 
-        public void Dispose()
-        {
-            CloseRoleManager();
-        }
+		public void Dispose()
+		{
+			////CloseRoleManager();
+		}		
 
-        #endregion
+		////#endregion
 
         /// <summary> Simple role class 
         /// <seealso cref="http://msdn.microsoft.com/en-us/library/dn613268(v=vs.108).aspx">IRole</seealso></summary>
@@ -77,29 +77,40 @@ namespace N2.Security.AspNet.Identity
         /// <summary> Creates a new role </summary>
         public virtual Task CreateAsync(IRole role)
         {
-            return Task.FromResult(AddRole(role));
+            return Task.FromResult(Create(role));
         }
+
         public virtual Task DeleteAsync(IRole role)
         {
-            return Task.FromResult(DeleteRole(role));
+            return Task.FromResult(Delete(role));
         }
+
         public virtual Task<IRole> FindByIdAsync(string roleId)
         {
-            return Task.FromResult(FindByRoleId(roleId));
+            return Task.FromResult(FindById(roleId));
         }
+
         public virtual Task<IRole> FindByNameAsync(string roleName)
         {
-            return Task.FromResult(FindByRoleName(roleName));
+            return Task.FromResult(FindByName(roleName));
         }
+
         public virtual Task UpdateAsync(IRole role)
         {
             return Task.FromResult(0); // there's no role properties to update
         }
    
         #endregion
-        #region IQueryableRoleStore (todo)
 
-        // IQueryable<IRole> Roles { get; }
+        #region IQueryableRoleStore
+
+        public IQueryable<IRole> Roles 
+		{
+			get
+			{
+				return GetAllRoles().AsQueryable();
+			}
+		}
 
         #endregion
 
@@ -110,55 +121,91 @@ namespace N2.Security.AspNet.Identity
             var userList = Bridge.GetUserContainer(true);
             return userList.GetRoleNames();
         }
-        internal IEnumerable<IRole> GetAllRoles()
+
+        private IEnumerable<IRole> GetAllRoles()
         {
-            foreach (string roleName in GetAllRoleNames())
-                yield return ToRole(roleName);
+			foreach (string roleName in GetAllRoleNames())
+			{
+				yield return ToRole(roleName);
+			}
         }
 
-        private int AddRole(IRole role) 
+        private int Create(IRole role) 
         {
-            if (role == null)
-                throw new ArgumentNullException("role");
-            return AddRole(role.Id); 
+			if (role == null)
+			{
+				throw new ArgumentNullException("role");
+			}
+
+            return Create(role.Name);
         }
 
-        internal int AddRole(string roleId)
+        internal int Create(string roleName)
         {
+			if (string.IsNullOrWhiteSpace(roleName))
+			{
+				throw new ArgumentException("Value cannot be null or empty.", "roleName");
+			}
+
             var userList = Bridge.GetUserContainer(true);
-            userList.AddRole(roleId);
+            userList.AddRole(roleName);
             Bridge.Save(userList);
+
             return 0;
         }
 
-        private bool DeleteRole(IRole role) 
+        private bool Delete(IRole role) 
         {
-            if (role == null)
-                throw new ArgumentNullException("role");
-            return DeleteRole(role.Id);
+			if (role == null)
+			{
+				throw new ArgumentNullException("role");
+			}
+
+            return Delete(role.Name);
         }
 
-        internal bool DeleteRole(string roleId)
+        internal bool Delete(string roleName)
         {
+			if (string.IsNullOrWhiteSpace(roleName))
+			{
+				throw new ArgumentException("Value cannot be null or empty.", "roleName");
+			}
+
             var userList = Bridge.GetUserContainer(false);
-            if (!userList.HasRole(roleId))
-                return false;
-            userList.RemoveRole(roleId);
+			if (userList == null)
+			{
+				throw new InvalidOperationException("The user list does not exist.");
+			}
+
+			if (!userList.HasRole(roleName))
+			{
+				return false;
+			}
+            userList.RemoveRole(roleName);
             Bridge.Save(userList); 
+
             return true;
         }
 
-        private IRole FindByRoleId(string roleId)
+        private IRole FindById(string roleId)
         {
             var userList = Bridge.GetUserContainer(false);
-            if (string.IsNullOrWhiteSpace(roleId) || (userList == null) || !userList.HasRole(roleId))
-                return null;
+			if (userList == null)
+			{
+				throw new InvalidOperationException("The user list does not exist.");
+			}
+
+			if (string.IsNullOrWhiteSpace(roleId) || (userList == null) || !userList.HasRole(roleId))
+			{
+				return null;
+			}
+
             return ToRole(roleId);
         }
 
-        private IRole FindByRoleName(string roleName)
+        private IRole FindByName(string roleName)
         {
-            return FindByRoleId(roleName); // implementation internals: roleID == roleName
+            return FindById(roleName); // implementation internals: roleID == roleName
         }
 
         private Role ToRole(string roleId)
