@@ -124,7 +124,7 @@ namespace N2.Security.AspNet.Identity
             
             UserStore.SetEmailAsync(user, email).Wait();
 			UserStore.SetEmailConfirmedAsync(user, false).Wait();
-			UserStore.SetSecurityStampAsync(user, Guid.NewGuid().ToString());
+			UserStore.SetSecurityStampAsync(user, Guid.NewGuid().ToString()).Wait();
 
 			UserStore.Update(user);
         }
@@ -166,6 +166,7 @@ namespace N2.Security.AspNet.Identity
 
             String newHashed = UserManager.PasswordHasher.HashPassword(newPassword);
             UserStore.SetPasswordHashAsync(user, newHashed).Wait();  // assuring password is changed before leaving the method
+			UserStore.SetSecurityStampAsync(user, Guid.NewGuid().ToString()).Wait();
 			UserStore.Update(user);
 
             return true;
