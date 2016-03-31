@@ -7,6 +7,9 @@ namespace N2.Edit
         /// <summary>Gets the url for the navigation frame.</summary>
         string EditTreeUrl { get; }
 
+        /// <summary>Gets the url for the media browser frame.</summary>
+        string MediaBrowserUrl { get; }
+
         /// <summary>Gets the url for the navigation frame.</summary>
         /// <param name="selectedItem">The currently selected item.</param>
         /// <returns>An url.</returns>
@@ -28,7 +31,7 @@ namespace N2.Edit
         /// <summary>Gets the url to the edit page where to edit an existing item.</summary>
         /// <param name="item">The item to edit.</param>
         /// <returns>The url to the edit page</returns>
-        string GetEditExistingItemUrl(ContentItem item);
+        string GetEditExistingItemUrl(ContentItem item, string returnUrl = null);
 
         /// <summary>Gets the url to the edit interface with a certain item selected.</summary>
         /// <param name="selectedItem">The item to select in edit mode.</param>

@@ -99,6 +99,23 @@ namespace N2.Details
             }
         }
 
+		private object GetValue(string text)
+		{
+			switch (ValidationType)
+			{
+				case ValidationDataType.Currency:
+					return decimal.Parse(text);
+				case ValidationDataType.Date:
+					return DateTime.Parse(text);
+				case ValidationDataType.Double:
+					return double.Parse(text);
+				case ValidationDataType.Integer:
+					return int.Parse(text);
+				default:
+					return text;
+			}
+		}
+
         public override void UpdateEditor(ContentItem item, Control editor)
         {
             TextBox tb = editor as TextBox;

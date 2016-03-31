@@ -53,11 +53,25 @@ namespace N2.Configuration
 			set { base["deleteItemUrl"] = value; }
 		}
 
-		[ConfigurationProperty("ensureLocalhostPreviewUrls", DefaultValue = false)]
+        [ConfigurationProperty("mediaBrowserUrl", DefaultValue = "{ManagementUrl}/Content/Navigation/MediaBrowser.aspx")]
+        public string MediaBrowserUrl
+        {
+            get { return (string)base["mediaBrowserUrl"]; }
+            set { base["mediaBrowserUrl"] = value; }
+        }
+
+        [ConfigurationProperty("ensureLocalhostPreviewUrls", DefaultValue = false)]
 		public bool EnsureLocalhostPreviewUrls
 		{
 			get { return (bool)base["ensureLocalhostPreviewUrls"]; }
 			set { base["ensureLocalhostPreviewUrls"] = value; }
+		}
+
+		[ConfigurationProperty("setSecurityUrl", DefaultValue = "{ManagementUrl}/Content/Security/Default.aspx")]
+		public string SetSecurityUrl
+		{
+			get { return (string)base["setSecurityUrl"]; }
+			set { base["setSecurityUrl"] = value; }
 		}
 
 	}
