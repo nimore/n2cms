@@ -22,7 +22,7 @@
     </SccProvider>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
@@ -451,6 +451,7 @@
     </Compile>
     <Compile Include="Content\Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Content\Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
@@ -850,12 +851,14 @@
     </Compile>
     <Compile Include="Myself\Activity.ascx.cs">
       <DependentUpon>Activity.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Activity.ascx.designer.cs">
       <DependentUpon>Activity.ascx</DependentUpon>
     </Compile>
     <Compile Include="Myself\Languages.ascx.cs">
       <DependentUpon>Languages.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Languages.ascx.designer.cs">
       <DependentUpon>Languages.ascx</DependentUpon>
@@ -872,12 +875,14 @@
     <Compile Include="Myself\RootPartBase.cs" />
     <Compile Include="Myself\Statistics.ascx.cs">
       <DependentUpon>Statistics.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Statistics.ascx.designer.cs">
       <DependentUpon>Statistics.ascx</DependentUpon>
     </Compile>
     <Compile Include="Myself\Wizards.ascx.cs">
       <DependentUpon>Wizards.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Wizards.ascx.designer.cs">
       <DependentUpon>Wizards.ascx</DependentUpon>
@@ -918,6 +923,7 @@
     </Compile>
     <Compile Include="Users\Activity.aspx.cs">
       <DependentUpon>Activity.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Users\Activity.aspx.designer.cs">
       <DependentUpon>Activity.aspx</DependentUpon>
