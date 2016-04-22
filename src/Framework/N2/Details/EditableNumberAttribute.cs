@@ -75,34 +75,34 @@ namespace N2.Details
         {
             TextBox tb = editor as TextBox;
 
-			object value = string.IsNullOrEmpty(tb.Text)
-				? null
-				: GetValue(tb.Text);
+            object value = string.IsNullOrEmpty(tb.Text)
+                ? null
+                : GetValue(tb.Text);
 
-			return Utility.SetPropertyOrDetail(item, Name, value);
+            return Utility.SetPropertyOrDetail(item, Name, value);
         }
 
-		private object GetValue(string text)
-		{
-			switch (ValidationType)
-			{
-				case ValidationDataType.Currency:
-					return decimal.Parse(text);
-				case ValidationDataType.Date:
-					return DateTime.Parse(text);
-				case ValidationDataType.Double:
-					return double.Parse(text);
-				case ValidationDataType.Integer:
-					return int.Parse(text);
-				default:
-					return text;
-			}
-		}
+        private object GetValue(string text)
+        {
+            switch (ValidationType)
+            {
+                case ValidationDataType.Currency:
+                    return decimal.Parse(text);
+                case ValidationDataType.Date:
+                    return DateTime.Parse(text);
+                case ValidationDataType.Double:
+                    return double.Parse(text);
+                case ValidationDataType.Integer:
+                    return int.Parse(text);
+                default:
+                    return text;
+            }
+        }		
 
         public override void UpdateEditor(ContentItem item, Control editor)
         {
             TextBox tb = editor as TextBox;
-			tb.TextMode = TextBoxMode.Number;
+            tb.TextMode = TextBoxMode.Number;
             object value = item[Name];
             if (value != null)
                 tb.Text = value.ToString();

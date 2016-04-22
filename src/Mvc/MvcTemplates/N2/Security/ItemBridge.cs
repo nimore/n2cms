@@ -178,9 +178,15 @@ namespace N2.Security
         {
             try
             {
-                IList<Items.User> users = GetUsers(username, 0, 100); // workaround for potential issue with SQL LIKE %? by matching results with string comparison here
-                var user = users.FirstOrDefault(u => string.Equals(u.Name, username, StringComparison.InvariantCultureIgnoreCase));
-                return user;
+				Items.UserList users = GetUserContainer(false);
+				if (users == null)
+					return null;
+
+				var query = Parameter.Equal("Parent", users) &
+					Parameter.TypeEqual(userType.Name) &
+					Parameter.Equal("Name", username);
+
+				return Repository.Find(query).OfType<User>().FirstOrDefault();
             }
             catch (Exception ex)
             {
@@ -199,22 +205,20 @@ namespace N2.Security
             if (users == null)
                 return new List<Items.User>();
 
-			var query = 
-				Parameter.Equal("Parent", users) 
-				& Parameter.TypeEqual(userType.Name);
-            
-			var cachedResults = Repository.Find(query).OfType<User>().ToList();
+			var query = Parameter.Equal("Parent", users) &
+				Parameter.TypeEqual(userType.Name);
 
-			// TODO: Eventually move this filter to the Parameter above (e.g. &Parameter.Like("Name", username); ) once Parameter supports Like filters properly.
-			// TODO: Also do paging in the query, e.g.  `query = query.Skip(firstResult).Take(maxResults);`
-			return (from user in cachedResults
-					where user.Name.Contains(username)
-					select user).Skip(firstResult).Take(maxResults).ToList();
+			if (!string.IsNullOrWhiteSpace(username))
+			{
+				query = query & Parameter.Like("Name", username);
+			}
+            
+			return Repository.Find(query).OfType<User>().Skip(firstResult).Take(maxResults).ToList();
         }
 
         public IList<Items.User> GetUsers(int firstResult, int maxResults)
         {
-            return GetUsers("%",firstResult, maxResults);
+            return GetUsers(null, firstResult, maxResults);
         }
 
         public int GetUsersCount()

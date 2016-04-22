@@ -90,6 +90,17 @@ namespace N2.Edit.FileSystem
             return d;
         }
 
+        /// <summary>Searches for files in all Upload Directories.</summary>
+        /// <param name="query">The search term</param>
+        /// <param name="uploadDirectories">All Upload Directories</param>
+        /// <returns>An enumeration of files matching the query.</returns>
+        public virtual IEnumerable<FileData> SearchFiles(string query, List<Collections.HierarchyNode<ContentItem>> uploadDirectories)
+        {
+            //This is not implemented
+            return new List<FileData>();
+        }
+
+
         /// <summary>Checks if a file exists.</summary>
         /// <param name="virtualPath">The path of the file to check.</param>
         /// <returns>True if the file exists in the file system.</returns>
@@ -279,7 +290,7 @@ namespace N2.Edit.FileSystem
         /// <param name="outputStream">The stream to which the file contents should be written.</param>
         public virtual void ReadFileContents(string virtualPath, Stream outputStream)
         {
-            using (Stream sourceFile = OpenFile(virtualPath))
+            using (Stream sourceFile = OpenFile(virtualPath, readOnly: true))
             {
                 byte[] buffer = new byte[32768];
                 while (true)

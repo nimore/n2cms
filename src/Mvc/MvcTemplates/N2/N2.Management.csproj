@@ -22,7 +22,7 @@
     </SccProvider>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
@@ -107,7 +107,13 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App\Framed\CustomTranslations.html" />
     <Content Include="App\i18n\en.js" />
+    <Content Include="App\Preview\Preview.css" />
+    <Content Include="App\Preview\PreviewBar.html" />
+    <Content Include="App\Preview\PreviewBoostrapper.js" />
+    <Content Include="App\Preview\Preview.js" />
+    <Content Include="App\Framed\Framed.js" />
     <Content Include="App\Js\Controllers.js" />
     <Content Include="App\Js\Directives.js" />
     <Content Include="App\Js\Services.js" />
@@ -180,7 +186,10 @@
     <Content Include="Resources\chosen_v1.1.0\chosen.min.css" />
     <Content Include="Resources\chosen_v1.1.0\index.html" />
     <Content Include="Resources\chosen_v1.1.0\options.html" />
+    <Content Include="Resources\Css\editor.css" />
+    <Content Include="Resources\Css\mediaBrowser.css" />
     <Content Include="Resources\Css\n2.css" />
+    <Content Include="Resources\Css\smoothness\images\animated-overlay.gif" />
     <Content Include="Resources\icons\default.html" />
     <Content Include="Resources\icons\glyphicons.css" />
     <Content Include="Resources\icons\glyphicons.png" />
@@ -191,6 +200,9 @@
     <Content Include="Resources\img\plus.png" />
     <Content Include="Resources\img\search.png" />
     <Content Include="Resources\img\sliding-loader.png" />
+    <Content Include="Resources\img\smallico\clock.png" />
+    <Content Include="Resources\img\smallico\close_2.png" />
+    <Content Include="Resources\img\smallico\home.png" />
     <Content Include="Resources\img\tools.png" />
     <Content Include="Resources\jQuery-File-Upload-8.5.0\css\jquery.fileupload-ui-noscript.css" />
     <Content Include="Resources\jQuery-File-Upload-8.5.0\css\jquery.fileupload-ui.css" />
@@ -207,6 +219,8 @@
     <Content Include="Resources\jQuery-File-Upload-8.5.0\js\jquery.iframe-transport.js" />
     <Content Include="Resources\jQuery-File-Upload-8.5.0\js\main.js" />
     <Content Include="Resources\jQuery-File-Upload-8.5.0\js\vendor\jquery.ui.widget.js" />
+    <Content Include="Resources\Js\MediaSelection.js" />
+    <Content Include="Resources\Js\plugins\hogan-2.0.0.js" />
     <Content Include="Resources\Js\plugins\n2.autosave.js" />
     <Content Include="Resources\Js\frameInteraction.js" />
     <Content Include="Resources\Js\jquery-1.11.0.js" />
@@ -352,6 +366,7 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Roles\App_LocalResources\Edit.aspx.resx" />
+    <Content Include="Content\Navigation\App_LocalResources\MediaBrowser.aspx.resx" />
     <None Include="Content\Dependencies.aspx" />
     <Content Include="Files\FileSystem\UploadFile.ashx" />
     <Content Include="Installation\log4net.config" />
@@ -441,6 +456,7 @@
     </Compile>
     <Compile Include="Content\Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Content\Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
@@ -840,12 +856,14 @@
     </Compile>
     <Compile Include="Myself\Activity.ascx.cs">
       <DependentUpon>Activity.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Activity.ascx.designer.cs">
       <DependentUpon>Activity.ascx</DependentUpon>
     </Compile>
     <Compile Include="Myself\Languages.ascx.cs">
       <DependentUpon>Languages.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Languages.ascx.designer.cs">
       <DependentUpon>Languages.ascx</DependentUpon>
@@ -862,12 +880,14 @@
     <Compile Include="Myself\RootPartBase.cs" />
     <Compile Include="Myself\Statistics.ascx.cs">
       <DependentUpon>Statistics.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Statistics.ascx.designer.cs">
       <DependentUpon>Statistics.ascx</DependentUpon>
     </Compile>
     <Compile Include="Myself\Wizards.ascx.cs">
       <DependentUpon>Wizards.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Myself\Wizards.ascx.designer.cs">
       <DependentUpon>Wizards.ascx</DependentUpon>
@@ -878,9 +898,6 @@
     </Compile>
     <Compile Include="Resources\Js\plugins.ashx.cs">
       <DependentUpon>plugins.ashx</DependentUpon>
-    </Compile>
-    <Compile Include="Resources\Js\tinymce.ashx.cs">
-      <DependentUpon>tinymce.ashx</DependentUpon>
     </Compile>
     <Compile Include="Resources\KeepAlive\Ping.ashx.cs">
       <DependentUpon>Ping.ashx</DependentUpon>
@@ -911,6 +928,7 @@
     </Compile>
     <Compile Include="Users\Activity.aspx.cs">
       <DependentUpon>Activity.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Users\Activity.aspx.designer.cs">
       <DependentUpon>Activity.aspx</DependentUpon>
@@ -1234,7 +1252,6 @@
     <Content Include="Resources\img\treeview\spacer.gif" />
     <Content Include="Resources\img\treeview\spinner.gif" />
     <Content Include="Resources\Js\plugins\jquery.SimpleTree.js" />
-    <Content Include="Resources\Js\tinymce.ashx" />
     <Content Include="Content\Security\Default.aspx" />
     <Content Include="Content\Versions\Default.aspx" />
     <Content Include="Resources\img\book_previous.gif" />

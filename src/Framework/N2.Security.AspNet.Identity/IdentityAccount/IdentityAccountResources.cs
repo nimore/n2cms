@@ -33,8 +33,8 @@ namespace N2.Security.AspNet.Identity
             N2.Web.Url.SetToken(LoginPageUrlToken,             "{Account.Identity}/Login");
             N2.Web.Url.SetToken(LogoutPageUrlToken,            "{Account.Identity}/LogOff");
 
-            N2.Web.Url.SetToken(ManageUserPageUrlToken,        "{Account.Identity}/Manage");  
-            N2.Web.Url.SetToken(EditPasswordPageUrlToken,      "{Account.Identity}/Manage");			
+            N2.Web.Url.SetToken(ManageUserPageUrlToken,        "~/Manage");  
+            N2.Web.Url.SetToken(EditPasswordPageUrlToken,      "~/Manage");
         }
     }
 }

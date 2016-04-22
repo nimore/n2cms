@@ -1,33 +1,41 @@
+using System;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 
 namespace N2.Web.UI.WebControls
 {
-    internal class SelectingMediaControl : Control, INamingContainer
+    internal class SelectingMediaControl : Control
     {
-        public HtmlGenericControl SelectorContainer { get; set; }
-        public HtmlGenericControl UploadContainer { get; set; }
+		public HtmlGenericControl SelectorContainer { get; set; }
         public MediaSelector SelectorControl { get; set; }
 
         public SelectingMediaControl()
         {
-            SelectorControl = new MediaSelector();
-            SelectorControl.ID = "Selector";
-        }
+			SelectorContainer = new HtmlGenericControl("div");
+			SelectorControl = new MediaSelector();
+		}
 
-        protected override void CreateChildControls()
+		public SelectingMediaControl(string name)
+		{
+			this.ID = name;
+			SelectorContainer = new HtmlGenericControl("div");
+			SelectorControl = new MediaSelector(name);
+		}
+
+		protected override void OnInit(EventArgs e)
+		{
+			base.OnInit(e);
+			EnsureChildControls();
+		}
+
+		protected override void CreateChildControls()
         {
-            base.CreateChildControls();
+			base.CreateChildControls();
 
-            SelectorContainer = new HtmlGenericControl("span");
             SelectorContainer.Attributes["class"] = "uploadableContainer selector";
             Controls.Add(SelectorContainer);
 
             SelectorContainer.Controls.Add(SelectorControl);
-
-            UploadContainer = new HtmlGenericControl("span");
-            UploadContainer.Attributes["class"] = "uploadableContainer uploader";
-            Controls.Add(UploadContainer);
         }
 
         public void Select(string url)
@@ -37,8 +45,6 @@ namespace N2.Web.UI.WebControls
 
             if (string.IsNullOrEmpty(url))
                 SelectorContainer.Attributes["class"] = "uploadableContainer selector";
-            else
-                UploadContainer.Attributes["class"] = "uploadableContainer uploader";
         }
     }
 }

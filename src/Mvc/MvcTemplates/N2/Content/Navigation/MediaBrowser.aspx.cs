@@ -6,7 +6,10 @@ using N2.Resources;
 using N2.Web;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Web.Configuration;
+using System.Web.Security;
 using System.Web.UI.HtmlControls;
 
 namespace N2.Edit.Navigation
@@ -74,11 +77,11 @@ namespace N2.Edit.Navigation
                     var files = dir.GetFiles().ToList();
                     mediaBrowserModel.Dirs = dir.GetDirectories();
                     mediaBrowserModel.Files = MediaBrowserHandler.GetFileReducedList(files, imageSizes, selectableExtensions);
-                    mediaBrowserModel.Path = dir.LocalUrl;
+                    mediaBrowserModel.Path = System.Web.VirtualPathUtility.ToAppRelative(dir.LocalUrl).Trim('~');
                 }
                 else
                 {
-                    mediaBrowserModel.Path = "/";
+                    mediaBrowserModel.Path = System.Web.VirtualPathUtility.ToAppRelative("/").Trim('~');
                     mediaBrowserModel.RootIsSelectable = true;
                     mediaBrowserModel.Dirs = new List<Directory>();
                     foreach (var updDir in uploadDirectories)
@@ -93,6 +96,28 @@ namespace N2.Edit.Navigation
            }
 
         }
+
+		protected string GetEncryptedTicket()
+		{
+			return FormsAuthentication.Encrypt(new FormsAuthenticationTicket("SecureUpload-" + Guid.NewGuid(), false, 60));
+        }
+
+		protected int GetMaxSize()
+		{
+			try
+			{
+				return (ConfigurationManager.GetSection("system.web/httpRuntime") as HttpRuntimeSection) != null ? (ConfigurationManager.GetSection("system.web/httpRuntime") as HttpRuntimeSection).MaxRequestLength : -1;
+			}
+			catch
+			{
+				return -1;
+			}
+        }
+
+		protected string GetInitialTab()
+		{
+			return Request["tab"] == "upload" ? "#uploadTab" : null;
+		}
 
     }
 }
