@@ -81,6 +81,18 @@ namespace N2.Edit
             set { memorizedItem = value; }
         }
 
+        public virtual ContentItem GetSelectionParent()
+        {
+            var item = SelectedItem;
+            var before = RequestValueAccessor("before");
+            if (!string.IsNullOrEmpty(before))
+            {
+                var child = Engine.Resolve<Navigator>().Navigate(before);
+                return child.Parent;
+            }
+            return item;
+        }
+
         private ContentItem GetMemoryFromUrl()
         {
             if (RequestValueAccessor == null) return null; // explicitly passed memory
@@ -174,11 +186,11 @@ namespace N2.Edit
             {
                 var version = drafts.Versions.GetVersion(selectedItem);
                 if (version != null)
-				{
-					var item = drafts.Versions.DeserializeVersion(version);
-					if (item != null)
-						selectedItem = item;
-				}
+                {
+                    var item = drafts.Versions.DeserializeVersion(version);
+                    if (item != null)
+                        selectedItem = item;
+                }
             }
             return selectedItem;
         }

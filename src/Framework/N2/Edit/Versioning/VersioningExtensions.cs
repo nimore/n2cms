@@ -81,12 +81,12 @@ namespace N2.Edit.Versioning
         }
 
         public static ContentItem FindPartVersion(this ContentItem parent, ContentItem part)
-		{
-			if (part.ID == parent.ID)
-				return parent;
-			if (part.ID == parent.VersionOf.ID)
-				return parent;
-			if (part.VersionOf.HasValue && part.VersionOf.ID == parent.VersionOf.ID)
+        {
+            if (parent.ID != 0 && part.ID == parent.ID)
+                return parent;
+            if (part.ID == parent.VersionOf.ID)
+                return parent;
+            if (part.VersionOf.HasValue && part.VersionOf.ID == parent.VersionOf.ID)
                 return parent;
             if (parent.ID == 0 && parent.GetVersionKey() == part.GetVersionKey())
                 return parent;
@@ -181,99 +181,99 @@ namespace N2.Edit.Versioning
         }
 
         public static ContentItem GetVersionItem(this ContentVersionRepository repository, ContentItem item, int versionIndex)
-		{
-			var version = repository.GetVersion(item, versionIndex);
-			return repository.DeserializeVersion(version);
-		}
+        {
+            var version = repository.GetVersion(item, versionIndex);
+            return repository.DeserializeVersion(version);
+        }
 
-	    public static VersionInfo GetVersionInfo(this ContentVersion version, ContentVersionRepository repository)
-	    {
-		    try
-		    {
-			    return new VersionInfo
-			    {
-				    ID = version.Master.ID.Value,
-				    ContentFactory = () => repository.DeserializeVersion(version),
-				    Expires = version.Expired,
-				    Published = version.Published,
-				    FuturePublish = version.FuturePublish,
-				    SavedBy = version.SavedBy,
-				    State = version.State,
-				    Title = version.Title,
-				    VersionIndex = version.VersionIndex,
-				    PartsCount = version.ItemCount - 1
-			    };
-		    }
-		    catch (Exception ex)
-		    {
-			    var iv = new InvalidVersionInfo();
-			    if (version != null)
-			    {
-				    iv.InnerException = ex;
-				    iv.Expires = version.Expired;
-				    iv.Published = version.Published;
-				    iv.FuturePublish = version.FuturePublish;
-				    iv.SavedBy = version.SavedBy;
-				    iv.State = version.State;
-				    iv.Title = version.Title;
-				    iv.VersionIndex = version.VersionIndex;
-				    iv.PartsCount = version.ItemCount - 1;
+        public static VersionInfo GetVersionInfo(this ContentVersion version, ContentVersionRepository repository)
+        {
+            try
+            {
+                return new VersionInfo
+                {
+                    ID = version.Master.ID.Value,
+                    ContentFactory = () => repository.DeserializeVersion(version),
+                    Expires = version.Expired,
+                    Published = version.Published,
+                    FuturePublish = version.FuturePublish,
+                    SavedBy = version.SavedBy,
+                    State = version.State,
+                    Title = version.Title,
+                    VersionIndex = version.VersionIndex,
+                    PartsCount = version.ItemCount - 1
+                };
+            }
+            catch (Exception ex)
+            {
+                var iv = new InvalidVersionInfo();
+                if (version != null)
+                {
+                    iv.InnerException = ex;
+                    iv.Expires = version.Expired;
+                    iv.Published = version.Published;
+                    iv.FuturePublish = version.FuturePublish;
+                    iv.SavedBy = version.SavedBy;
+                    iv.State = version.State;
+                    iv.Title = version.Title;
+                    iv.VersionIndex = version.VersionIndex;
+                    iv.PartsCount = version.ItemCount - 1;
 
-				    if (version.Master.ID != null)
-					    iv.ID = version.Master.ID.Value;
-				    else
-					    Logger.Error("version.Master.ID is null at VersionInfo::GetVersionInfo(...)");
-			    }
-			    else
-			    {
-					Logger.Error("version == null at VersionInfo::GetVersionInfo(...)");
-			    }
-			    return iv;
-		    }
-	    }
+                    if (version.Master.ID != null)
+                        iv.ID = version.Master.ID.Value;
+                    else
+                        Logger.Error("version.Master.ID is null at VersionInfo::GetVersionInfo(...)");
+                }
+                else
+                {
+                    Logger.Error("version == null at VersionInfo::GetVersionInfo(...)");
+                }
+                return iv;
+            }
+        }
 
-	    public static VersionInfo GetVersionInfo(this ContentItem version)
-	    {
-		    int pc = 0;
-		    try
-		    {
-			    pc = N2.Find.EnumerateChildren(version, includeSelf: false, useMasterVersion: false).Count();
-			    return new VersionInfo
-			    {
-				    ID = version.ID,
-				    ContentFactory = () => version,
-				    Expires = version.Expires,
-				    Published = version.Published,
-				    FuturePublish = version["FuturePublishDate"] as DateTime?,
-				    SavedBy = version.SavedBy,
-				    State = version.State,
-				    Title = version.Title,
-				    VersionIndex = version.VersionIndex,
-				    PartsCount = pc
-			    };
-			}
-			catch (Exception ex)
-			{
-				var iv = new InvalidVersionInfo();
-				if (version != null)
-				{
-					iv.InnerException = ex;
-					iv.Expires = version.Expires;
-					iv.Published = version.Published;
-					iv.FuturePublish = version["FuturePublishDate"] as DateTime?;
-					iv.SavedBy = version.SavedBy;
-					iv.State = version.State;
-					iv.Title = version.Title;
-					iv.VersionIndex = version.VersionIndex;
-					iv.PartsCount = pc;
-					iv.ID = version.ID;
-				}
-				else
-				{
-					Logger.Error("version == null at VersionInfo::GetVersionInfo(...)");
-				}
-				return iv;
-			}
+        public static VersionInfo GetVersionInfo(this ContentItem version)
+        {
+            int pc = 0;
+            try
+            {
+                pc = N2.Find.EnumerateChildren(version, includeSelf: false, useMasterVersion: false).Count();
+                return new VersionInfo
+                {
+                    ID = version.ID,
+                    ContentFactory = () => version,
+                    Expires = version.Expires,
+                    Published = version.Published,
+                    FuturePublish = version["FuturePublishDate"] as DateTime?,
+                    SavedBy = version.SavedBy,
+                    State = version.State,
+                    Title = version.Title,
+                    VersionIndex = version.VersionIndex,
+                    PartsCount = pc
+                };
+            }
+            catch (Exception ex)
+            {
+                var iv = new InvalidVersionInfo();
+                if (version != null)
+                {
+                    iv.InnerException = ex;
+                    iv.Expires = version.Expires;
+                    iv.Published = version.Published;
+                    iv.FuturePublish = version["FuturePublishDate"] as DateTime?;
+                    iv.SavedBy = version.SavedBy;
+                    iv.State = version.State;
+                    iv.Title = version.Title;
+                    iv.VersionIndex = version.VersionIndex;
+                    iv.PartsCount = pc;
+                    iv.ID = version.ID;
+                }
+                else
+                {
+                    Logger.Error("version == null at VersionInfo::GetVersionInfo(...)");
+                }
+                return iv;
+            }
         }
     }
 }
