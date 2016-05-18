@@ -69,9 +69,9 @@ namespace N2
                 TypeConverter destinationConverter = TypeDescriptor.GetConverter(destinationType);
                 TypeConverter sourceConverter = TypeDescriptor.GetConverter(value.GetType());
                 if (destinationConverter != null && destinationConverter.CanConvertFrom(value.GetType()))
-                    return destinationConverter.ConvertFrom(null, CultureInfo.InvariantCulture, value);
+                    return destinationConverter.ConvertFrom(value);
                 if (sourceConverter != null && sourceConverter.CanConvertTo(destinationType))
-                    return sourceConverter.ConvertTo(null, CultureInfo.InvariantCulture, value, destinationType);
+                    return sourceConverter.ConvertTo(value, destinationType);
                 if (destinationType.IsEnum && value is int)
                     return Enum.ToObject(destinationType, (int)value);
                 if (!destinationType.IsAssignableFrom(value.GetType()))

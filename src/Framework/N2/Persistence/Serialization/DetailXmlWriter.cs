@@ -51,7 +51,7 @@ namespace N2.Persistence.Serialization
                     return;
 
                 case ContentDetail.TypeKeys.DoubleType:
-                    element.Write(detail.DoubleValue.HasValue ? detail.DoubleValue.Value.ToString(NumberFormatInfo.InvariantInfo) : "0");
+                    element.Write(detail.DoubleValue.HasValue ? detail.DoubleValue.Value.ToString() : "0");
                     return;
 
                 case ContentDetail.TypeKeys.IntType:

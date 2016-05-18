@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using System.Xml.XPath;
 
 namespace N2.Persistence.Serialization
@@ -33,8 +35,12 @@ namespace N2.Persistence.Serialization
             {
                 return ToNullableDateTime(value);
             }
-            else
-                return Utility.Convert(value, type);
+			else if (type == typeof(double))
+			{
+				return ToDouble(value);
+			}
+			else
+				return Utility.Convert(value, type);
         }
 
         public static IEnumerable<XPathNavigator> EnumerateChildren(XPathNavigator navigator)
@@ -49,6 +55,20 @@ namespace N2.Persistence.Serialization
                 navigator.MoveToParent();
             }
         }
+
+		public static double ToDouble(string value)
+		{
+			var culture = Thread.CurrentThread.CurrentCulture;
+			double attempt;
+			////return Double.Parse(value, NumberStyles.Float | NumberStyles.AllowThousands, (IFormatProvider)culture.GetFormat(typeof(NumberFormatInfo)));
+			////return Double.Parse(value, NumberStyles.Float | NumberStyles.AllowThousands, culture);
+			if (Double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, culture, out attempt))
+			{
+				return attempt;
+			}
+
+			return default(double);
+		}
 
         public static DateTime? ToNullableDateTime(string value)
         {
