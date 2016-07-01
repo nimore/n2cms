@@ -24,6 +24,8 @@ namespace N2.Edit.Navigation
         const string RegionPrivateActions = "PrivateActions";
         const string RegionHelpers = "HelperUtils";
 
+		private static readonly char[] splitPipeChar = new[] { '|' };
+
         protected IFileSystem FS;
         protected N2.Management.Files.FileSystem.Pages.ImageSizeCache ImageSizes { get { return Engine.Resolve<Management.Files.FileSystem.Pages.ImageSizeCache>(); } }
         private SelectionUtility Selection { get { return Engine.RequestContext.HttpContext.GetSelectionUtility(Engine); } }
@@ -357,14 +359,14 @@ namespace N2.Edit.Navigation
                 return;
             }
 
-            var fns = filenames.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+			var fns = filenames.Split(splitPipeChar, StringSplitOptions.RemoveEmptyEntries);
 
             context.Response.WriteJson(
                 new
                 {
                     Status = "Checked",
                     Files = (from fileName in fns
-                             let newPath = Url.Combine(context.Request.ApplicationPath + selected.Url, HttpUtility.UrlDecode(fileName))
+                             let newPath = Url.Combine(Url.Combine(context.Request.ApplicationPath, selected.Url), HttpUtility.UrlDecode(fileName))
                              where FS.FileExists(newPath)
                              select fileName).ToArray()
                 });
@@ -385,8 +387,8 @@ namespace N2.Edit.Navigation
             }
 
             var overwriteStr = Selection.RequestValueAccessor("overwrite");
-            var overwrite = overwriteStr.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-            var baseDir = context.Request.ApplicationPath + selected.Url;
+			var overwrite = overwriteStr.Split(splitPipeChar, StringSplitOptions.RemoveEmptyEntries);
+            var baseDir = Url.Combine(context.Request.ApplicationPath, selected.Url);
 
             try
             {
