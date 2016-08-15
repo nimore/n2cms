@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -94,7 +95,15 @@ namespace N2.Management.Files
             using (var s = files.OpenFile(virtualPath, readOnly: true))
             {
                 image = new byte[s.Length];
-                s.Read(image, 0, image.Length);
+				int numBytesRead = 0;
+				long numBytesToRead = s.Length;				
+				do
+				{
+					int n = s.Read(image, numBytesRead, (int)Math.Min(4 * 1024 * 1024, numBytesToRead)); // max 4MB read for Azure compatability
+					numBytesRead += n;
+					numBytesToRead -= n;
+				}
+				while (numBytesToRead > 0);
             }
             return image;
         }
