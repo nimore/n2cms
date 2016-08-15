@@ -650,12 +650,14 @@ namespace N2.Security.AspNet.Identity
         
         public Task<bool> GetTwoFactorEnabledAsync(TUser user)
         {
-            return Task.FromResult(false);
+            return Task.FromResult(user.TwoFactorEnabled);
         }
 
         public Task SetTwoFactorEnabledAsync(TUser user, bool enabled)
         {
-            throw new NotImplementedException();
+			user.TwoFactorEnabled = enabled;
+
+			return CompletedTask;
         }
 
         #endregion
