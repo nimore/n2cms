@@ -82,7 +82,7 @@ namespace N2.Edit.Versioning
 
         public static ContentItem FindPartVersion(this ContentItem parent, ContentItem part)
         {
-			if (!part.VersionOf.HasValue && part.ID == 0)
+			if (!part.VersionOf.HasValue && part.ID == 0 && !part.IsPage)
 			{
 				if (part.Parent != null && part.Parent.ID != 0)
 					part.Parent = parent.FindPartVersion(part.Parent);
@@ -243,7 +243,9 @@ namespace N2.Edit.Versioning
             int pc = 0;
             try
             {
-                pc = N2.Find.EnumerateChildren(version, includeSelf: false, useMasterVersion: false).Count();
+                ////pc = N2.Find.EnumerateChildren(version, includeSelf: false, useMasterVersion: false).Count();				
+				////pc = version.Children == null ? 0 : version.Children.Count;
+				pc = Find.Items.Where.Parent.Eq(version).And.ZoneName.IsNull(false).Count();
                 return new VersionInfo
                 {
                     ID = version.ID,
