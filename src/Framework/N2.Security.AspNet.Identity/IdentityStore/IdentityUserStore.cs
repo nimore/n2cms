@@ -543,7 +543,7 @@ namespace N2.Security.AspNet.Identity
             }
 
             // Note: The functionallity is similar to (but different from) classic membership IsLockedOut, LastLockoutDate
-            return Task.FromResult(user.LockedOutEndDate);
+			return Task.FromResult(user.LockedOutEndDate);
         }
 
         /// <summary> Locks a user out until the specified end date (set to a past date, to unlock a user). </summary>

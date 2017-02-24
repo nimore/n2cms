@@ -30,6 +30,14 @@ namespace N2.Security.AspNet.Identity
 
         public override string Title { get { return base.Title ?? base.Name; } set { base.Title = value; } }
 
+		public override bool IsLockedOut
+		{
+			get
+			{
+				return LockedOutEndDate >= DateTimeOffset.UtcNow;
+			}			
+		}
+
         #region IUser, see IUserStore
 
         /// <summary> Unique user identifier <seealso cref="IUser.Id"/></summary>

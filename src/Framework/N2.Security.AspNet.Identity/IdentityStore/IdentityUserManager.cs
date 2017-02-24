@@ -16,7 +16,7 @@ namespace N2.Security.AspNet.Identity
         public IdentityUserManager(IdentityUserStore<TUser> store)
             : base(store)
         {
-        }
+        }		
     }
 
 }
