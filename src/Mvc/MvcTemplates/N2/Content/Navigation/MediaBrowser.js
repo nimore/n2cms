@@ -377,7 +377,8 @@
                     "<div class=\"image-sizes\">{{ImageSizes}}</div></li>",
                 patternImgSizes = "<em class=\"{{ClassName}}\" data-size=\"{{Size}}\" data-url=\"{{Url}}\">{{SizeName}}</em>",
                 patternDir = "<li data-i=\"{{i}}\" data-url=\"{{Url}}\" class=\"dir\"><span class=\"file-ic glyphicon glyphicon-folder-open\"></span><label>{{Title}}</label></li>",
-                startI = 0;
+                startI = 0,
+                imagePrefix = fileBrowser.list.getAttribute('data-imageprefix');
 
             fileBrowser.showInfo(-1);
             jQ(fileBrowser.list).removeClass("loading");
@@ -416,6 +417,11 @@
                 for (i = 0, len = data.Files.length; i < len; i += 1) {
                     dpt = data.Files[i];
                     dpt.ImageSizes = "";
+                    if (imagePrefix) {
+                        if (dpt.Thumb && dpt.Thumb.substr(0, 8).toLowerCase() === '/upload/') {
+                            dpt.Thumb = imagePrefix + (dpt.Thumb.charAt(0) === '/' ? dpt.Thumb.substr(1) : dpt.Thumb);
+                        }
+                    }
                     if (dpt.IsImage && dpt.SCount > 0) {
                         lisImgs = [];
                         dptImg = { "SizeName": "default", "Size": dpt.Size, "Url": dpt.Url, "ClassName": (fileBrowser.preferredSize == "" ? "selected" : "") };

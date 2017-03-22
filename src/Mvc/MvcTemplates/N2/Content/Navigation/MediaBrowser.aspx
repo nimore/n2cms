@@ -52,6 +52,7 @@
                var counter = 0;%>
             <ul id="browser-files-list-ul" class="files-list" data-path="<%= mediaBrowserModel.Path %>"
                 data-selurl="<%= Request["selectedUrl"]%>"
+                data-imageprefix ="<%=DPWorld.Eur.WebSite.Configuration.AppSettings.AzureUrlPrefix %>" 
                 data-baseajax="<%= mediaBrowserModel.HandlerUrl %>" data-mediacontrol="<%= mediaBrowserModel.MediaControl %>"
                 data-ckeditor="<%= mediaBrowserModel.CkEditor %>" data-ckeditorfuncnum="<%= mediaBrowserModel.CkEditorFuncNum %>" data-preferredsize="<%= mediaBrowserModel.PreferredSize %>"
                 data-i18size="<%= GetLocalResourceString("Size", "Size") %>" data-i18date="<%= GetLocalResourceString("DateModified", "Date") %>" data-i18url="<%= GetLocalResourceString("Url", "Url") %>">
