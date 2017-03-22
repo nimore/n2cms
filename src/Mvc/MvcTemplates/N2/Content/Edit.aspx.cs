@@ -122,11 +122,10 @@ namespace N2.Edit
 
 
 
-        protected void OnPublishCommand(object sender, CommandEventArgs e)
-        {
-            var ctx = ie.CreateCommandContext();
-            
-            Commands.Publish(ctx);
+		protected void OnPublishCommand(object sender, CommandEventArgs e)
+		{
+			var ctx = ie.CreateCommandContext();
+			Commands.Publish(ctx);
 
             Engine.AddActivity(new ManagementActivity { Operation = "Publish", PerformedBy = User.Identity.Name, Path = ie.CurrentItem.Path, ID = ie.CurrentItem.ID });
 
@@ -142,10 +141,10 @@ namespace N2.Edit
             ctx.Parameters["MoveBeforeSortOrder"] = Request["beforeSortOrder"];
         }
 
-        protected void OnPreviewCommand(object sender, CommandEventArgs e)
-        {
-            var ctx = ie.CreateCommandContext();            
-            Commands.Save(ctx);
+		protected void OnPreviewCommand(object sender, CommandEventArgs e)
+		{
+			var ctx = ie.CreateCommandContext();
+			Commands.Save(ctx);
 
             var page = Find.ClosestPage(ctx.Content);
             Url previewUrl = Engine.GetContentAdapter<NodeAdapter>(page).GetPreviewUrl(page);
@@ -327,35 +326,41 @@ namespace N2.Edit
             string discriminator = EditExtensions.GetDiscriminator(request);
             string template = EditExtensions.GetTemplate(request);
 
-            if (!string.IsNullOrEmpty(discriminator))
-            {
-                ie.Initialize(discriminator, template, Selection.GetSelectionParent());
-            }
-            else if (!string.IsNullOrEmpty(dataType))
-            {
-                Type t = Type.GetType(dataType);
-                if (t == null)
-                    throw new ArgumentException(String.Format("Couldn't load a type of the given parameter '{0}'", dataType), "dataType");
-                ItemDefinition d = Definitions.GetDefinition(discriminator);
-                if (d == null)
-                    throw new N2Exception("Couldn't find any definition for type '" + t + "'");
-                ie.Discriminator = d.Discriminator;
-                ie.ParentPath = Selection.GetSelectionParent().Path;
-            }
-            else
-            {
-                ie.Definition = Definitions.GetDefinition(Selection.SelectedItem);
-                ie.CurrentItem = Selection.SelectedItem;
-            }
-            if (Request["zoneName"] != null)
-            {
-                ie.ZoneName = Request["zoneName"];
-            }
-            dpFuturePublishDate.SelectedDate = ie.CurrentItem.Published;
+			if (!string.IsNullOrEmpty(discriminator))
+			{
+				ie.Initialize(discriminator, template, Selection.GetSelectionParent());
+			}
+			else if (!string.IsNullOrEmpty(dataType))
+			{
+				Type t = Type.GetType(dataType);
+				if (t == null)
+					throw new ArgumentException(String.Format("Couldn't load a type of the given parameter '{0}'", dataType), "dataType");
+				ItemDefinition d = Definitions.GetDefinition(discriminator);
+				if (d == null)
+					throw new N2Exception("Couldn't find any definition for type '" + t + "'");
+				ie.Discriminator = d.Discriminator;
+				ie.ParentPath = Selection.GetSelectionParent().Path;
+			}
+			else
+			{
+				ie.Definition = Definitions.GetDefinition(Selection.SelectedItem);
+				ie.CurrentItem = Selection.SelectedItem;
+			}
+			if (Request["zoneName"] != null)
+			{
+				ie.ZoneName = Request["zoneName"];
+			}
+			dpFuturePublishDate.SelectedDate = ie.CurrentItem.Published;
+
 			ie.CreatingContext += Ie_CreatingContext;
-        }
+		}
 
 		private void Ie_CreatingContext(object sender, CommandContext args)
+		{
+			ApplySortInfo(args);
+		}
+
+		private void LoadZones()
 		{
 			ApplySortInfo(args);
  		}

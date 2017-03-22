@@ -81,17 +81,17 @@ namespace N2.Edit
             set { memorizedItem = value; }
         }
 
-        public virtual ContentItem GetSelectionParent()
-        {
-            var item = SelectedItem;
-            var before = RequestValueAccessor("before");
-            if (!string.IsNullOrEmpty(before))
-            {
-                var child = Engine.Resolve<Navigator>().Navigate(before);
-                return child.Parent;
-            }
-            return item;
-        }
+		public virtual ContentItem GetSelectionParent()
+		{
+			var item = SelectedItem;
+			var before = RequestValueAccessor("before");
+			if (!string.IsNullOrEmpty(before))
+			{
+				var child = Engine.Resolve<Navigator>().Navigate(before);
+				return child.Parent;
+			}
+			return item;
+		}
 
         private ContentItem GetMemoryFromUrl()
         {

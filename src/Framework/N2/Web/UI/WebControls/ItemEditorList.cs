@@ -225,7 +225,6 @@ namespace N2.Web.UI.WebControls
                 CausesValidation = false,
                 CssClass = "addButton"
             };
-            
             button.Command += (s, a) =>
             {
 				var parentEditor = ItemUtility.FindInParents<ItemEditor>(Parent);
@@ -356,7 +355,7 @@ namespace N2.Web.UI.WebControls
 				var cvr = Engine.Resolve<ContentVersionRepository>();
 				cvr.Save(path.CurrentPage);
 			}
-			
+
 			RedirectToVersionOfSelf(path.CurrentPage);
 		}
 
@@ -377,13 +376,7 @@ namespace N2.Web.UI.WebControls
 			
             if (path.CurrentItem != null && path.CurrentItem != path.CurrentPage)
 			{
-				//var parent = path.CurrentItem.Parent;
-				//var siblings = parent.Children;
-				//var newIndex = siblings.IndexOf(path.CurrentItem) + offset;
-				//if (newIndex >= 0 && newIndex < path.CurrentItem.Parent.Children.Count - 1)
-				//{
-				//	Utility.Insert(path.CurrentItem, parent, newIndex);
-					var parent = path.CurrentItem.Parent;
+				var parent = path.CurrentItem.Parent;
 				var siblings = GetItems().Select(ci => parent.Children.FirstOrDefault(s => s.VersionOf.Value == ci || s == ci)).ToList();
 				var currentIndex = siblings.IndexOf(path.CurrentItem);
 				var newIndex = currentIndex + offset;
@@ -447,7 +440,9 @@ namespace N2.Web.UI.WebControls
 
 		private void RedirectToVersionOfSelf(ContentItem versionOfPage)
 		{
-			var url = Engine.ManagementPaths.GetEditExistingItemUrl(versionOfPage.FindPartVersion(ParentItem), Page.Request["returnUrl"]);
+			var url = Engine.ManagementPaths.GetEditExistingItemUrl(versionOfPage.FindPartVersion(ParentItem), Page.Request["returnUrl"], Page.Request.Url.AbsolutePath);
+			//if (Page.Request.Url.AbsolutePath.EndsWith("EditRecursive.aspx"))
+			//	Page.Response.Redirect(Page.Request.Url.AbsolutePath + "?" + url.ToUrl().Query);
 			Page.Response.Redirect(url);
 		}
 
