@@ -358,12 +358,7 @@ namespace N2.Edit
 		private void Ie_CreatingContext(object sender, CommandContext args)
 		{
 			ApplySortInfo(args);
-		}
-
-		private void LoadZones()
-		{
-			ApplySortInfo(args);
- 		}
+		}		
 
         private void LoadZones()
         {

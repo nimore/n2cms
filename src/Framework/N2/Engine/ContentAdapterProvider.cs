@@ -59,7 +59,7 @@ namespace N2.Engine
         {
             lock (this)
             {
-                logger.DebugFormat("Registering {0} adapters", adapterToAdd?.Length);
+				logger.DebugFormat("Registering {0} adapters", adapterToAdd == null ? 0 : adapterToAdd.Length);
 
                 List<AbstractContentAdapter> references = new List<AbstractContentAdapter>(adapters);
                 references.AddRange(adapterToAdd);

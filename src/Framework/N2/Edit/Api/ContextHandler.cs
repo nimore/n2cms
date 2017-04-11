@@ -73,6 +73,9 @@ namespace N2.Management.Api
 			ProcessRequest(context.GetHttpContextBase());
 		}
 
-		public bool IsReusable => false;
+		public bool IsReusable
+		{
+			get { return false; }
+		}
 	}
 }

@@ -34,8 +34,11 @@ namespace N2.Raven
 				}
 			}
 		}
-
-		private bool IsLoaded => inner != null;
+		
+		private bool IsLoaded
+		{
+			get { return inner != null; }
+		}
 
 		public IDocumentSession Session { get; set; }
 

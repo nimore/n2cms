@@ -325,10 +325,11 @@ namespace N2.Management.Api
 					engine.Persister.Save(item);
 			}
 
+			var closestPage = Find.ClosestPage(item);
 			context.Response.WriteJson(new
 			{
 				EditUrl = engine.ManagementPaths.GetEditExistingItemUrl(item, context.Request["returnUrl"]),
-				PageID = Find.ClosestPage(item)?.VersionOf?.ID ?? Find.ClosestPage(item)?.ID,
+				PageID = closestPage == null ? 0 : closestPage.VersionOf.HasValue ? closestPage.VersionOf.ID : closestPage.ID,
 				ID = item.VersionOf.ID ?? item.ID,
 				VersionIndex = item.VersionIndex,
 				VersionKey = item.GetVersionKey(),

@@ -14,8 +14,11 @@ namespace N2.Raven
 		{
 			this.repository = repository;
 		}
-		
-		public override int SortOrder => base.SortOrder - 1;
+				
+		public override int SortOrder
+		{
+			get { return base.SortOrder - 1; }
+		}
 
 		public override IEnumerable<ContentItem> AppendChildren(IEnumerable<ContentItem> previousChildren, Query query)
 		{
