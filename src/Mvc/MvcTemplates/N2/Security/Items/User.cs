@@ -41,7 +41,7 @@ namespace N2.Security.Items
             set { SetDetail("Password", value, string.Empty); }
         }
 
-        [EditableText("Email", 40, Validate = true, ValidationExpression = "[^@]+@[^@.]+[.][^@.]+")]
+		[EditableText("Email", 40, Validate = true, ValidationExpression = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")]
         public virtual string Email
         {
             get { return GetDetail("Email", string.Empty); }
