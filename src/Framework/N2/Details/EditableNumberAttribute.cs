@@ -4,159 +4,183 @@ using System.Web.UI.WebControls;
 
 namespace N2.Details
 {
-    /// <summary>
-    /// Adds editing of a number.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class EditableNumberAttribute : EditableTextAttribute
-    {
-        string invalidRangeMessage;
+	/// <summary>
+	/// Adds editing of a number.
+	/// </summary>
+	[AttributeUsage(AttributeTargets.Property)]
+	public class EditableNumberAttribute : EditableTextAttribute
+	{
+		private string invalidRangeMessage;
 
-        /// <summary>Initializes a new instance of the EditableTextBoxAttribute class.</summary>
-        public EditableNumberAttribute()
-            : this(null, 50)
-        {
-        }
+		/// <summary>Initializes a new instance of the EditableTextBoxAttribute class.</summary>
+		public EditableNumberAttribute()
+			: this(null, 50)
+		{
+		}
 
-        /// <summary>Initializes a new instance of the EditableTextBoxAttribute class.</summary>
-        /// <param name="title">The label displayed to editors</param>
-        /// <param name="sortOrder">The order of this editor</param>
-        public EditableNumberAttribute(string title, int sortOrder)
-            : base(title, sortOrder)
-        {
-            DefaultValue = 0;
-            MaxLength = 11;
-            ValidationType = ValidationDataType.Integer;
-        }
+		/// <summary>Initializes a new instance of the EditableTextBoxAttribute class.</summary>
+		/// <param name="title">The label displayed to editors</param>
+		/// <param name="sortOrder">The order of this editor</param>
+		public EditableNumberAttribute(string title, int sortOrder)
+			: base(title, sortOrder)
+		{
+			DefaultValue = 0;
+			MaxLength = 11;
+			ValidationType = ValidationDataType.Integer;
+			DecimalPlaces = 0;
+		}
 
+		public int DecimalPlaces { get; set; }
 
+		/// <summary>Gets or sets the message for the regular expression validator.</summary>
+		public string InvalidRangeMessage
+		{
+			get { return invalidRangeMessage ?? Title + " is invalid."; }
+			set { invalidRangeMessage = value; }
+		}
 
-        public string InvalidRangeText { get; set; }
+		public string InvalidRangeText { get; set; }
 
-        /// <summary>Gets or sets the message for the regular expression validator.</summary>
-        public string InvalidRangeMessage
-        {
-            get { return invalidRangeMessage ?? Title + " is invalid."; }
-            set { invalidRangeMessage = value; }
-        }
+		public string MaximumValue { get; set; }
 
-        public string MaximumValue { get; set; }
+		public string MinimumValue { get; set; }
 
-        public string MinimumValue { get; set; }
+		public ValidationDataType ValidationType { get; set; }
 
-        public ValidationDataType ValidationType { get; set; }
+		public override void UpdateEditor(ContentItem item, Control editor)
+		{
+			TextBox tb = editor as TextBox;
+			tb.TextMode = TextBoxMode.Number;
+			object value = item[Name];
+			if (value != null)
+			{
+				tb.Text = value.ToString();
+			}
 
-        protected override void AddValidation(Control container, Control editor)
-        {
-            base.AddValidation(container, editor);
+			if (DecimalPlaces > 0)
+			{
+				tb.Attributes.Add("step", "0." + new string('0', DecimalPlaces - 1) + "1");
+			}
+		}
 
-            if (ValidationType != ValidationDataType.String)
-            {
-                BaseCompareValidator rv = CreateCompareValidator();
-                rv.Type = ValidationType;
-                rv.ID = Name + "_rv";
-                rv.ControlToValidate = editor.ID;
-                rv.Display = ValidatorDisplay.Dynamic;
-                rv.Text = GetLocalizedText("InvalidRangeText") ?? InvalidRangeText;
-                rv.ErrorMessage = GetLocalizedText("InvalidRangeMessage") ?? InvalidRangeMessage;
-                container.Controls.Add(rv);
-            }
-        }
+		public override bool UpdateItem(ContentItem item, Control editor)
+		{
+			TextBox tb = editor as TextBox;
 
-        private BaseCompareValidator CreateCompareValidator()
-        {
-            if (MaximumValue != null || MinimumValue != null)
-                return new RangeValidator { MinimumValue = MinimumValue ?? ValidationTypeMinValue(), MaximumValue = MaximumValue ?? ValidationTypeMaxValue() };
+			object value = string.IsNullOrEmpty(tb.Text)
+				? null
+				: GetValue(tb.Text);
 
-            return new CompareValidator { Operator = ValidationCompareOperator.DataTypeCheck };
-        }
+			return Utility.SetPropertyOrDetail(item, Name, value);
+		}
 
-        public override bool UpdateItem(ContentItem item, Control editor)
-        {
-            TextBox tb = editor as TextBox;
+		protected override void AddValidation(Control container, Control editor)
+		{
+			base.AddValidation(container, editor);
 
-            object value = string.IsNullOrEmpty(tb.Text)
-                ? null
-                : GetValue(tb.Text);
+			if (ValidationType != ValidationDataType.String)
+			{
+				BaseCompareValidator rv = CreateCompareValidator();
+				rv.Type = ValidationType;
+				rv.ID = Name + "_rv";
+				rv.ControlToValidate = editor.ID;
+				rv.Display = ValidatorDisplay.Dynamic;
+				rv.Text = GetLocalizedText("InvalidRangeText") ?? InvalidRangeText;
+				rv.ErrorMessage = GetLocalizedText("InvalidRangeMessage") ?? InvalidRangeMessage;
+				container.Controls.Add(rv);
+			}
+		}
 
-            return Utility.SetPropertyOrDetail(item, Name, value);
-        }
+		private BaseCompareValidator CreateCompareValidator()
+		{
+			if (MaximumValue != null || MinimumValue != null)
+				return new RangeValidator { MinimumValue = MinimumValue ?? ValidationTypeMinValue(), MaximumValue = MaximumValue ?? ValidationTypeMaxValue() };
 
-        private object GetValue(string text)
-        {
-            switch (ValidationType)
-            {
-                case ValidationDataType.Currency:
-                    return decimal.Parse(text);
-                case ValidationDataType.Date:
-                    return DateTime.Parse(text);
-                case ValidationDataType.Double:
-                    return double.Parse(text);
-                case ValidationDataType.Integer:
-                    return int.Parse(text);
-                default:
-                    return text;
-            }
-        }		
+			return new CompareValidator { Operator = ValidationCompareOperator.DataTypeCheck };
+		}
 
-        public override void UpdateEditor(ContentItem item, Control editor)
-        {
-            TextBox tb = editor as TextBox;
-            tb.TextMode = TextBoxMode.Number;
-            object value = item[Name];
-            if (value != null)
-                tb.Text = value.ToString();
-        }
+		private object GetValue(string text)
+		{
+			switch (ValidationType)
+			{
+				case ValidationDataType.Currency:
+					return decimal.Parse(text);
 
-        private string ValidationTypeDefault()
-        {
-            switch (ValidationType)
-            {
-                case ValidationDataType.Currency:
-                    return default(decimal).ToString();
-                case ValidationDataType.Date:
-                    return N2.Utility.CurrentTime().ToString();
-                case ValidationDataType.Double:
-                    return default(double).ToString();
-                case ValidationDataType.Integer:
-                    return default(int).ToString();
-                default:
-                    return "";
-            }
-        }
+				case ValidationDataType.Date:
+					return DateTime.Parse(text);
 
-        private string ValidationTypeMinValue()
-        {
-            switch (ValidationType)
-            {
-                case ValidationDataType.Currency:
-                    return decimal.MinValue.ToString();
-                case ValidationDataType.Date:
-                    return DateTime.MinValue.ToString();
-                case ValidationDataType.Double:
-                    return double.MinValue.ToString();
-                case ValidationDataType.Integer:
-                    return int.MinValue.ToString();
-                default:
-                    return "";
-            }
-        }
+				case ValidationDataType.Double:
+					return double.Parse(text);
 
-        private string ValidationTypeMaxValue()
-        {
-            switch (ValidationType)
-            {
-                case ValidationDataType.Currency:
-                    return decimal.MaxValue.ToString();
-                case ValidationDataType.Date:
-                    return DateTime.MaxValue.ToString();
-                case ValidationDataType.Double:
-                    return double.MaxValue.ToString();
-                case ValidationDataType.Integer:
-                    return int.MaxValue.ToString();
-                default:
-                    return "";
-            }
-        }
-    }
+				case ValidationDataType.Integer:
+					return int.Parse(text);
+
+				default:
+					return text;
+			}
+		}
+
+		private string ValidationTypeDefault()
+		{
+			switch (ValidationType)
+			{
+				case ValidationDataType.Currency:
+					return default(decimal).ToString();
+
+				case ValidationDataType.Date:
+					return N2.Utility.CurrentTime().ToString();
+
+				case ValidationDataType.Double:
+					return default(double).ToString();
+
+				case ValidationDataType.Integer:
+					return default(int).ToString();
+
+				default:
+					return "";
+			}
+		}
+
+		private string ValidationTypeMaxValue()
+		{
+			switch (ValidationType)
+			{
+				case ValidationDataType.Currency:
+					return decimal.MaxValue.ToString();
+
+				case ValidationDataType.Date:
+					return DateTime.MaxValue.ToString();
+
+				case ValidationDataType.Double:
+					return double.MaxValue.ToString();
+
+				case ValidationDataType.Integer:
+					return int.MaxValue.ToString();
+
+				default:
+					return "";
+			}
+		}
+
+		private string ValidationTypeMinValue()
+		{
+			switch (ValidationType)
+			{
+				case ValidationDataType.Currency:
+					return decimal.MinValue.ToString();
+
+				case ValidationDataType.Date:
+					return DateTime.MinValue.ToString();
+
+				case ValidationDataType.Double:
+					return double.MinValue.ToString();
+
+				case ValidationDataType.Integer:
+					return int.MinValue.ToString();
+
+				default:
+					return "";
+			}
+		}
+	}
 }
