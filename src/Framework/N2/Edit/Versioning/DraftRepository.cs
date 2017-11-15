@@ -58,7 +58,7 @@ namespace N2.Edit.Versioning
 			else
 			{
 				var page = Content.Traverse.ClosestPage(item);
-				if (drafts.TryGetValue(page.ID, out draft))
+				if (page != null && drafts.TryGetValue(page.ID, out draft))
 					if (draft.Saved > page.Updated)
 						return new DraftInfo { ItemID = item.ID, Saved = draft.Saved, SavedBy = draft.SavedBy, VersionIndex = draft.VersionIndex };
 			}
