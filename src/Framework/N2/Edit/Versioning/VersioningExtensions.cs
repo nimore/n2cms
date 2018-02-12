@@ -207,7 +207,8 @@ namespace N2.Edit.Versioning
                     State = version.State,
                     Title = version.Title,
                     VersionIndex = version.VersionIndex,
-                    PartsCount = version.ItemCount - 1
+                    //PartsCount = version.ItemCount - 1
+					PartsCount = 0
                 };
             }
             catch (Exception ex)
@@ -223,7 +224,8 @@ namespace N2.Edit.Versioning
                     iv.State = version.State;
                     iv.Title = version.Title;
                     iv.VersionIndex = version.VersionIndex;
-                    iv.PartsCount = version.ItemCount - 1;
+                    //iv.PartsCount = version.ItemCount - 1;
+					iv.PartsCount = 0;
 
                     if (version.Master.ID != null)
                         iv.ID = version.Master.ID.Value;
@@ -240,12 +242,10 @@ namespace N2.Edit.Versioning
 
         public static VersionInfo GetVersionInfo(this ContentItem version)
         {
-            int pc = 0;
+			////int pc = 0;
             try
-            {
-                ////pc = N2.Find.EnumerateChildren(version, includeSelf: false, useMasterVersion: false).Count();				
-				////pc = version.Children == null ? 0 : version.Children.Count;
-				pc = Find.Items.Where.Parent.Eq(version).And.ZoneName.IsNull(false).Count();
+            {                			
+				////pc = Find.Items.Where.Parent.Eq(version).And.ZoneName.IsNull(false).Count(); // efficient query
                 return new VersionInfo
                 {
                     ID = version.ID,
@@ -257,7 +257,7 @@ namespace N2.Edit.Versioning
                     State = version.State,
                     Title = version.Title,
                     VersionIndex = version.VersionIndex,
-                    PartsCount = pc
+                    PartsCount = 0
                 };
             }
             catch (Exception ex)
@@ -273,7 +273,7 @@ namespace N2.Edit.Versioning
                     iv.State = version.State;
                     iv.Title = version.Title;
                     iv.VersionIndex = version.VersionIndex;
-                    iv.PartsCount = pc;
+                    iv.PartsCount = 0;
                     iv.ID = version.ID;
                 }
                 else

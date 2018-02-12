@@ -18,8 +18,18 @@ namespace N2.Edit.Workflow.Commands
                 if (item != state.Content)
                 {
                     persister.Save(item);
+					SaveChildren(item);
                 }
             }
         }
+
+		private void SaveChildren(ContentItem parent)
+		{
+			foreach (var child in parent.Children)
+			{
+				persister.Save(child);
+				SaveChildren(child);
+			}
+		}
     }
 }
