@@ -166,9 +166,9 @@ namespace N2.Web.Mvc.Html
 			return registrator.JavaScript(Register.CkEditorJsPath.ResolveUrlTokens());
 		}
 
-		public static ResourcesHelper Constants(this ResourcesHelper registrator)
+		public static ResourcesHelper Constants(this ResourcesHelper registrator, string cspScriptNonce = "")
 		{
-			return registrator.JavaScript(Register.SelectedQueryKeyRegistrationScript(), ScriptOptions.ScriptTags);
+			return registrator.JavaScript(Register.SelectedQueryKeyRegistrationScript(), ScriptOptions.ScriptTags, cspScriptNonce);
 		}
 
 		public class ResourcesHelper : IHtmlString
@@ -183,9 +183,9 @@ namespace N2.Web.Mvc.Html
 				return this;
 			}
 
-			public ResourcesHelper JavaScript(string script, ScriptOptions options)
+			public ResourcesHelper JavaScript(string script, ScriptOptions options, string cspScriptNonce = "")
 			{
-				content.Append(N2.Resources.Register.JavaScript(StateCollection, script, options));
+				content.Append(N2.Resources.Register.JavaScript(StateCollection, script, options, cspScriptNonce));
 				return this;
 			}
 

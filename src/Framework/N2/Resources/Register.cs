@@ -50,23 +50,23 @@ namespace N2.Resources
 		}
 
 		/// <summary>The jQuery version used by N2.</summary>
-		public const string JQueryVersion = "1.12.3";
+		public const string JQueryVersion = "1.12.4";
 		public const string JQueryUiVersion = "1.11.4";
-		public const string AngularJsVersion = "1.5.8";
+		public const string AngularJsVersion = "1.5.11";
 		public const string CkEditorVersion = "4.5.8";
 		public const string DefaultBootstrapVersion = "2.3.2";
 
 		public const string DefaultFlagsCssPath = "{ManagementUrl}/Resources/icons/flags.css";
-		public const string DefaultJQueryJsPath = "//code.jquery.com/jquery-" + JQueryVersion + ".min.js";
-		public const string DefaultJQueryUiJsPath = "//code.jquery.com/ui/" + JQueryUiVersion + "/jquery-ui.min.js";
-		public const string DefaultFancyboxJsPath = "//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js";
-		public const string DefaultFancyboxCssPath = "//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css";
-		public const string DefaultIconsCssPath = "//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css";
-		public const string DefaultAngularJsRoot = "//cdnjs.cloudflare.com/ajax/libs/angular.js/" + AngularJsVersion + "/";
-		public const string DefaultAngularStrapJsRoot = "//cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.8/angular-strap.min.js";
-		public const string DefaultAngularUiJsPath = "//cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js";
-		public const string DefaultBootstrapJsPath =  "//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/js/bootstrap.min.js";
-		public const string DefaultBootstrapCssPath = "//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/css/bootstrap.min.css";
+		public const string DefaultJQueryJsPath = "https://cdnjs.cloudflare.com/ajax/libs/jquery/" + JQueryVersion + "/jquery.min.js";
+		public const string DefaultJQueryUiJsPath = "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/" + JQueryUiVersion + "/jquery-ui.js";
+		public const string DefaultFancyboxJsPath = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js";
+		public const string DefaultFancyboxCssPath = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css";
+		public const string DefaultIconsCssPath = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css";
+		public const string DefaultAngularJsRoot = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/" + AngularJsVersion + "/";
+		public const string DefaultAngularStrapJsRoot = "https://cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.8/angular-strap.min.js";
+		public const string DefaultAngularUiJsPath = "https://cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js";
+		public const string DefaultBootstrapJsPath = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/js/bootstrap.min.js";
+		public const string DefaultBootstrapCssPath = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/css/bootstrap.min.css";
 
 		public const string DefaultBootstrapDatePickerJsPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-datepicker.js";
 		public const string DefaultBootstrapDatePickerCssPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-datepicker.css";
@@ -74,7 +74,7 @@ namespace N2.Resources
 		public const string DefaultBootstrapTimePickerCssPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-timepicker.css";
 
 		//public const string DefaultCkEditorPath = "{ManagementUrl}/Resources/ckeditor/ckeditor.js?v=" + JQueryVersion;
-		public const string DefaultCkEditorPath = "//cdn.ckeditor.com/4.5.4/full/ckeditor.js";
+		public const string DefaultCkEditorPath = "https://cdn.ckeditor.com/4.5.4/full/ckeditor.js";
         public const string DefaultJQueryPluginsPath = "{ManagementUrl}/Resources/Js/plugins.ashx?v=" + JQueryVersion;
 		public const string DefaultPartsJsPath = "{ManagementUrl}/Resources/Js/parts.js?v=" + JQueryVersion;
 		public const string DefaultPartsCssPath = "{ManagementUrl}/Resources/Css/parts.css?v=" + JQueryVersion;
@@ -436,9 +436,9 @@ namespace N2.Resources
 			return String.Format("<script type=\"text/javascript\" src=\"{0}\"></script>", Url.ResolveTokens(resourceUrl));
 		}
 
-		public static string JavaScript(ICollection<string> stateCollection, string script, ScriptOptions options)
+		public static string JavaScript(ICollection<string> stateCollection, string script, ScriptOptions options, string cspScriptNonce = "")
 		{
-			const string scriptFormat = "<script type=\"text/javascript\">//<![CDATA[\n{0}//]]></script>";
+			const string scriptFormat = "<script type=\"text/javascript\" nonce=\"{1}\">//<![CDATA[\n{0}//]]></script>";
 
 			if (IsRegistered(stateCollection, script))
 				return null;
@@ -450,9 +450,9 @@ namespace N2.Resources
 			if (options == ScriptOptions.None)
 				return script;
 			if (options == ScriptOptions.ScriptTags)
-				return String.Format(scriptFormat, script);
+				return String.Format(scriptFormat, script, cspScriptNonce);
 			if (options == ScriptOptions.DocumentReady)
-				return String.Format(scriptFormat, EmbedDocumentReady(script));
+				return String.Format(scriptFormat, EmbedDocumentReady(script), cspScriptNonce);
 
 			throw new NotSupportedException(options + " not supported");
 		}

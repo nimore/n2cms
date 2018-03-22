@@ -97,20 +97,27 @@ namespace N2.Web.Mvc.Html
 				set { includeJQueryPlugins = value; }
 			}
 
-			/// <summary>Is used to instruct the control panel helper to render less javascript and css resources.</summary>
-			/// <param name="jQuery"></param>
-			/// <param name="jQueryPlugins"></param>
-			/// <param name="partScripts"></param>
-			/// <param name="partStyles"></param>
-			/// <returns></returns>
-			[Obsolete("Use Configure(c => c.IncludeJQuery = true)")]
-			public ControlPanelHelper Includes(bool jQuery = true, bool jQueryPlugins = true, bool partScripts = true, bool partStyles = true)
+            public string CspScriptNonce
+            {
+                get { return cspScriptNonce; }
+                set { cspScriptNonce = value; }
+            }
+
+            /// <summary>Is used to instruct the control panel helper to render less javascript and css resources.</summary>
+            /// <param name="jQuery"></param>
+            /// <param name="jQueryPlugins"></param>
+            /// <param name="partScripts"></param>
+            /// <param name="partStyles"></param>
+            /// <returns></returns>
+            [Obsolete("Use Configure(c => c.IncludeJQuery = true)")]
+			public ControlPanelHelper Includes(bool jQuery = true, bool jQueryPlugins = true, bool partScripts = true, bool partStyles = true, string cspScriptNonce = "")
 			{
 				IncludeJQuery = jQuery;
 				IncludeJQueryPlugins = jQueryPlugins;
 				IncludeJQueryUi = jQueryPlugins;
 				IncludePartScripts = partScripts;
 				IncludePartStyles = partStyles;
+                CspScriptNonce = cspScriptNonce;
 
 				return this;
 			}
@@ -131,7 +138,8 @@ namespace N2.Web.Mvc.Html
 					VersionKey = item.GetVersionKey(),
 					Force = ForceRefreshNavigationOnLoad ? "true" : "false",
 					State = item != null ? item.State.ToString() : "NonContent",
-					Mode = GetControlPanelState(Html).ToString()
+					Mode = GetControlPanelState(Html).ToString(),
+                    CspScriptNonce = CspScriptNonce
 				};
 
 				var resources = Html.Resources(writer).Constants();
@@ -200,7 +208,7 @@ namespace N2.Web.Mvc.Html
 
 			#region Format
 			static string format1 = @"
-<script type='text/javascript'>//<![CDATA[
+<script nonce='{CspScriptNonce}' type='text/javascript'>//<![CDATA[
 (function($){
     if (!window.n2ctx) return;
 
@@ -235,9 +243,10 @@ namespace N2.Web.Mvc.Html
 			static string formatWithRefresh = format1 + format2 + format3;
 			static string formatWithoutRefresh = format1 + format3;
 			private HtmlHelper Html;
+            private string cspScriptNonce;
 
-			#endregion
-		}
+            #endregion
+        }
 
 		public abstract class ControlPanelHelperBase : IHtmlString
 		{
@@ -291,6 +300,7 @@ namespace N2.Web.Mvc.Html
 				IncludeJQuery = true;
 				IncludePartScripts = true;
 				IncludePartStyles = true;
+                CspScriptNonce = string.Empty;
             }
 
 			public bool RefreshNavigationOnLoad { get; set; }
@@ -302,6 +312,8 @@ namespace N2.Web.Mvc.Html
 			public bool IncludePartScripts { get; set; }
 
 			public bool IncludePartStyles { get; set; }
+
+            public string CspScriptNonce { get; set; }
 
 			public ICollection<string> StateCollection { get; private set; }
 
@@ -353,14 +365,14 @@ namespace N2.Web.Mvc.Html
 
 			protected virtual void AppendControlPanel(TextWriter writer, IEngine engine, ContentItem item)
 			{
-                writer.Write("<script>n2 = window.n2 || {};");
+                writer.Write("<script nonce=\"" + CspScriptNonce + "\">n2 = window.n2 || {};");
 				writer.Write("n2.settings = ");
 				var settings = engine.Resolve<InterfaceBuilder>().GetControlPanelDefinition(engine.RequestContext.HttpContext, item);
 				settings.ToJson(writer);
 				writer.Write(";</script>");
 
 				var resources = new ResourcesExtensions.ResourcesHelper() { StateCollection = StateCollection, Writer = writer };
-				resources = resources.Constants();
+				resources = resources.Constants(CspScriptNonce);
 				if (IncludeJQuery) resources = resources.JQuery();
 				if (IncludePartScripts) resources = resources.JavaScript("{ManagementUrl}/App/Preview/PreviewBoostrapper.js");
                 if (IncludePartStyles) resources = resources.IconsCss().StyleSheet("{ManagementUrl}/App/Preview/Preview.css");
