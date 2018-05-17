@@ -8,14 +8,9 @@
  * the License, or (at your option) any later version.
  */
 
-#endregion
+#endregion License
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using N2.Definitions;
-using N2.Details;
 using N2.Engine;
 using N2.Persistence.Sources;
 
@@ -23,7 +18,7 @@ namespace N2.Persistence
 {
     /// <summary>
     /// A wrapper for NHibernate persistence functionality.
-    /// TODO: Explain how this differs from ContentItemRepositories. 
+    /// TODO: Explain how this differs from ContentItemRepositories.
     /// </summary>
     [Service(typeof(IPersister))]
     public class ContentPersister : IPersister
@@ -40,15 +35,22 @@ namespace N2.Persistence
 
         #region Load, Save, & Delete Methods
 
+        /// <summary>Deletes an item an all sub-items</summary>
+        /// <param name="itemNoMore">The item to delete</param>
+        public void Delete(ContentItem itemNoMore)
+        {
+            Utility.InvokeEvent(ItemDeleting, itemNoMore, this, sources.Delete, ItemDeleted);
+        }
+
         /// <summary>Gets an item by id</summary>
         /// <param name="id">The id of the item to load</param>
         /// <returns>The item if one with a matching id was found, otherwise null.</returns>
         public virtual ContentItem Get(int id)
         {
             ContentItem item = sources.Get(id);
-            if (ItemLoaded != null)
+            if (item != null && ItemLoaded != null)
             {
-                return Invoke(ItemLoaded, new ItemEventArgs(item)).AffectedItem; 
+                return Invoke(ItemLoaded, new ItemEventArgs(item)).AffectedItem;
             }
             return item;
         }
@@ -74,24 +76,9 @@ namespace N2.Persistence
             }
         }
 
-        /// <summary>Deletes an item an all sub-items</summary>
-        /// <param name="itemNoMore">The item to delete</param>
-        public void Delete(ContentItem itemNoMore)
-        {
-            Utility.InvokeEvent(ItemDeleting, itemNoMore, this, sources.Delete, ItemDeleted);
-        }
-
-        #endregion
+        #endregion Load, Save, & Delete Methods
 
         #region Move & Copy Methods
-
-        /// <summary>Move an item to a destination</summary>
-        /// <param name="source">The item to move</param>
-        /// <param name="destination">The destination below which to place the item</param>
-        public virtual void Move(ContentItem source, ContentItem destination)
-        {
-            Utility.InvokeEvent(ItemMoving, this, source, destination, this.sources.Move, ItemMoved);
-        }
 
         /// <summary>Copies an item and all sub-items to a destination</summary>
         /// <param name="source">The item to copy</param>
@@ -115,38 +102,46 @@ namespace N2.Persistence
                 return Copy(source.Clone(false), destination);
         }
 
-        #endregion
+        /// <summary>Move an item to a destination</summary>
+        /// <param name="source">The item to move</param>
+        /// <param name="destination">The destination below which to place the item</param>
+        public virtual void Move(ContentItem source, ContentItem destination)
+        {
+            Utility.InvokeEvent(ItemMoving, this, source, destination, this.sources.Move, ItemMoved);
+        }
+
+        #endregion Move & Copy Methods
 
         #region IPersistenceEventSource
-
-        /// <summary>Occurs before an item is saved</summary>
-        public event EventHandler<CancellableItemEventArgs> ItemSaving;
-
-        /// <summary>Occurs when an item has been saved</summary>
-        public event EventHandler<ItemEventArgs> ItemSaved;
-
-        /// <summary>Occurs before an item is deleted</summary>
-        public event EventHandler<CancellableItemEventArgs> ItemDeleting;
-
-        /// <summary>Occurs when an item has been deleted</summary>
-        public event EventHandler<ItemEventArgs> ItemDeleted;
-
-        /// <summary>Occurs before an item is moved</summary>
-        public event EventHandler<CancellableDestinationEventArgs> ItemMoving;
-
-        /// <summary>Occurs when an item has been moved</summary>
-        public event EventHandler<DestinationEventArgs> ItemMoved;
-
-        /// <summary>Occurs before an item is copied</summary>
-        public event EventHandler<CancellableDestinationEventArgs> ItemCopying;
 
         /// <summary>Occurs when an item has been copied</summary>
         public event EventHandler<DestinationEventArgs> ItemCopied;
 
+        /// <summary>Occurs before an item is copied</summary>
+        public event EventHandler<CancellableDestinationEventArgs> ItemCopying;
+
+        /// <summary>Occurs when an item has been deleted</summary>
+        public event EventHandler<ItemEventArgs> ItemDeleted;
+
+        /// <summary>Occurs before an item is deleted</summary>
+        public event EventHandler<CancellableItemEventArgs> ItemDeleting;
+
         /// <summary>Occurs when an item is loaded</summary>
         public event EventHandler<ItemEventArgs> ItemLoaded;
 
-        #endregion
+        /// <summary>Occurs when an item has been moved</summary>
+        public event EventHandler<DestinationEventArgs> ItemMoved;
+
+        /// <summary>Occurs before an item is moved</summary>
+        public event EventHandler<CancellableDestinationEventArgs> ItemMoving;
+
+        /// <summary>Occurs when an item has been saved</summary>
+        public event EventHandler<ItemEventArgs> ItemSaved;
+
+        /// <summary>Occurs before an item is saved</summary>
+        public event EventHandler<CancellableItemEventArgs> ItemSaving;
+
+        #endregion IPersistenceEventSource
 
         #region IDisposable Members
 
@@ -155,13 +150,7 @@ namespace N2.Persistence
             Repository.Dispose();
         }
 
-        #endregion
-
-        /// <summary>Persists changes.</summary>
-        public void Flush()
-        {
-            Repository.Flush();
-        }
+        #endregion IDisposable Members
 
         public virtual IContentItemRepository Repository
         {
@@ -171,7 +160,13 @@ namespace N2.Persistence
         public virtual ContentSource Sources
         {
             get { return sources; }
-        } 
+        }
+
+        /// <summary>Persists changes.</summary>
+        public void Flush()
+        {
+            Repository.Flush();
+        }
 
         protected virtual T Invoke<T>(EventHandler<T> handler, T args)
             where T : ItemEventArgs
