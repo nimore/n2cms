@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using N2.Edit.Workflow;
-using N2.Persistence;
 using N2.Definitions;
-using N2.Definitions.Static;
+using N2.Edit.Workflow;
 using N2.Engine;
+using N2.Persistence;
 
 namespace N2.Edit.Versioning
 {
@@ -39,56 +36,29 @@ namespace N2.Edit.Versioning
             return clone;
         }
 
-        private static void CopyAutoImplementedProperties(ContentItem source, ContentItem destination)
+        public static ContentItem FindDescendantByVersionKey(this ContentItem parent, string key)
         {
-            foreach (var property in source.GetContentType().GetProperties().Where(pi => pi.IsInterceptable()))
-            {
-                destination[property.Name] = TryClone(source[property.Name]);
-            }
-        }
-
-        private static object TryClone(object value)
-        {
-            if (value == null)
-                // pass on null
+            if (string.IsNullOrEmpty(key))
                 return null;
 
-            if (value is ContentItem)
-                return value;
-
-            var type = value.GetType();
-            if (!type.IsClass)
-                // pass on value types
-                return value;
-
-            if (value is ICloneable)
-                // clone clonable
-                return (value as ICloneable).Clone();
-
-            if (type.IsGenericType)
-            {
-                if (type.GetGenericTypeDefinition() == typeof(List<>))
+            var match = Find.EnumerateChildren(parent, includeSelf: true, useMasterVersion: false)
+                .Where(d =>
                 {
-                    // create new generic lists
-                    var ctor = type.GetConstructor(new [] { typeof(IEnumerable<>).MakeGenericType(type.GetGenericArguments()[0]) });
-                    if (ctor != null)
-                        return ctor.Invoke(new [] { value });
-                }
-            }
-
-            // accept the rest
-            return value;
+                    var versionKey = d.GetVersionKey();
+                    return key.Equals(versionKey);
+                }).FirstOrDefault();
+            return match;
         }
 
         public static ContentItem FindPartVersion(this ContentItem parent, ContentItem part)
-		{
-			if (!part.VersionOf.HasValue && part.ID == 0 && !part.IsPage)
-			{
-				if (part.Parent != null && part.Parent.ID != 0)
-					part.Parent = parent.FindPartVersion(part.Parent);
-				return part;
-			}
-			if (parent.ID != 0 && part.ID == parent.ID)
+        {
+            if (!part.VersionOf.HasValue && part.ID == 0 && !part.IsPage)
+            {
+                if (part.Parent != null && part.Parent.ID != 0)
+                    part.Parent = parent.FindPartVersion(part.Parent);
+                return part;
+            }
+            if (parent.ID != 0 && part.ID == parent.ID)
                 return parent;
             if (part.ID == parent.VersionOf.ID)
                 return parent;
@@ -104,92 +74,6 @@ namespace N2.Edit.Versioning
                     return grandChild;
             }
             return null;
-        }
-
-        public static void SetVersionKey(this ContentItem item, string key)
-        {
-            item["VersionKey"] = key;
-        }
-
-        public static string GetVersionKey(this ContentItem item)
-        {
-            return item["VersionKey"] as string;
-        }
-
-        public static ContentItem FindDescendantByVersionKey(this ContentItem parent, string key)
-        {
-            if (string.IsNullOrEmpty(key))
-                return null;
-
-            var match = Find.EnumerateChildren(parent, includeSelf: true, useMasterVersion: false)
-                .Where(d =>
-                {
-                    var versionKey = d.GetVersionKey();
-                    return key.Equals(versionKey);
-                }).FirstOrDefault();
-            return match;
-        }
-
-        /// <summary>Publishes the given version.</summary>
-        /// <param name="version">The version to publish.</param>
-        /// <returns>The published (master) version.</returns>
-        public static ContentItem MakeMasterVersion(this IVersionManager versionManager, ContentItem versionToPublish)
-        {
-            if (!versionToPublish.VersionOf.HasValue)
-                return versionToPublish;
-
-            var master = versionToPublish.VersionOf;
-            versionManager.ReplaceVersion(master, versionToPublish, storeCurrentVersion: versionToPublish.VersionOf.Value.State == ContentState.Published);
-            return master;
-        }
-
-        public static bool IsVersionable(this ContentItem item)
-        {
-            return !item.GetContentType()
-                .GetCustomAttributes(typeof(VersionableAttribute), true)
-                .OfType<VersionableAttribute>()
-                .Any(va => va.Versionable == AllowVersions.No);
-        }
-
-        public static void SchedulePublishing(this ContentItem previewedItem, DateTime publishDate, IEngine engine)
-        {
-            MarkForFuturePublishing(engine.Resolve<StateChanger>(), previewedItem, publishDate);
-            engine.Persister.Save(previewedItem);
-        }
-
-        public static void MarkForFuturePublishing(Workflow.StateChanger changer, ContentItem item, DateTime futureDate)
-        {
-            if (!item.VersionOf.HasValue)
-                item.Published = futureDate;
-            else
-                item["FuturePublishDate"] = futureDate;
-            changer.ChangeTo(item, ContentState.Waiting);
-        }
-
-        public static ContentItem Publish(this IVersionManager versionManager, IPersister persister, ContentItem previewedItem)
-        {
-            if (previewedItem.VersionOf.HasValue)
-            {
-                previewedItem = versionManager.MakeMasterVersion(previewedItem);
-                persister.Save(previewedItem);
-            }
-            if (previewedItem.State != ContentState.Published)
-            {
-                previewedItem.State = ContentState.Published;
-                if (!previewedItem.Published.HasValue)
-                    previewedItem.Published = Utility.CurrentTime();
-                if (previewedItem.Expires.HasValue)
-                    previewedItem.Expires = null;
-
-                persister.Save(previewedItem);
-            }
-            return previewedItem;
-        }
-
-        public static ContentItem GetVersionItem(this ContentVersionRepository repository, ContentItem item, int versionIndex)
-        {
-            var version = repository.GetVersion(item, versionIndex);
-            return repository.DeserializeVersion(version);
         }
 
         public static VersionInfo GetVersionInfo(this ContentVersion version, ContentVersionRepository repository)
@@ -208,7 +92,7 @@ namespace N2.Edit.Versioning
                     Title = version.Title,
                     VersionIndex = version.VersionIndex,
                     //PartsCount = version.ItemCount - 1
-					PartsCount = 0
+                    PartsCount = 0
                 };
             }
             catch (Exception ex)
@@ -225,7 +109,7 @@ namespace N2.Edit.Versioning
                     iv.Title = version.Title;
                     iv.VersionIndex = version.VersionIndex;
                     //iv.PartsCount = version.ItemCount - 1;
-					iv.PartsCount = 0;
+                    iv.PartsCount = 0;
 
                     if (version.Master.ID != null)
                         iv.ID = version.Master.ID.Value;
@@ -242,10 +126,10 @@ namespace N2.Edit.Versioning
 
         public static VersionInfo GetVersionInfo(this ContentItem version)
         {
-			////int pc = 0;
+            ////int pc = 0;
             try
-            {                			
-				////pc = Find.Items.Where.Parent.Eq(version).And.ZoneName.IsNull(false).Count(); // efficient query
+            {
+                ////pc = Find.Items.Where.Parent.Eq(version).And.ZoneName.IsNull(false).Count(); // efficient query
                 return new VersionInfo
                 {
                     ID = version.ID,
@@ -282,6 +166,119 @@ namespace N2.Edit.Versioning
                 }
                 return iv;
             }
+        }
+
+        public static ContentItem GetVersionItem(this ContentVersionRepository repository, ContentItem item, int versionIndex)
+        {
+            var version = repository.GetVersion(item, versionIndex);
+            return repository.DeserializeVersion(version);
+        }
+
+        public static string GetVersionKey(this ContentItem item)
+        {
+            return item["VersionKey"] as string;
+        }
+
+        public static bool IsVersionable(this ContentItem item)
+        {
+            return !item.GetContentType()
+                .GetCustomAttributes(typeof(VersionableAttribute), true)
+                .OfType<VersionableAttribute>()
+                .Any(va => va.Versionable == AllowVersions.No);
+        }
+
+        /// <summary>Publishes the given version.</summary>
+        /// <param name="version">The version to publish.</param>
+        /// <returns>The published (master) version.</returns>
+        public static ContentItem MakeMasterVersion(this IVersionManager versionManager, ContentItem versionToPublish)
+        {
+            if (!versionToPublish.VersionOf.HasValue)
+                return versionToPublish;
+
+            var master = versionToPublish.VersionOf;
+            versionManager.ReplaceVersion(master, versionToPublish, storeCurrentVersion: versionToPublish.VersionOf.Value.State == ContentState.Published);
+            return master;
+        }
+
+        public static void MarkForFuturePublishing(Workflow.StateChanger changer, ContentItem item, DateTime futureDate)
+        {
+            if (!item.VersionOf.HasValue)
+                item.Published = futureDate;
+            else
+                item["FuturePublishDate"] = futureDate;
+            changer.ChangeTo(item, ContentState.Waiting);
+        }
+
+        public static ContentItem Publish(this IVersionManager versionManager, IPersister persister, ContentItem previewedItem)
+        {
+            if (previewedItem.VersionOf.HasValue)
+            {
+                previewedItem = versionManager.MakeMasterVersion(previewedItem);
+                persister.Save(previewedItem);
+            }
+            if (previewedItem.State != ContentState.Published)
+            {
+                previewedItem.State = ContentState.Published;
+                if (!previewedItem.Published.HasValue)
+                    previewedItem.Published = Utility.CurrentTime();
+                if (previewedItem.Expires.HasValue && previewedItem.Expires.Value <= Utility.CurrentTime())
+                    previewedItem.Expires = null;
+
+                persister.Save(previewedItem);
+            }
+            return previewedItem;
+        }
+
+        public static void SchedulePublishing(this ContentItem previewedItem, DateTime publishDate, IEngine engine)
+        {
+            MarkForFuturePublishing(engine.Resolve<StateChanger>(), previewedItem, publishDate);
+            engine.Persister.Save(previewedItem);
+        }
+
+        public static void SetVersionKey(this ContentItem item, string key)
+        {
+            item["VersionKey"] = key;
+        }
+
+        private static void CopyAutoImplementedProperties(ContentItem source, ContentItem destination)
+        {
+            foreach (var property in source.GetContentType().GetProperties().Where(pi => pi.IsInterceptable()))
+            {
+                destination[property.Name] = TryClone(source[property.Name]);
+            }
+        }
+
+        private static object TryClone(object value)
+        {
+            if (value == null)
+                // pass on null
+                return null;
+
+            if (value is ContentItem)
+                return value;
+
+            var type = value.GetType();
+            if (!type.IsClass)
+                // pass on value types
+                return value;
+
+            if (value is ICloneable)
+                // clone clonable
+                return (value as ICloneable).Clone();
+
+            if (type.IsGenericType)
+            {
+                if (type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    // create new generic lists
+                    var ctor = type.GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(type.GetGenericArguments()[0]) });
+                    if (ctor != null)
+                        return ctor.Invoke(new[] { value });
+                }
+            }
+
+            // accept the rest
+            return value;
         }
     }
 }

@@ -1,10 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using N2.Configuration;
-using N2.Persistence;
-using N2.Plugin;
 using N2.Edit.Versioning;
+using N2.Persistence;
 
 namespace N2.Web
 {
@@ -14,18 +12,11 @@ namespace N2.Web
     /// </summary>
     public class UrlParser : IUrlParser
     {
-        private readonly Engine.Logger<UrlParser> logger;
-        protected readonly IPersister persister;
         protected readonly IHost host;
+        protected readonly IPersister persister;
         protected readonly IWebContext webContext;
-        readonly bool ignoreExistingFiles;
-
-        public event EventHandler<PageNotFoundEventArgs> PageNotFound;
-        public event EventHandler<UrlEventArgs> BuildingUrl;
-        public event EventHandler<UrlEventArgs> BuiltUrl;
-
-        /// <summary>Is set to the current database connection status.</summary>
-        protected bool IsOnline { get; set; }
+        private readonly bool ignoreExistingFiles;
+        private readonly Engine.Logger<UrlParser> logger;
 
         public UrlParser(IPersister persister, IWebContext webContext, IHost host, N2.Plugin.ConnectionMonitor connections, HostSection config)
         {
@@ -42,16 +33,16 @@ namespace N2.Web
             ignoreExistingFiles = config.Web.IgnoreExistingFiles;
         }
 
+        public event EventHandler<UrlEventArgs> BuildingUrl;
+
+        public event EventHandler<UrlEventArgs> BuiltUrl;
+
+        public event EventHandler<PageNotFoundEventArgs> PageNotFound;
+
         /// <summary>Parses the current url to retrieve the current page.</summary>
         public ContentItem CurrentPage
         {
             get { return webContext.CurrentPage ?? (webContext.CurrentPage = FindPath(webContext.Url).CurrentPage); }
-        }
-
-        /// <summary>Gets the current start page.</summary>
-        public virtual ContentItem StartPage
-        {
-            get { return IsOnline ? persister.Repository.Get(host.CurrentSite.StartPageID) : null; }
         }
 
         /// <summary>Gets or sets the default content document name. This is usually "/Default.aspx".</summary>
@@ -61,15 +52,63 @@ namespace N2.Web
             set { Url.DefaultDocument = value; }
         }
 
-        [Obsolete("Use FindPath")]
-        /// <summary>Finds the path associated with an url.</summary>
-        /// <param name="url">The url to the template to locate.</param>
-        /// <param name="startNode">The node to start finding path from if none supplied will start from StartNode</param>
-        /// <param name="remainingPath">The remaining path to search</param>
-        /// <returns>A PathData object. If no template was found the object will have empty properties.</returns>
-        public PathData ResolvePath(Url url, ContentItem startNode = null, string remainingPath = null)
+        /// <summary>Gets the current start page.</summary>
+        public virtual ContentItem StartPage
         {
-            return FindPath(url, startNode, remainingPath);
+            get { return IsOnline ? persister.Repository.Get(host.CurrentSite.StartPageID) : null; }
+        }
+
+        /// <summary>Is set to the current database connection status.</summary>
+        protected bool IsOnline { get; set; }
+
+        /// <summary>Calculates an item url by walking it's parent path.</summary>
+        /// <param name="item">The item whose url to compute.</param>
+        /// <returns>A friendly url to the supplied item.</returns>
+        public virtual Url BuildUrl(ContentItem item)
+        {
+            if (item == null) throw new ArgumentNullException("item");
+
+            if (item.VersionOf.HasValue)
+            {
+                ContentItem version = item.VersionOf;
+                if (version != null)
+                    return BuildUrl(version).SetQueryParameter(PathData.VersionIndexQueryKey, item.VersionIndex);
+            }
+            else if (item.ID == 0)
+            {
+                var page = Find.ClosestPage(item);
+                if (page != null && page != item)
+                {
+                    return BuildUrl(page)
+                        .SetQueryParameter(PathData.VersionIndexQueryKey, page.VersionIndex)
+                        .SetQueryParameter(PathData.VersionKeyQueryKey, item.GetVersionKey());
+                }
+            }
+
+            var current = Find.ClosestPage(item);
+
+            // no page found, throw
+            if (current == null) throw new N2Exception("Cannot build url to data item '{0}' with no containing page item.", item);
+
+            Url url = BuildPageUrl(current, ref current);
+
+            if (current == null)
+                // no start page found, use rewritten url
+                return item.FindPath(PathData.DefaultAction).GetRewrittenUrl();
+
+            if (!item.IsPage)
+                // the item was not a page, add this information as a query string
+                url = url.AppendQuery(PathData.ItemQueryKey, item.ID);
+
+            var absoluteUrl = Url.ToAbsolute("~" + url);
+            if (BuiltUrl != null)
+            {
+                var args = new UrlEventArgs(item) { Url = absoluteUrl };
+                BuiltUrl(this, args);
+                return args.Url;
+            }
+            else
+                return absoluteUrl;
         }
 
         /// <summary>Finds the path associated with an url.</summary>
@@ -128,43 +167,17 @@ namespace N2.Web
                 }
             }
 
-            data.Ignore = !IgnoreExisting(webContext.HttpContext.Request.PhysicalPath);
+            data.Ignore = !IgnoreExisting(webContext.HttpContext.Request);
             data = UseItemIfAvailable(item, data);
             return data;
         }
 
-        private static PathData UseItemIfAvailable(ContentItem item, PathData data)
+        /// <summary>Checks if an item is startpage or root page</summary>
+        /// <param name="item">The item to compare</param>
+        /// <returns>True if the item is a startpage or a rootpage</returns>
+        public virtual bool IsRootOrStartPage(ContentItem item)
         {
-            if (item != null)
-            {
-                data.CurrentPage = data.CurrentItem;
-                data.CurrentItem = item;
-            }
-            return data;
-        }
-
-        /// <summary>May be overridden to provide custom start page depending on authority.</summary>
-        /// <param name="url">The host name and path information.</param>
-        /// <returns>The configured start page.</returns>
-        protected virtual ContentItem GetStartPage(Url url)
-        {
-            return StartPage;
-        }
-
-        bool IgnoreExisting(string physicalPath)
-        {
-            // N2 has a history of requiring the start page's template to be located at /Default.aspx.
-            // Since a previous version this is no longer required with the consequence of /Default.aspx
-            // beeing required only for igniting an asp.net web request when accessing /. With the new
-            // behaviour access to the default document (/ or /Default.aspx) will be rewritten to which-
-            // ever template the current start page specifies. The previous behaviour can be restored
-            // by configuring n2 to ignore existing files.
-            return ignoreExistingFiles || (!File.Exists(physicalPath) && !Directory.Exists(physicalPath));
-        }
-
-        bool IsDefaultDocument(string path)
-        {
-            return path.Equals(DefaultDocument, StringComparison.InvariantCultureIgnoreCase);
+            return item.ID == host.CurrentSite.RootItemID || host.IsStartPage(item);
         }
 
         /// <summary>Finds an item by traversing names from the start page.</summary>
@@ -178,134 +191,29 @@ namespace N2.Web
             if (startingPoint == null)
                 return null;
 
-            return TryLoadingFromQueryString(url, PathData.ItemQueryKey, PathData.PageQueryKey) 
+            return TryLoadingFromQueryString(url, PathData.ItemQueryKey, PathData.PageQueryKey)
                 ?? Parse(startingPoint, url);
         }
 
-        #region Parse Helper Methods
-        protected virtual ContentItem TryLoadingFromQueryString(string url, params string[] parameters)
+        [Obsolete("Use FindPath")]
+        /// <summary>Finds the path associated with an url.</summary>
+        /// <param name="url">The url to the template to locate.</param>
+        /// <param name="startNode">The node to start finding path from if none supplied will start from StartNode</param>
+        /// <param name="remainingPath">The remaining path to search</param>
+        /// <returns>A PathData object. If no template was found the object will have empty properties.</returns>
+        public PathData ResolvePath(Url url, ContentItem startNode = null, string remainingPath = null)
         {
-            int? itemID = FindQueryStringReference(url, parameters);
-            if (itemID.HasValue)
-                return persister.Get(itemID.Value);
-            return null;
+            return FindPath(url, startNode, remainingPath);
         }
 
-        protected virtual ContentItem Parse(ContentItem current, Url url)
+        /// <summary>Removes a trailing Default.aspx from an URL.</summary>
+        /// <param name="path">A URL path without query strings from which to remove any trailing Default.aspx.</param>
+        /// <returns>The same path or one stripped of the remaining default document segment.</returns>
+        public string StripDefaultDocument(string path)
         {
-            if (current == null) throw new ArgumentNullException("current");
-            logger.Debug("Parsing " + url);
-            var path = CleanUrl(url.PathAndQuery);
-
-            if (path.Length == 0)
-                return current;
-            
-            return current.GetChild(path) 
-                ?? NotFoundPage(url);
-        }
-
-        /// <summary>Returns a page when  no page is found. This method will return the start page if the url matches the default content page property.</summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        protected virtual ContentItem NotFoundPage(string url)
-        {
-            if (IsDefaultDocument(url))
-            {
-                return StartPage;
-            }
-            logger.Debug("No content at: " + url);
-
-            PageNotFoundEventArgs args = new PageNotFoundEventArgs(url);
-            if (PageNotFound != null)
-                PageNotFound(this, args);
-            return args.AffectedItem;
-        }
-
-        private string CleanUrl(string url)
-        {
-            url = Url.PathPart(url);
-            url = Url.ToRelative(url);
-            url = url.TrimStart('~', '/');
-            if (url.EndsWith(DefaultDocument))
-                url = url.Substring(0, url.Length - DefaultDocument.Length);
-            return url;
-        }
-
-        private int? FindQueryStringReference(string url, params string[] parameters)
-        {
-            string queryString = Url.QueryPart(url);
-            if (!string.IsNullOrEmpty(queryString))
-            {
-                string[] queries = queryString.Split('&');
-
-                foreach (string parameter in parameters)
-                { 
-                    int parameterLength = parameter.Length + 1;
-                    foreach (string query in queries)
-                    {
-                        if (query.StartsWith(parameter + "=", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            int id;
-                            if (int.TryParse(query.Substring(parameterLength), out id))
-                            {
-                                return id;
-                            }
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-        #endregion
-
-        /// <summary>Calculates an item url by walking it's parent path.</summary>
-        /// <param name="item">The item whose url to compute.</param>
-        /// <returns>A friendly url to the supplied item.</returns>
-        public virtual Url BuildUrl(ContentItem item)
-        {
-            if (item == null) throw new ArgumentNullException("item");
-
-            if (item.VersionOf.HasValue)
-            {
-                ContentItem version = item.VersionOf;
-                if (version != null)
-                    return BuildUrl(version).SetQueryParameter(PathData.VersionIndexQueryKey, item.VersionIndex);
-            }
-            else if (item.ID == 0)
-            {
-                var page = Find.ClosestPage(item);
-                if (page != null && page != item)
-                {
-                    return BuildUrl(page)
-                        .SetQueryParameter(PathData.VersionIndexQueryKey, page.VersionIndex)
-                        .SetQueryParameter(PathData.VersionKeyQueryKey, item.GetVersionKey());
-                }
-            }
-
-            var current = Find.ClosestPage(item);
-
-            // no page found, throw
-            if (current == null) throw new N2Exception("Cannot build url to data item '{0}' with no containing page item.", item);
-
-            Url url = BuildPageUrl(current, ref current);
-
-            if (current == null)
-                // no start page found, use rewritten url
-                return item.FindPath(PathData.DefaultAction).GetRewrittenUrl();
-
-            if (!item.IsPage)
-                // the item was not a page, add this information as a query string
-                url = url.AppendQuery(PathData.ItemQueryKey, item.ID);
-
-            var absoluteUrl = Url.ToAbsolute("~" + url);
-            if (BuiltUrl != null)
-            {
-                var args = new UrlEventArgs(item) { Url = absoluteUrl };
-                BuiltUrl(this, args);
-                return args.Url;
-            }
-            else
-                return absoluteUrl;
+            if (path.EndsWith(DefaultDocument, StringComparison.OrdinalIgnoreCase))
+                return path.Substring(0, path.Length - DefaultDocument.Length);
+            return path;
         }
 
         protected Url BuildPageUrl(ContentItem page, ref ContentItem current)
@@ -343,22 +251,116 @@ namespace N2.Web
             return url;
         }
 
-        /// <summary>Checks if an item is startpage or root page</summary>
-        /// <param name="item">The item to compare</param>
-        /// <returns>True if the item is a startpage or a rootpage</returns>
-        public virtual bool IsRootOrStartPage(ContentItem item)
+        /// <summary>May be overridden to provide custom start page depending on authority.</summary>
+        /// <param name="url">The host name and path information.</param>
+        /// <returns>The configured start page.</returns>
+        protected virtual ContentItem GetStartPage(Url url)
         {
-            return item.ID == host.CurrentSite.RootItemID || host.IsStartPage(item);
+            return StartPage;
         }
 
-        /// <summary>Removes a trailing Default.aspx from an URL.</summary>
-        /// <param name="path">A URL path without query strings from which to remove any trailing Default.aspx.</param>
-        /// <returns>The same path or one stripped of the remaining default document segment.</returns>
-        public string StripDefaultDocument(string path)
+        private static PathData UseItemIfAvailable(ContentItem item, PathData data)
         {
-            if (path.EndsWith(DefaultDocument, StringComparison.OrdinalIgnoreCase))
-                return path.Substring(0, path.Length - DefaultDocument.Length);
-            return path;
+            if (item != null)
+            {
+                data.CurrentPage = data.CurrentItem;
+                data.CurrentItem = item;
+            }
+            return data;
         }
+
+        private bool IgnoreExisting(System.Web.HttpRequestBase request)
+        {
+            // N2 has a history of requiring the start page's template to be located at /Default.aspx.
+            // Since a previous version this is no longer required with the consequence of /Default.aspx
+            // beeing required only for igniting an asp.net web request when accessing /. With the new
+            // behaviour access to the default document (/ or /Default.aspx) will be rewritten to which-
+            // ever template the current start page specifies. The previous behaviour can be restored
+            // by configuring n2 to ignore existing files.
+            return ignoreExistingFiles || (!File.Exists(request.PhysicalPath) && !Directory.Exists(request.PhysicalPath));
+        }
+
+        private bool IsDefaultDocument(string path)
+        {
+            return path.Equals(DefaultDocument, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        #region Parse Helper Methods
+
+        /// <summary>Returns a page when  no page is found. This method will return the start page if the url matches the default content page property.</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        protected virtual ContentItem NotFoundPage(string url)
+        {
+            if (IsDefaultDocument(url))
+            {
+                return StartPage;
+            }
+            logger.Debug("No content at: " + url);
+
+            PageNotFoundEventArgs args = new PageNotFoundEventArgs(url);
+            if (PageNotFound != null)
+                PageNotFound(this, args);
+            return args.AffectedItem;
+        }
+
+        protected virtual ContentItem Parse(ContentItem current, Url url)
+        {
+            if (current == null) throw new ArgumentNullException("current");
+            logger.Debug("Parsing " + url);
+            var path = CleanUrl(url.PathAndQuery);
+
+            if (path.Length == 0)
+                return current;
+
+            return current.GetChild(path)
+                ?? NotFoundPage(url);
+        }
+
+        protected virtual ContentItem TryLoadingFromQueryString(string url, params string[] parameters)
+        {
+            int? itemID = FindQueryStringReference(url, parameters);
+            if (itemID.HasValue)
+                return persister.Get(itemID.Value);
+            return null;
+        }
+
+        private string CleanUrl(string url)
+        {
+            url = Url.PathPart(url);
+            url = Url.ToRelative(url);
+            url = url.TrimStart('~', '/');
+            if (url.EndsWith(DefaultDocument))
+                url = url.Substring(0, url.Length - DefaultDocument.Length);
+            return url;
+        }
+
+        private int? FindQueryStringReference(string url, params string[] parameters)
+        {
+            string queryString = Url.QueryPart(url);
+            if (!string.IsNullOrEmpty(queryString))
+            {
+                string[] queries = queryString.Split('&');
+
+                foreach (string parameter in parameters)
+                {
+                    int parameterLength = parameter.Length + 1;
+                    foreach (string query in queries)
+                    {
+                        if (query.StartsWith(parameter + "=", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int id;
+                            if (int.TryParse(query.Substring(parameterLength), out id))
+                            {
+                                return id;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        #endregion Parse Helper Methods
     }
 }
