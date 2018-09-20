@@ -29,24 +29,35 @@ namespace N2.Resources
 			Register.PreviewAngularJsRoot = configFactory.Sections.Web.PreviewResources.AngularJsRoot;
 
 			Register.JQueryJsPath = configFactory.Sections.Web.Resources.JQueryJsPath;
-			Register.JQueryUiPath = configFactory.Sections.Web.Resources.JQueryUiPath;
-			Register.JQueryPluginsPath = configFactory.Sections.Web.Resources.JQueryPluginsPath;
+            Register.JQueryJsSriHash = configFactory.Sections.Web.Resources.JQueryJsSriHash;
+            Register.JQueryUiPath = configFactory.Sections.Web.Resources.JQueryUiPath;
+            Register.JQueryUiSriHash = configFactory.Sections.Web.Resources.JQueryUiSriHash;
+            Register.JQueryPluginsPath = configFactory.Sections.Web.Resources.JQueryPluginsPath;
 
 			Register.AngularJsRoot = configFactory.Sections.Web.Resources.AngularJsRoot;
-			Register.AngularStrapJsPath = configFactory.Sections.Web.Resources.AngularStrapJsPath;
-			Register.AngularUiJsPath = configFactory.Sections.Web.Resources.AngularUiJsPath;
+            Register.AngularJsSriHash = configFactory.Sections.Web.Resources.AngularJsSriHash;
+            Register.AngularJsResourceSriHash = configFactory.Sections.Web.Resources.AngularJsResourceSriHash;
+            Register.AngularJsRouteSriHash = configFactory.Sections.Web.Resources.AngularJsRouteSriHash;
+            Register.AngularJsSanitizeSriHash = configFactory.Sections.Web.Resources.AngularJsSanitizeSriHash;
+            Register.AngularStrapJsPath = configFactory.Sections.Web.Resources.AngularStrapJsPath;
+            Register.AngularStrapJsSriHash = configFactory.Sections.Web.Resources.AngularStrapJsSriHash;
+            Register.AngularUiJsPath = configFactory.Sections.Web.Resources.AngularUiJsPath;
+            Register.AngularUiJsSriHash = configFactory.Sections.Web.Resources.AngularUiJsSriHash;
 
-			Register.CkEditorJsPath = configFactory.Sections.Web.Resources.CkEditorPath;
+            Register.CkEditorJsPath = configFactory.Sections.Web.Resources.CkEditorPath;
+            Register.CkEditorJsSriHash = configFactory.Sections.Web.Resources.CkEditorSriHash;
 
-			Register.FancyboxJsPath = configFactory.Sections.Web.Resources.FancyboxJsPath;
-			Register.FancyboxCssPath = configFactory.Sections.Web.Resources.FancyboxCssPath;
+            Register.FancyboxJsPath = configFactory.Sections.Web.Resources.FancyboxJsPath;
+            Register.FancyboxJsSriHash = configFactory.Sections.Web.Resources.FancyboxJsSriHash;
+            Register.FancyboxCssPath = configFactory.Sections.Web.Resources.FancyboxCssPath;
 
 			Register.PartsJsPath = configFactory.Sections.Web.Resources.PartsJsPath;
 			Register.PartsCssPath = configFactory.Sections.Web.Resources.PartsCssPath;
 
 			Register.BootstrapCssPath = configFactory.Sections.Web.Resources.BootstrapCssPath;
 			Register.BootstrapJsPath = configFactory.Sections.Web.Resources.BootstrapJsPath;
-			Register.BootstrapDatePickerCssPath = configFactory.Sections.Web.Resources.BootstrapDatePickerCssPath;
+            Register.BootstrapJsSriHash = configFactory.Sections.Web.Resources.BootstrapJsSriHash;
+            Register.BootstrapDatePickerCssPath = configFactory.Sections.Web.Resources.BootstrapDatePickerCssPath;
 			Register.BootstrapDatePickerJsPath = configFactory.Sections.Web.Resources.BootstrapDatePickerJsPath;
 			Register.BootstrapTimePickerCssPath = configFactory.Sections.Web.Resources.BootstrapTimePickerCssPath;
 			Register.BootstrapTimePickerJsPath = configFactory.Sections.Web.Resources.BootstrapTimePickerJsPath;

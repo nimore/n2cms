@@ -21,25 +21,37 @@ namespace N2.Resources
 		static Register()
 		{
 			AngularJsRoot = DefaultAngularJsRoot;
-			AngularStrapJsPath = DefaultAngularStrapJsRoot;
-			BootstrapCssPath = DefaultBootstrapCssPath;
+            AngularJsSriHash = DefaultAngularJsSriHash;
+            AngularJsResourceSriHash = DefaultAngularJsResourceSriHash;
+            AngularJsSanitizeSriHash = DefaultAngularJsSanitizeSriHash;
+            AngularJsRouteSriHash = DefaultAngularJsRouteSriHash;
+            AngularStrapJsPath = DefaultAngularStrapJsRoot;
+            AngularStrapJsSriHash = DefaultAngularStrapJsSriHash;
+            BootstrapCssPath = DefaultBootstrapCssPath;
 			BootstrapJsPath = DefaultBootstrapJsPath;
-			BootstrapDatePickerJsPath = DefaultBootstrapDatePickerJsPath;
+            BootstrapJsSriHash = DefaultBootstrapJsSriHash;
+            BootstrapDatePickerJsPath = DefaultBootstrapDatePickerJsPath;
 			BootstrapTimePickerJsPath = DefaultBootstrapTimePickerJsPath;
 			BootstrapDatePickerCssPath = DefaultBootstrapDatePickerCssPath;
 			BootstrapTimePickerCssPath = DefaultBootstrapTimePickerCssPath;
 			BootstrapVersion = new Version(DefaultBootstrapVersion);
 			CkEditorJsPath = DefaultCkEditorPath;
+            CkEditorJsSriHash = DefaultCkEditorSriHash;
 			FancyboxCssPath = DefaultFancyboxCssPath;
 			FancyboxJsPath = DefaultFancyboxJsPath;
-			IconsCssPath = DefaultIconsCssPath;
+            FancyboxJsSriHash = DefaultFancyboxJsSriHash;
+            IconsCssPath = DefaultIconsCssPath;
 			JQueryJsPath = DefaultJQueryJsPath;
-			JQueryUiPath = DefaultJQueryUiJsPath;
+            JQueryJsSriHash = DefaultJQueryJsSriHash;
+            JQueryUiPath = DefaultJQueryUiJsPath;
+            JQueryUiSriHash = DefaultJQueryUiJsSriHash;
 			JQueryPluginsPath = DefaultJQueryPluginsPath;
 			PartsJsPath = DefaultPartsJsPath;
 			PartsCssPath = DefaultPartsCssPath;
 			AngularUiJsPath = DefaultAngularUiJsPath;
-		}
+            AngularUiJsSriHash = DefaultAngularUiJsSriHash;
+
+        }
 
 		private static bool? _debug;
 		/// <summary>Whether javascript resources should be uncompressed.</summary>
@@ -52,61 +64,95 @@ namespace N2.Resources
 		/// <summary>The jQuery version used by N2.</summary>
 		public const string JQueryVersion = "1.12.4";
 		public const string JQueryUiVersion = "1.11.4";
-		public const string AngularJsVersion = "1.5.11";
-		public const string CkEditorVersion = "4.5.8";
-		public const string DefaultBootstrapVersion = "2.3.2";
+        public const string AngularJsVersion = "1.5.11";
+        public const string CkEditorVersion = "4.5.11";
+        public const string DefaultBootstrapVersion = "2.3.2";
+              
+        public const string DefaultIconsCssPath = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css";
 
-		public const string DefaultFlagsCssPath = "{ManagementUrl}/Resources/icons/flags.css";
-		public const string DefaultJQueryJsPath = "https://cdnjs.cloudflare.com/ajax/libs/jquery/" + JQueryVersion + "/jquery.min.js";
-		public const string DefaultJQueryUiJsPath = "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/" + JQueryUiVersion + "/jquery-ui.js";
-		public const string DefaultFancyboxJsPath = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js";
-		public const string DefaultFancyboxCssPath = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css";
-		public const string DefaultIconsCssPath = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css";
-		public const string DefaultAngularJsRoot = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/" + AngularJsVersion + "/";
-		public const string DefaultAngularStrapJsRoot = "https://cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.8/angular-strap.min.js";
-		public const string DefaultAngularUiJsPath = "https://cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js";
-		public const string DefaultBootstrapJsPath = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/js/bootstrap.min.js";
-		public const string DefaultBootstrapCssPath = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/css/bootstrap.min.css";
+        public const string DefaultJQueryJsPath = "https://cdnjs.cloudflare.com/ajax/libs/jquery/" + JQueryVersion + "/jquery.min.js";
+        public const string DefaultJQueryJsSriHash = "sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ";
 
-		public const string DefaultBootstrapDatePickerJsPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-datepicker.js";
+        public const string DefaultJQueryUiJsPath = "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/" + JQueryUiVersion + "/jquery-ui.js";
+        public const string DefaultJQueryUiJsSriHash = "sha384-YwCdhNQ2IwiYajqT/nGCj0FiU5SR4oIkzYP3ffzNWtu39GKBddP0M0waDU7Zwco0";
+
+        public const string DefaultFancyboxJsPath = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js";
+        public const string DefaultFancyboxJsSriHash = "sha384-7DcX2vpkwuiZt14mAoeYYh/IvB5WppqF8nOJMjIJtCVQfU0u+jSfDVrnKegwUQJV";
+        public const string DefaultFancyboxCssPath = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css";
+
+        public const string DefaultAngularJsRoot = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/" + AngularJsVersion + "/";
+        public const string DefaultAngularJsSriHash = "sha384-t/XqMIpw+CI1H2c4qO79zYSV54Et7mMfonN2OkkgbCYWUPNXS+rm8nqILevZA3ht";
+        public const string DefaultAngularJsResourceSriHash = "sha384-2bH0z8xgocV4e/bTu00sH9kj5JppKYJ+5HYZUXRcTeFanrhh9GWVdF36Jnb4wdzU";
+        public const string DefaultAngularJsSanitizeSriHash = "sha384-u0KheaOmrqwkS9SRC4UcjkZdAHZn/ZE8ym1O+H2jR0kRY6KMwj8LZwhszlqeWerE";
+        public const string DefaultAngularJsRouteSriHash = "sha384-R/2tpppeU5PA8CPq72mH1sJkPw3nEvuJmTM7dIUUhnhFWMdz1FYU5P8INQq+zghE";
+
+        public const string DefaultAngularStrapJsRoot = "https://cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.8/angular-strap.min.js";
+        public const string DefaultAngularStrapJsSriHash = "sha384-aOS9c5m91Nal2cWUqO4zkHuT8iDc8k8Y/XmAodM+7kRdFwYQiHaTFfSKYoOzf/gX";
+        public const string DefaultAngularUiJsPath = "https://cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js";
+        public const string DefaultAngularUiJsSriHash = "sha384-J6KJ8D7R1fJwlV3cw1jQjqHKTZIJ9yqbNxToVNMj/+Z8IGIAiyDpik27lLQKWj+c";   
+        
+        public const string DefaultBootstrapJsPath = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/js/bootstrap.min.js";
+        public const string DefaultBootstrapJsSriHash = "sha384-7sVK908dLMjOwvGD47EHg9cxk32sTpllx4Qqg0vzxEIlyBSsK9UauzrqZl8SPP0+";
+        public const string DefaultBootstrapCssPath = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + DefaultBootstrapVersion + "/css/bootstrap.min.css";
+
+        public const string DefaultBootstrapDatePickerJsPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-datepicker.js";
 		public const string DefaultBootstrapDatePickerCssPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-datepicker.css";
 		public const string DefaultBootstrapTimePickerJsPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-timepicker.js";
 		public const string DefaultBootstrapTimePickerCssPath = "{ManagementUrl}/Resources/bootstrap-components/bootstrap-timepicker.css";
 
-		//public const string DefaultCkEditorPath = "{ManagementUrl}/Resources/ckeditor/ckeditor.js?v=" + JQueryVersion;
-		public const string DefaultCkEditorPath = "https://cdn.ckeditor.com/4.5.4/full/ckeditor.js";
+        //public const string DefaultCkEditorPath = "https://cdn.ckeditor.com/" + CkEditorVersion + "/full/ckeditor.js"; // no SRI support for older versions
+        public const string DefaultCkEditorPath = "https://cdnjs.cloudflare.com/ajax/libs/ckeditor/" + CkEditorVersion + "/ckeditor.js";
+        public const string DefaultCkEditorSriHash = "sha384-e7o0wl2TgSTFUBPYrfaUb+Y7PAolCx1cpl9NdhIYVKgWckNZmiWdeRPfVfWqLWmy";        
+
         public const string DefaultJQueryPluginsPath = "{ManagementUrl}/Resources/Js/plugins.ashx?v=" + JQueryVersion;
 		public const string DefaultPartsJsPath = "{ManagementUrl}/Resources/Js/parts.js?v=" + JQueryVersion;
 		public const string DefaultPartsCssPath = "{ManagementUrl}/Resources/Css/parts.css?v=" + JQueryVersion;
+        public const string DefaultFlagsCssPath = "{ManagementUrl}/Resources/icons/flags.css";
 
-		/// <summary>Path to jQuery.</summary>
-		public static string JQueryJsPath { get; set; }
-		public static string PreviewJQueryJsPath { get; set; }
+        /// <summary>Path to jQuery.</summary>
+        public static string JQueryJsPath { get; set; }
+
+        public static string JQueryJsSriHash { get; set; }
+
+        public static string PreviewJQueryJsPath { get; set; }
 
 		/// <summary>The path to jQuery UI javascript bundle.</summary>
 		public static string JQueryUiPath { get; set; }
 
-		/// <summary>The path to the jquery plugins used by N2.</summary>
-		public static string JQueryPluginsPath { get; set; }
+        public static string JQueryUiSriHash { get; set; }
+
+        /// <summary>The path to the jquery plugins used by N2.</summary>
+        public static string JQueryPluginsPath { get; set; }
 
 		/// <summary> The path to angularjs folder used by N2. </summary>
 		public static string AngularJsRoot { get; set; }
+
 		public static string PreviewAngularJsRoot { get; set; }
 
 		/// <summary> The path to angularjs used by N2. </summary>
 		public static string AngularJsPath { get { return AngularJsRoot + "angular.js"; } }
 
-		/// <summary> The path to angular-resources used by N2. </summary>
-		public static string AngularJsResourcePath { get { return AngularJsRoot + "angular-resource.js"; } }
+        public static string AngularJsSriHash { get; set; }
 
-		/// <summary> The path to angular-resources used by N2. </summary>
-		public static string AngularJsSanitizePath { get { return AngularJsRoot + "angular-sanitize.js"; } }
+        /// <summary> The path to angular-resources used by N2. </summary>
+        public static string AngularJsResourcePath { get { return AngularJsRoot + "angular-resource.js"; } }
 
-		/// <summary>The path to the CKeditor script</summary>
-		public static string CkEditorJsPath { get; set; }
+        public static string AngularJsResourceSriHash { get; set; }
 
-		/// <summary>The path to the parts script.</summary>
-		public static string PartsJsPath { get; set; }
+        /// <summary> The path to angular-resources used by N2. </summary>
+        public static string AngularJsSanitizePath { get { return AngularJsRoot + "angular-sanitize.js"; } }
+
+        public static string AngularJsSanitizeSriHash { get; set; }
+
+        public static string AngularJsRouteSriHash { get; set; }
+
+        /// <summary>The path to the CKeditor script</summary>
+        public static string CkEditorJsPath { get; set; }
+
+        public static string CkEditorJsSriHash { get; set; }
+
+        /// <summary>The path to the parts script.</summary>
+        public static string PartsJsPath { get; set; }
 
 		/// <summary>The path to the parts css.</summary>
 		public static string PartsCssPath { get; set; }
@@ -116,7 +162,10 @@ namespace N2.Resources
 
 		/// <summary>The path to Twitter Bootstrap JS library.</summary>
 		public static string BootstrapJsPath { get; set; }
-		public static Version BootstrapVersion { get; set; }
+
+        public static string BootstrapJsSriHash { get; set; }
+
+        public static Version BootstrapVersion { get; set; }
 
 		/// <summary>The path to the icon css classes.</summary>
 		public static string IconsCssPath { get; set; }
@@ -124,14 +173,25 @@ namespace N2.Resources
 		/// <summary>The path to Fancybox JS library.</summary>
 		public static string FancyboxJsPath { get; set; }
 
-		/// <summary>The path to Fancybox CSS resources.</summary>
-		public static string FancyboxCssPath { get; set; }
+        public static string FancyboxJsSriHash { get; set; }
+
+        /// <summary>The path to Fancybox CSS resources.</summary>
+        public static string FancyboxCssPath { get; set; }
 
 		public static string AngularStrapJsPath { get; set; }
-		public static string AngularUiJsPath { get; set; }
-		public static string BootstrapDatePickerCssPath { get; set; }
+
+        public static string AngularStrapJsSriHash { get; set; }
+
+        public static string AngularUiJsPath { get; set; }
+
+        public static string AngularUiJsSriHash { get; set; }
+
+        public static string BootstrapDatePickerCssPath { get; set; }
+
 		public static string BootstrapDatePickerJsPath { get; set; }
+
 		public static string BootstrapTimePickerCssPath { get; set; }
+
 		public static string BootstrapTimePickerJsPath { get; set; }
 
 		#region page StyleSheet
@@ -208,7 +268,7 @@ namespace N2.Resources
 		/// <param name="script">The script to add.</param>
 		/// <param name="position">Where to add the script.</param>
 		/// <param name="options">Script registration options.</param>
-		public static void JavaScript(this Page page, string script, ScriptPosition position, ScriptOptions options)
+		public static void JavaScript(this Page page, string script, ScriptPosition position, ScriptOptions options, string sriHash = null)
 		{
 			if (page == null) throw new ArgumentNullException("page");
 
@@ -242,7 +302,7 @@ namespace N2.Resources
 			return "jQuery(document).ready(function(){" + script + "});";
 		}
 
-		public static void JavaScript(this Page page, string script, ScriptOptions options)
+		public static void JavaScript(this Page page, string script, ScriptOptions options, string sriHash = null)
 		{
 			if (page == null) return;
 
@@ -294,7 +354,7 @@ namespace N2.Resources
 			return l;
 		}
 
-		private static Control AddScriptInclude(Page page, string resourceUrl, Control holder, bool priority)
+		private static Control AddScriptInclude(Page page, string resourceUrl, Control holder, bool priority, string sriHash = null)
 		{
 			if (page == null) throw new ArgumentNullException("page");
 
@@ -305,6 +365,13 @@ namespace N2.Resources
 
 			script.Attributes["src"] = resourceUrl;
 			script.Attributes["type"] = "text/javascript";
+
+            if(!string.IsNullOrWhiteSpace(sriHash))
+            {
+                script.Attributes["crossorigin"] = "anonymous";
+                script.Attributes["integrity"] = sriHash;
+            }
+
 			if (priority)
 				holder.Controls.AddAt(0, script);
 			else
@@ -313,20 +380,21 @@ namespace N2.Resources
 			return script;
 		}
 
-		/// <summary>Registers a script reference in the page's header.</summary>
-		/// <param name="page">The page onto which to register the javascript.</param>
-		/// <param name="resourceUrl">The url to the javascript to register.</param>
-		public static void JavaScript(this Page page, string resourceUrl)
+        /// <summary>Registers a script reference in the page's header.</summary>
+        /// <param name="page">The page onto which to register the javascript.</param>
+        /// <param name="resourceUrl">The url to the javascript to register.</param>
+        /// <param name="sriHash">SRI is a new W3C specification that allows web developers to ensure that resources hosted on third-party servers have not been tampered with. Use of SRI is recommended as a best-practice, whenever libraries are loaded from a third-party source.</param>
+        public static void JavaScript(this Page page, string resourceUrl, string sriHash = null)
 		{
 			if (page == null) throw new ArgumentNullException("page");
 			if (resourceUrl == null) throw new ArgumentNullException("resourceUrl");
 
-			JavaScript(page, resourceUrl, ScriptOptions.Include);
+			JavaScript(page, resourceUrl, ScriptOptions.Include, sriHash);
 		}
 
 		public static void JQuery(this Page page)
 		{
-			JavaScript(page, Url.ResolveTokens(JQueryJsPath), ScriptPosition.Header, ScriptOptions.Prioritize | ScriptOptions.Include);
+			JavaScript(page, Url.ResolveTokens(JQueryJsPath), ScriptPosition.Header, ScriptOptions.Prioritize | ScriptOptions.Include, JQueryJsSriHash);
 		}
 
 		private static Script GetScriptHolder(Page page)
@@ -401,12 +469,12 @@ namespace N2.Resources
 		public static void JQueryUi(this Page page)
 		{
 			page.JQuery();
-			page.JavaScript(JQueryUiPath.ResolveUrlTokens(), ScriptPosition.Header, ScriptOptions.Include);
+			page.JavaScript(JQueryUiPath.ResolveUrlTokens(), ScriptPosition.Header, ScriptOptions.Include, JQueryUiSriHash);
 		}
 
 		public static void CkEditor(this Page page)
 		{
-			JavaScript(page, CkEditorJsPath.ResolveUrlTokens());
+			JavaScript(page, CkEditorJsPath.ResolveUrlTokens(), CkEditorJsSriHash);
 		}
 
 		#endregion
@@ -426,14 +494,21 @@ namespace N2.Resources
 			return stateCollection.Contains(resourceUrl);
 		}
 
-		public static string JavaScript(ICollection<string> stateCollection, string resourceUrl)
+		public static string JavaScript(ICollection<string> stateCollection, string resourceUrl, string sriHash = null)
 		{
 			if (IsRegistered(stateCollection, resourceUrl))
 				return null;
 
 			RegisterResource(stateCollection, resourceUrl);
 
-			return String.Format("<script type=\"text/javascript\" src=\"{0}\"></script>", Url.ResolveTokens(resourceUrl));
+            if (!string.IsNullOrWhiteSpace(sriHash))
+            {
+                return String.Format("<script type=\"text/javascript\" src=\"{0}\" crossorigin=\"anonymous\" integrity=\"{1}\"></script>", Url.ResolveTokens(resourceUrl), sriHash);
+            }
+            else
+            {
+                return String.Format("<script type=\"text/javascript\" src=\"{0}\"></script>", Url.ResolveTokens(resourceUrl));
+            }
 		}
 
 		public static string JavaScript(ICollection<string> stateCollection, string script, ScriptOptions options, string cspScriptNonce = "")
@@ -459,7 +534,7 @@ namespace N2.Resources
 
 		public static string JQuery(ICollection<string> stateCollection)
 		{
-			return JavaScript(stateCollection, JQueryJsPath.ResolveUrlTokens());
+			return JavaScript(stateCollection, JQueryJsPath.ResolveUrlTokens(), JQueryJsSriHash);
 		}
 
 		public static string JQueryPlugins(ICollection<string> stateCollection)
@@ -469,7 +544,7 @@ namespace N2.Resources
 
 		public static string JQueryUi(ICollection<string> stateCollection)
 		{
-			return JQuery(stateCollection) + JavaScript(stateCollection, JQueryUiPath.ResolveUrlTokens());
+			return JQuery(stateCollection) + JavaScript(stateCollection, JQueryUiPath.ResolveUrlTokens(), JQueryUiSriHash);
 		}
 
 		[Obsolete("TinyMCE no longer supported; use CkEditor() instead.")]

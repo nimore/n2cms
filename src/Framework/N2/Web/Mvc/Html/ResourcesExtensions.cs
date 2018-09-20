@@ -50,7 +50,7 @@ namespace N2.Web.Mvc.Html
 		public static ResourcesHelper Fancybox(this ResourcesHelper registrator)
 		{
 			return registrator
-				.JavaScript(Register.FancyboxJsPath.ResolveUrlTokens())
+				.JavaScript(Register.FancyboxJsPath.ResolveUrlTokens(), Register.FancyboxJsSriHash)
 				.StyleSheet(Register.FancyboxCssPath.ResolveUrlTokens());
 		}
 
@@ -64,7 +64,7 @@ namespace N2.Web.Mvc.Html
 
 		public static ResourcesHelper JQuery(this ResourcesHelper registrator, bool preview = true)
 		{
-			return registrator.JavaScript((preview ? Register.PreviewJQueryJsPath : Register.JQueryJsPath).ResolveUrlTokens());
+			return registrator.JavaScript((preview ? Register.PreviewJQueryJsPath : Register.JQueryJsPath).ResolveUrlTokens(), (preview ? null : Register.JQueryJsSriHash));
 		}
 
 		public static ResourcesHelper JQueryPlugins(this ResourcesHelper registrator, bool includeJQuery = true)
@@ -78,12 +78,12 @@ namespace N2.Web.Mvc.Html
 		{
 			if (includeJQuery)
 				registrator = registrator.JQuery();
-			return registrator.JavaScript(Register.JQueryUiPath.ResolveUrlTokens());
+			return registrator.JavaScript(Register.JQueryUiPath.ResolveUrlTokens(), Register.JQueryUiSriHash);
 		}
 
 		public static ResourcesHelper BootstrapJs(this ResourcesHelper registrator)
 		{
-			return registrator.JavaScript(N2.Resources.Register.BootstrapJsPath.ResolveUrlTokens());
+			return registrator.JavaScript(N2.Resources.Register.BootstrapJsPath.ResolveUrlTokens(), Register.BootstrapJsSriHash);
 		}
 
 		public static ResourcesHelper BootstrapCss(this ResourcesHelper registrator)
@@ -163,7 +163,7 @@ namespace N2.Web.Mvc.Html
 
 		public static ResourcesHelper CkEditor(this ResourcesHelper registrator)
 		{
-			return registrator.JavaScript(Register.CkEditorJsPath.ResolveUrlTokens());
+			return registrator.JavaScript(Register.CkEditorJsPath.ResolveUrlTokens(), Register.CkEditorJsSriHash);
 		}
 
 		public static ResourcesHelper Constants(this ResourcesHelper registrator, string cspScriptNonce = "")
@@ -177,9 +177,9 @@ namespace N2.Web.Mvc.Html
 			internal TextWriter Writer { get; set; }
 			internal ICollection<string> StateCollection { get; set; }
 
-			public ResourcesHelper JavaScript(string resourceUrl)
+			public ResourcesHelper JavaScript(string resourceUrl, string sriHash = null)
 			{
-				content.Append(N2.Resources.Register.JavaScript(StateCollection, resourceUrl));
+				content.Append(N2.Resources.Register.JavaScript(StateCollection, resourceUrl, sriHash));
 				return this;
 			}
 

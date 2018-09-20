@@ -13,18 +13,18 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<title>N2 Management</title>
 	<meta name="viewport" content="width=device-width">
-
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.JQueryJsPath)%>"></script>
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.JQueryUiPath)%>"></script>
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsPath)%>"></script>
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsResourcePath) %>"></script>
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsSanitizePath)%>"></script>
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsRoot + "angular-route.js")%>"></script>
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularUiJsPath)%>"></script>
-	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularStrapJsPath)%>"></script>
+        
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.JQueryJsPath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.JQueryJsSriHash%>"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.JQueryUiPath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.JQueryUiSriHash%>"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsPath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularJsSriHash%>"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsResourcePath) %>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularJsResourceSriHash%>"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsSanitizePath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularJsSanitizeSriHash%>"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsRoot + "angular-route.js")%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularJsRouteSriHash%>"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularUiJsPath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularUiJsSriHash%>"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularStrapJsPath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularStrapJsSriHash%>"></script>
 
 	<link href="<%=  N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapCssPath)%>" type="text/css" rel="stylesheet" />
-	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapJsPath)%>" type="text/javascript"></script>
+	<script type="text/javascript" src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapJsPath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.BootstrapJsSriHash%>"></script>
 
 	<link rel="stylesheet" href="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.IconsCssPath)%>" />
 
@@ -33,9 +33,7 @@
 	<link href="<%=  N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapTimePickerCssPath)%>" type="text/css" rel="stylesheet" />
 	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapTimePickerJsPath)%>" type="text/javascript"></script>
 	
-	<link href="Resources/icons/flags.css" rel="stylesheet" />
-
-	<!--<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularStrapJsPath)%>"></script>-->
+	<link href="Resources/icons/flags.css" rel="stylesheet" />	
 
 	<script src="Resources/js/n2.js"></script>
 	<link rel="stylesheet" href="Resources/css/n2.css">

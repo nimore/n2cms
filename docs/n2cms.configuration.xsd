@@ -166,15 +166,25 @@
 								<xs:complexType>
 									<xs:attribute name="debug" type="xs:boolean" use="optional" default="false" />
 									<xs:attribute name="angularJsRoot" type="xs:string" use="optional" />
+                  <xs:attribute name="angularJsSriHash" type="xs:string" use="optional" />
+                  <xs:attribute name="angularJsResourceSriHash" type="xs:string" use="optional" />
+                  <xs:attribute name="angularJsRouteSriHash" type="xs:string" use="optional" />
+                  <xs:attribute name="angularJsSanitizeSriHash" type="xs:string" use="optional" />
 									<xs:attribute name="bootstrapJsPath" type="xs:string" use="optional" />
+                  <xs:attribute name="bootstrapJsSriHash" type="xs:string" use="optional" />
 									<xs:attribute name="bootstrapCssPath" type="xs:string" use="optional" />
 									<xs:attribute name="jQueryJsPath" type="xs:string" use="optional" />
+                  <xs:attribute name="jQueryJsSriHash" type="xs:string" use="optional" />
 									<xs:attribute name="jQueryUiPath" type="xs:string" use="optional" />
+                  <xs:attribute name="jQueryUiSriHash" type="xs:string" use="optional" />
 									<xs:attribute name="angularUiJsPath" type="xs:string" use="optional" />
+                  <xs:attribute name="angularUiJsSriHash" type="xs:string" use="optional" />
 									<xs:attribute name="angularStrapJsPath" type="xs:string" use="optional" />
+                  <xs:attribute name="angularStrapJsSriHash" type="xs:string" use="optional" />
 									<xs:attribute name="iconsCssPath" type="xs:string" use="optional" />
 									<xs:attribute name="jQueryPluginsPath" type="xs:string" use="optional" />
 									<xs:attribute name="ckEditorJsPath" type="xs:string" use="optional" />
+                  <xs:attribute name="ckEditorJsSriHash" type="xs:string" use="optional" />
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="previewResources" minOccurs="0">
