@@ -43,8 +43,10 @@ namespace N2.Edit.FileSystem.Items
 
         public override void AddTo(ContentItem newParent)
         {
-            if (newParent != null)
+            if (newParent != null && newParent != Parent)
+            {
                 MoveTo(newParent);
+            }
         }
 
         public override string LocalUrl
@@ -54,9 +56,9 @@ namespace N2.Edit.FileSystem.Items
 
         public override string Url
         {
-            get 
+            get
             {
-                return N2.Web.Url.Combine(Directory.Url, Name); 
+                return N2.Web.Url.Combine(Directory.Url, Name);
             }
         }
 
@@ -149,7 +151,7 @@ namespace N2.Edit.FileSystem.Items
             return d.GetChild(Name);
         }
 
-        #endregion
+        #endregion IActiveContent Members
 
         public string ReadFile()
         {
