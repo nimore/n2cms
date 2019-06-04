@@ -12,9 +12,9 @@ namespace N2.Details
     /// </summary>
     public abstract class EditableListControlAttribute : AbstractEditableAttribute, IDisplayable, IWritingDisplayable
     {
-        public EditableListControlAttribute(): base() { }
+        protected EditableListControlAttribute(): base() { }
 
-        public EditableListControlAttribute(string title, int sortOrder)
+        protected EditableListControlAttribute(string title, int sortOrder)
             : base(title, sortOrder)
         {
         }
@@ -76,12 +76,7 @@ namespace N2.Details
             return value;
         }
         
-        protected abstract ListControl CreateEditor();
-
-        protected override Control AddHelp(Control container)
-        {
-            return base.AddHelp(container);
-        }
+        protected abstract ListControl CreateEditor();        
 
         protected override Control AddRequiredFieldValidator(Control container, Control editor)
         {

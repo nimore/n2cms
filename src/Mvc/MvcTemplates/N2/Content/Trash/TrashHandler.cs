@@ -91,7 +91,7 @@ namespace N2.Edit.Trash
             if (args.Cancel) return;
 
             item = args.AffectedItem;
-            ExpireTrashedItem(item);
+            ////ExpireTrashedItem(item);
 
             try
             {

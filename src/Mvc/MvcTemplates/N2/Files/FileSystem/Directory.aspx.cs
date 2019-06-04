@@ -6,24 +6,28 @@ using N2.Edit.FileSystem.Items;
 using N2.Edit.Web;
 using N2.Resources;
 using N2.Web.Drawing;
-using System.Configuration;
-using System.Web.Configuration;
-using N2.Web;
 
 namespace N2.Edit.FileSystem
 {
     public partial class Directory1 : EditPage
     {
-        protected override void RegisterToolbarSelection()
+        protected IEnumerable<ContentItem> ancestors;
+        private IList<Directory> directories;
+        private IList<File> files;
+
+        public void OnDeleteCommand(object sender, CommandEventArgs args)
         {
-            string script = GetToolbarSelectScript("preview");
-            Register.JavaScript(this, script, ScriptPosition.Bottom, ScriptOptions.ScriptTags);
+            Delete(Request.Form["directory"], directories.Select(f => f.Url), Engine.Resolve<IFileSystem>().DeleteDirectory);
+            Delete(Request.Form["file"], files.Select(f => f.Url), Engine.Resolve<IFileSystem>().DeleteFile);
         }
 
-        protected IEnumerable<ContentItem> ancestors;
-
-        IList<Directory> directories;
-        IList<File> files;
+        protected string ImageBackgroundStyle(string url)
+        {
+            if (ImagesUtility.IsImagePath(url))
+                return string.Format("background-image:url({0})", N2.Edit.Web.UI.Controls.ResizedImage.GetResizedImageUrl(url, 100, 100, N2.Web.Drawing.ImageResizeMode.Fit));
+            else
+                return "";
+        }
 
         protected override void OnInit(EventArgs e)
         {
@@ -40,23 +44,10 @@ namespace N2.Edit.FileSystem
             hlEdit.NavigateUrl = Engine.ManagementPaths.GetEditExistingItemUrl(Selection.SelectedItem);
         }
 
-        private void Reload()
+        protected override void RegisterToolbarSelection()
         {
-            var dir = Selection.SelectedItem as Directory;
-            if (dir == null) return;
-
-            directories = dir.GetDirectories();
-            files = dir.GetFiles();
-            
-            rptDirectories.DataSource = directories;
-            rptFiles.DataSource = files;
-            DataBind();
-        }
-
-        public void OnDeleteCommand(object sender, CommandEventArgs args)
-        {
-            Delete(Request.Form["directory"], directories.Select(f => f.Url), Engine.Resolve<IFileSystem>().DeleteDirectory);
-            Delete(Request.Form["file"], files.Select(f => f.Url), Engine.Resolve<IFileSystem>().DeleteFile);
+            string script = GetToolbarSelectScript("preview");
+            Register.JavaScript(this, script, ScriptPosition.Bottom, ScriptOptions.ScriptTags);
         }
 
         private void Delete(string itemsToDelete, IEnumerable<string> allowed, Action<string> deleteAction)
@@ -73,12 +64,19 @@ namespace N2.Edit.FileSystem
             Reload();
         }
 
-        protected string ImageBackgroundStyle(string url)
+        private void Reload()
         {
-            if(ImagesUtility.IsImagePath(url))
-                return string.Format("background-image:url({0})", N2.Edit.Web.UI.Controls.ResizedImage.GetResizedImageUrl(url, 100, 100, N2.Web.Drawing.ImageResizeMode.Fit));
-            else
-                return "";
+            ////TraceSources.AzureTraceSource.TraceInformation("Reload");
+
+            var dir = Selection.SelectedItem as Directory;
+            if (dir == null) return;
+
+            directories = dir.GetDirectories();
+            files = dir.GetFiles();
+
+            rptDirectories.DataSource = directories;
+            rptFiles.DataSource = files;
+            DataBind();
         }
     }
 }

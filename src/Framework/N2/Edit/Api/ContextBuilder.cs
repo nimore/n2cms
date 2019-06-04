@@ -1,109 +1,16 @@
-using N2.Edit;
-using N2.Edit.Collaboration;
-using N2.Edit.Versioning;
-using N2.Engine;
-using N2.Engine.Globalization;
-using N2.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
-using System.Text;
 using System.Web;
+using N2.Edit;
+using N2.Edit.Collaboration;
+using N2.Edit.Versioning;
+using N2.Engine;
+using N2.Web;
 
 namespace N2.Management.Api
 {
-	public class FlagData : Dictionary<string, bool>
-	{
-		public FlagData()
-		{
-		}
-
-		public FlagData(IEnumerable<string> flags)
-		{
-			AddRange(flags);
-		}
-
-		public FlagData Add(string flag)
-		{
-			this[flag] = true;
-			return this;
-		}
-
-		public FlagData AddRange(IEnumerable<string> flags)
-		{
-			if (flags != null)
-				foreach (var flag in flags)
-					this[flag] = true;
-			return this;
-		}
-
-		public static implicit operator FlagData(List<string> flags)
-		{
-			return new FlagData(flags);
-		}
-
-		public bool Any(params string[] keys)
-		{
-			foreach(var key in keys)
-				if (ContainsKey(key))
-					return true;
-			return false;
-		}
-	}
-
-    public class ContextData
-    {
-        public ContextLanguage Language { get; set; }
-
-        public TreeNode CurrentItem { get; set; }
-
-        public ExtendedContentInfo ExtendedInfo { get; set; }
-
-        public FlagData Flags { get; set; }
-
-        public string ReturnUrl { get; set; }
-
-        public Dictionary<string, object> Actions { get; set; }
-
-		public List<Edit.Collaboration.CollaborationMessage> Messages { get; set; }
-	}
-
-    public class ContextLanguage
-    {
-        public string FlagUrl { get; set; }
-
-        public string LanguageTitle { get; set; }
-
-        public string LanguageCode { get; set; }
-
-        public string IconClass { get; set; }
-    }
-
-    public class ExtendedContentInfo
-    {
-        public string Created { get; set; }
-        public string Expires { get; set; }
-        public string FuturePublishDate { get; set; }
-        public bool IsPage { get; set; }
-        public string Published { get; set; }
-        public string SavedBy { get; set; }
-        public string Updated { get; set; }
-        public bool Visible { get; set; }
-        public string ZoneName { get; set; }
-        public int VersionIndex { get; set; }
-        public string Url { get; set; }
-        public bool ReadProtected { get; set; }
-        public string TypeName { get; set; }
-        public ExtendedContentInfo VersionOf { get; set; }
-        public ExtendedContentInfo Draft { get; set; }
-    }
-
-    public class ContextBuiltEventArgs : EventArgs
-    {
-        public ContextData Data { get; internal set; }
-    }
-
     [Service]
     public class ContextBuilder
     {
@@ -118,6 +25,8 @@ namespace N2.Management.Api
 
         public virtual ContextData GetInterfaceContextData(HttpContextBase context, SelectionUtility selection)
         {
+            ////TraceSources.AzureTraceSource.TraceInformation("GetInterfaceContextData");
+
             var item = selection.ParseSelectionFromRequest();
 
             Url selectedUrl = context.Request["selectedUrl"];
@@ -144,7 +53,7 @@ namespace N2.Management.Api
             {
                 data.ReturnUrl = HttpUtility.UrlDecode(selectedUrl["returnUrl"]);
                 var isOrganizing = selectedUrl["edit"] == "drag";
-                if (selectedUrl.Path.StartsWith(mangementUrl, StringComparison.InvariantCultureIgnoreCase))
+                if (selectedUrl.Path.StartsWith(mangementUrl, StringComparison.OrdinalIgnoreCase))
                 {
                     data.Flags.Add("Management");
                     data.Flags.Add(selectedUrl.Path.Substring(mangementUrl.Length).ToUrl().PathWithoutExtension.Replace("/", ""));
@@ -163,14 +72,24 @@ namespace N2.Management.Api
 
             data.Actions = CreateActions(context);
 
-			var collaborationContext = CollaborationContext.Create(engine.Resolve<IProfileRepository>(), item, context);
-			data.Messages = engine.Resolve<N2.Edit.Collaboration.ManagementMessageCollector>().GetMessages(collaborationContext).ToList();
-			data.Flags.AddRange(engine.Resolve<N2.Edit.Collaboration.ManagementFlagCollector>().GetFlags(collaborationContext));
+            var collaborationContext = CollaborationContext.Create(engine.Resolve<IProfileRepository>(), item, context);
+            data.Messages = engine.Resolve<N2.Edit.Collaboration.ManagementMessageCollector>().GetMessages(collaborationContext).ToList();
+            data.Flags.AddRange(engine.Resolve<N2.Edit.Collaboration.ManagementFlagCollector>().GetFlags(collaborationContext));
 
             if (ContextBuilt != null)
                 ContextBuilt(this, new ContextBuiltEventArgs { Data = data });
 
             return data;
+        }
+
+        public object GetMessages(HttpContextBase context, SelectionUtility selection)
+        {
+            var messageContext = new Edit.Collaboration.CollaborationContext { SelectedItem = selection.ParseSelectionFromRequest(), User = context.User }
+                .ParseLastDismissed(context.Request["lastDismissed"]);
+            return new
+            {
+                Messages = engine.Resolve<N2.Edit.Collaboration.ManagementMessageCollector>().GetMessages(messageContext).ToList()
+            };
         }
 
         private Dictionary<string, object> CreateActions(HttpContextBase context)
@@ -229,15 +148,88 @@ namespace N2.Management.Api
             }
             return data;
         }
+    }
 
-		public object GetMessages(HttpContextBase context, SelectionUtility selection)
-		{
-			var messageContext = new Edit.Collaboration.CollaborationContext { SelectedItem = selection.ParseSelectionFromRequest(), User = context.User }
-				.ParseLastDismissed(context.Request["lastDismissed"]);
-			return new
-			{
-				Messages = engine.Resolve<N2.Edit.Collaboration.ManagementMessageCollector>().GetMessages(messageContext).ToList()
-			};
-		}
-	}
+    public class ContextBuiltEventArgs : EventArgs
+    {
+        public ContextData Data { get; internal set; }
+    }
+
+    public class ContextData
+    {
+        public Dictionary<string, object> Actions { get; set; }
+        public TreeNode CurrentItem { get; set; }
+        public ExtendedContentInfo ExtendedInfo { get; set; }
+        public FlagData Flags { get; set; }
+        public ContextLanguage Language { get; set; }
+        public List<Edit.Collaboration.CollaborationMessage> Messages { get; set; }
+        public string ReturnUrl { get; set; }
+    }
+
+    public class ContextLanguage
+    {
+        public string FlagUrl { get; set; }
+
+        public string IconClass { get; set; }
+        public string LanguageCode { get; set; }
+        public string LanguageTitle { get; set; }
+    }
+
+    public class ExtendedContentInfo
+    {
+        public string Created { get; set; }
+        public ExtendedContentInfo Draft { get; set; }
+        public string Expires { get; set; }
+        public string FuturePublishDate { get; set; }
+        public bool IsPage { get; set; }
+        public string Published { get; set; }
+        public bool ReadProtected { get; set; }
+        public string SavedBy { get; set; }
+        public string TypeName { get; set; }
+        public string Updated { get; set; }
+        public string Url { get; set; }
+        public int VersionIndex { get; set; }
+        public ExtendedContentInfo VersionOf { get; set; }
+        public bool Visible { get; set; }
+        public string ZoneName { get; set; }
+    }
+
+    public class FlagData : Dictionary<string, bool>
+    {
+        public FlagData()
+        {
+        }
+
+        public FlagData(IEnumerable<string> flags)
+        {
+            AddRange(flags);
+        }
+
+        public static implicit operator FlagData(List<string> flags)
+        {
+            return new FlagData(flags);
+        }
+
+        public FlagData Add(string flag)
+        {
+            this[flag] = true;
+            return this;
+        }
+
+        public FlagData AddRange(IEnumerable<string> flags)
+        {
+            if (flags != null)
+                foreach (var flag in flags)
+                    this[flag] = true;
+            return this;
+        }
+
+        public bool Any(params string[] keys)
+        {
+            foreach (var key in keys)
+                if (ContainsKey(key))
+                    return true;
+            return false;
+        }
+    }
 }

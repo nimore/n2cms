@@ -1,13 +1,10 @@
+using System;
 using System.Web;
 using System.Web.UI;
+using N2.Collections;
+using N2.Edit.Versioning;
 using N2.Engine;
 using N2.Web;
-using N2.Edit.Versioning;
-using N2.Collections;
-using System;
-using System.Web.Script.Serialization;
-using System.Collections.Generic;
-using System.IO;
 
 namespace N2.Edit
 {
@@ -16,21 +13,14 @@ namespace N2.Edit
     /// </summary>
     public class SelectionUtility
     {
-        Func<string, string> requestValueAccessor = (key) => null;
-        IEngine engine;
-        ContentItem selectedItem;
-        ContentItem memorizedItem;
+        private IEngine engine;
+        private ContentItem memorizedItem;
+        private Func<string, string> requestValueAccessor = (key) => null;
+        private ContentItem selectedItem;
 
-        protected IEngine Engine
+        static SelectionUtility()
         {
-            get { return engine ?? (engine = N2.Context.Current); }
-            set { engine = value; }
-        }
-
-        public Func<string, string> RequestValueAccessor
-        {
-            get { return requestValueAccessor; }
-            set { requestValueAccessor = value; }
+            SelectedQueryKey = "selected";
         }
 
         public SelectionUtility(Control container, IEngine engine)
@@ -57,22 +47,13 @@ namespace N2.Edit
         }
 
         public SelectionUtility(ContentItem selectedItem, ContentItem memorizedItem)
-        {;
+        {
+            ;
             this.selectedItem = selectedItem;
             this.memorizedItem = memorizedItem;
         }
 
-        public TraverseHelper Traverse
-        {
-            get { return new TraverseHelper(() => Engine, new FilterHelper(() => Engine), () => new PathData(SelectedItem)); }
-        }
-
-        /// <summary>The selected item.</summary>
-        public ContentItem SelectedItem
-        {
-            get { return selectedItem ?? (selectedItem = ParseSelectionFromRequest() ?? Engine.UrlParser.StartPage); }
-            set { selectedItem = value; }
-        }
+        public static string SelectedQueryKey { get; set; }
 
         /// <summary>The item placed in memory.</summary>
         public ContentItem MemorizedItem
@@ -81,29 +62,76 @@ namespace N2.Edit
             set { memorizedItem = value; }
         }
 
-		public virtual ContentItem GetSelectionParent()
-		{
-			var item = SelectedItem;
-			var before = RequestValueAccessor("before");
-			if (!string.IsNullOrEmpty(before))
-			{
-				var child = Engine.Resolve<Navigator>().Navigate(before);
-				return child.Parent;
-			}
-			return item;
-		}
-
-        private ContentItem GetMemoryFromUrl()
+        public Func<string, string> RequestValueAccessor
         {
-            if (RequestValueAccessor == null) return null; // explicitly passed memory
+            get { return requestValueAccessor; }
+            set { requestValueAccessor = value; }
+        }
 
-            return Engine.Resolve<Navigator>().Navigate(RequestValueAccessor("memory"));
+        /// <summary>The selected item.</summary>
+        public ContentItem SelectedItem
+        {
+            get
+            {
+                ////TraceSources.AzureTraceSource.TraceInformation("SelectedItem");
+                return selectedItem ?? (selectedItem = ParseSelectionFromRequest() ?? Engine.UrlParser.StartPage);
+            }
+            set { selectedItem = value; }
+        }
+
+        public TraverseHelper Traverse
+        {
+            get
+            {
+                ////TraceSources.AzureTraceSource.TraceInformation("Traverse");
+                return new TraverseHelper(() => Engine, new FilterHelper(() => Engine), () => new PathData(SelectedItem));
+            }
+        }
+
+        protected IEngine Engine
+        {
+            get { return engine ?? (engine = N2.Context.Current); }
+            set { engine = value; }
+        }
+
+        public string ActionUrl(string actionName)
+        {
+            return Url.Parse(SelectedItem.FindPath(actionName).TemplateUrl).AppendQuery(SelectedQueryKey, SelectedItem.Path).ResolveTokens();
+        }
+
+        public virtual ContentItem GetSelectionParent()
+        {
+            var item = SelectedItem;
+            var before = RequestValueAccessor("before");
+            if (!string.IsNullOrEmpty(before))
+            {
+                var child = Engine.Resolve<Navigator>().Navigate(before);
+                return child.Parent;
+            }
+            return item;
+        }
+
+        public ContentItem ParseSelected(string selected)
+        {
+            ////TraceSources.AzureTraceSource.TraceInformation("ParseSelected");
+
+            if (string.IsNullOrEmpty(selected))
+                return null;
+
+            int id;
+            if (int.TryParse(selected, out id))
+                return engine.Persister.Get(id);
+
+            var selectedItem = Engine.Resolve<Navigator>().Navigate(HttpUtility.UrlDecode(selected));
+            return selectedItem;
         }
 
         /// <summary>Analyzes the request trying to determine the selected item.</summary>
         /// <returns>A content item or null if no item was discovered.</returns>
         public virtual ContentItem ParseSelectionFromRequest()
         {
+            ////TraceSources.AzureTraceSource.TraceInformation("ParseSelectionFromRequest");
+
             if (RequestValueAccessor == null) return null; // explicitly passed selection
 
             var selectedItem = ParseSelected(RequestValueAccessor(SelectedQueryKey));
@@ -115,7 +143,7 @@ namespace N2.Edit
             string itemId = RequestValueAccessor(PathData.ItemQueryKey);
             if (!string.IsNullOrEmpty(itemId))
                 selectedItem = Engine.Persister.Get(int.Parse(itemId)) ?? selectedItem;
-            
+
             if (selectedItem != null && RequestValueAccessor(PathData.VersionIndexQueryKey) != null)
             {
                 selectedItem = ParseSpecificVersion(selectedItem) ?? selectedItem;
@@ -127,40 +155,10 @@ namespace N2.Edit
             return selectedItem;
         }
 
-        private ContentItem ParseLatestDraft(ContentItem selectedItem)
-        {
-            var dr = Engine.Resolve<DraftRepository>();
-            if (dr.HasDraft(selectedItem))
-            {
-                var draft = dr.GetDraftInfo(selectedItem);
-                var cvr = Engine.Resolve<ContentVersionRepository>();
-                selectedItem = cvr.ParseVersion(draft.VersionIndex.ToString(), RequestValueAccessor(PathData.VersionKeyQueryKey), selectedItem);
-            }
-            return selectedItem;
-        }
-
-        private ContentItem ParseSpecificVersion(ContentItem selectedItem)
-        {
-            var cvr = Engine.Resolve<ContentVersionRepository>();
-            selectedItem = cvr.ParseVersion(RequestValueAccessor(PathData.VersionIndexQueryKey), RequestValueAccessor(PathData.VersionKeyQueryKey), selectedItem);
-            return selectedItem;
-        }
-
-        public ContentItem ParseSelected(string selected)
-        {
-            if (string.IsNullOrEmpty(selected))
-                return null;
-            
-            int id;
-            if (int.TryParse(selected, out id))
-                return engine.Persister.Get(id);
-
-            var selectedItem = Engine.Resolve<Navigator>().Navigate(HttpUtility.UrlDecode(selected));
-            return selectedItem;
-        }
-
         public ContentItem ParseUrl(Url selectedUrl)
         {
+            ////TraceSources.AzureTraceSource.TraceInformation(string.Format("ParseUrl: {0}", selectedUrl));
+
             if (string.IsNullOrEmpty(selectedUrl))
                 return null;
 
@@ -179,19 +177,34 @@ namespace N2.Edit
             return selectedItem;
         }
 
-        private ContentItem TryApplyDraft(ContentItem selectedItem)
+        public string SelectedUrl(Url baseUrl, ContentItem selected = null)
         {
-            var drafts = Engine.Resolve<DraftRepository>();
-            if (drafts.HasDraft(selectedItem))
+            return baseUrl.AppendQuery(SelectedQueryKey, (selected ?? SelectedItem).Path).ResolveTokens();
+        }
+
+        private ContentItem GetMemoryFromUrl()
+        {
+            if (RequestValueAccessor == null) return null; // explicitly passed memory
+
+            return Engine.Resolve<Navigator>().Navigate(RequestValueAccessor("memory"));
+        }
+
+        private ContentItem ParseLatestDraft(ContentItem selectedItem)
+        {
+            var dr = Engine.Resolve<DraftRepository>();
+            if (dr.HasDraft(selectedItem))
             {
-                var version = drafts.Versions.GetVersion(selectedItem);
-                if (version != null)
-                {
-                    var item = drafts.Versions.DeserializeVersion(version);
-                    if (item != null)
-                        selectedItem = item;
-                }
+                var draft = dr.GetDraftInfo(selectedItem);
+                var cvr = Engine.Resolve<ContentVersionRepository>();
+                selectedItem = cvr.ParseVersion(draft.VersionIndex.ToString(), RequestValueAccessor(PathData.VersionKeyQueryKey), selectedItem);
             }
+            return selectedItem;
+        }
+
+        private ContentItem ParseSpecificVersion(ContentItem selectedItem)
+        {
+            var cvr = Engine.Resolve<ContentVersionRepository>();
+            selectedItem = cvr.ParseVersion(RequestValueAccessor(PathData.VersionIndexQueryKey), RequestValueAccessor(PathData.VersionKeyQueryKey), selectedItem);
             return selectedItem;
         }
 
@@ -219,22 +232,20 @@ namespace N2.Edit
             return Engine.Resolve<Navigator>().Navigate(url);
         }
 
-        public string ActionUrl(string actionName)
+        private ContentItem TryApplyDraft(ContentItem selectedItem)
         {
-            return Url.Parse(SelectedItem.FindPath(actionName).TemplateUrl).AppendQuery(SelectedQueryKey, SelectedItem.Path).ResolveTokens();
+            var drafts = Engine.Resolve<DraftRepository>();
+            if (drafts.HasDraft(selectedItem))
+            {
+                var version = drafts.Versions.GetVersion(selectedItem);
+                if (version != null)
+                {
+                    var item = drafts.Versions.DeserializeVersion(version);
+                    if (item != null)
+                        selectedItem = item;
+                }
+            }
+            return selectedItem;
         }
-
-        public string SelectedUrl(Url baseUrl, ContentItem selected = null)
-        {
-            return baseUrl.AppendQuery(SelectedQueryKey, (selected ?? SelectedItem).Path).ResolveTokens();
-        }
-
-
-        static SelectionUtility()
-        {
-            SelectedQueryKey = "selected";
-        }
-
-        public static string SelectedQueryKey { get; set; }
     }
 }

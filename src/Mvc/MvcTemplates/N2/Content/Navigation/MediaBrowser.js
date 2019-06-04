@@ -12,19 +12,19 @@
         }
 
         return stemp;
-    };
+    }
 
     ajaxError = function (xhr, status, p3, p4) {
         var err = "Error " + " " + status + " " + p3 + " " + p4;
-        if (xhr.responseText && xhr.responseText[0] == "{")
+        if (xhr.responseText && xhr.responseText[0] === "{")
             err = JSON.parse(xhr.responseText).status;
         console.log(err);
-    }
+    };
 
     function sizeReadble(size) {
         return size > 1024 ? (size > 1048576 ? (String(Math.round(size / 1048576 * 10) / 10).toLocaleString() + " MBs")
-                        : (String(Math.round(size / 1024 * 10) / 10).toLocaleString()) + " KBs")
-                        : size + " bytes"
+            : (String(Math.round(size / 1024 * 10) / 10).toLocaleString()) + " KBs")
+            : size + " bytes";
     }
 
     fileBrowser = {
@@ -33,10 +33,6 @@
         objs: [],
         list: null,
         listLis: null,
-        tabs: null,
-        tabsCtrl: null,
-        tabsCtrlLis: null,
-        curTab: 0,
         btn: null,
         btnClose: null,
         btnSearch: null,
@@ -74,8 +70,6 @@
             if (fbMainDiv === null) return;
 
             me.list = document.getElementById("browser-files-list-ul");
-            me.tabs = document.getElementsByClassName("browser-files-section");
-            me.tabsCtrl = document.getElementById("tabsCtrl");
             me.btn = document.getElementById("btn-select");
             me.btnSearch = document.getElementById("btn-search");
             me.qSearch = document.getElementById("input-group-q");
@@ -98,7 +92,7 @@
                 i18url: me.list.getAttribute("data-i18url"),
                 i18keep: me.divLayoverUl.getAttribute("data-i18keep"),
                 i18repl: me.divLayoverUl.getAttribute("data-i18repl"),
-                i18ignr: me.divLayoverUl.getAttribute("data-i18ignr"),
+                i18ignr: me.divLayoverUl.getAttribute("data-i18ignr")
             };
             me.preferredSize = me.list.getAttribute("data-preferredsize");
             me.lastPath = me.list.getAttribute("data-path");
@@ -113,13 +107,12 @@
                 jQ(me.btnSearchClean).on(clickEvent, me.loadDataSearchClean);
                 jQ(me.qSearch).keypress(function (e) {
                     var key = e.which;
-                    if(key == 13)  
-                    {
+                    if (key === 13) {
                         jQ(me.btnSearch).trigger(clickEvent);
                         e.stopPropagation();
                         e.preventDefault();
                     }
-                }); 
+                });
 
                 jQ(me.divDetails).on(clickEvent, me.clicksInfoRespond);
                 jQ(me.btn).on(clickEvent, me.selectFileToParent);
@@ -131,11 +124,6 @@
                 me.selPrevioursUrl();
             }
 
-            if (me.tabsCtrl != null) {
-                me.tabsCtrlLis = (me.tabsCtrl).getElementsByTagName("li"); 
-                jQ(me.tabsCtrl).click(me.showTab);
-            }
-
             jQ(me.btnClose).click(me.closeWindow);
 
             me.initUpload();
@@ -144,34 +132,6 @@
         },
         toggleMainBtn: function (on) {
             !on ? fileBrowser.btn.setAttribute("disabled", "disabled") : fileBrowser.btn.removeAttribute("disabled");
-        },
-        showTab: function (e) {
-            var t = e.target, p;
-            if (t.tagName.toUpperCase() !== "A") { return; }
-            e.stopPropagation();
-            e.preventDefault();
-            p = Number(t.href.split("#")[1]);
-            if (p === fileBrowser.curTab) { return; }
-
-            fileBrowser.showTabNum(p);
-        },
-        showTabNum: function (p) {
-            var ts = fileBrowser.tabsCtrlLis, c = fileBrowser.curTab, tabs = fileBrowser.tabs;
-            //ChangeTab
-            tabs[c].style.display = "none";
-            jQ(ts[c]).removeClass("active");
-            tabs[p].style.display = "block";
-            jQ(ts[p]).addClass("active");
-            fileBrowser.curTab = p;
-
-            //Deselect any
-            if (fileBrowser.cur >= 0) { jQ(fileBrowser.listLis[fileBrowser.cur]).removeClass("selected"); }
-            fileBrowser.showInfo(-1);
-
-            if (p === 1) {
-                (fileBrowser.progressBar).parentNode.style.display = "none";
-                (fileBrowser.progressBar).style.display.width = "0%";
-            }
         },
         selPrevioursUrl: function () {
             var j, k, len, lenk, li,
@@ -218,21 +178,33 @@
                 case "LI": p = e.target;
                 case "IMG":
                 case "SPAN":
-                    type = jQ(p).hasClass("dir") ? 0 : (jQ(p).hasClass("image") ? 1 : 2);
-                    if (type > 0) {
-                        if (jQ(p).hasClass("selected")) {
-                            jQ(p).removeClass("selected");
-                            fileBrowser.showInfo(-1);
-                        } else {
-                            if (fileBrowser.cur >= 0) {
-                                jQ(fileBrowser.listLis[fileBrowser.cur]).removeClass("selected");
-                            }
-                            jQ(p).addClass("selected");
-                            fileBrowser.showInfo(Number(p.getAttribute("data-i")));
+                    type = jQ(p).hasClass("dir-create") ? 0 : (jQ(p).hasClass("dir") ? 1 : (jQ(p).hasClass("image") ? 2 : 3));
+                    switch (type) {
+                        case 0: {
+                            //Create a new folder
+                            fileBrowser.createDirectory(fileBrowser.ajaxUrl, fileBrowser.lastPath);
+                            break;
                         }
-                    } else {
-                        newDir = jQ(p).data("url");
-                        fileBrowser.loadData(newDir, null);
+                        case 1: {
+                            //Open selected the folder
+                            newDir = jQ(p).data("url");
+                            fileBrowser.loadData(newDir, null);
+                            break;
+                        }
+                        default: {
+                            //image/file select
+                            if (jQ(p).hasClass("selected")) {
+                                jQ(p).removeClass("selected");
+                                fileBrowser.showInfo(-1);
+                            } else {
+                                if (fileBrowser.cur >= 0) {
+                                    jQ(fileBrowser.listLis[fileBrowser.cur]).removeClass("selected");
+                                }
+                                jQ(p).addClass("selected");
+                                fileBrowser.showInfo(Number(p.getAttribute("data-i")));
+                            }
+                            break;
+                        }
                     }
                     break;
                 case "EM":
@@ -255,7 +227,7 @@
                     var element,
                         dialog = this.getDialog();
                     // Check if this is the Image dialog window.
-                    if (dialog.getName() == 'image') {
+                    if (dialog.getName() === 'image') {
                         // Get the reference to a text field that holds the "alt" attribute.
                         element = dialog.getContentElement('info', 'txtAlt');
                         // Assign the new value.
@@ -271,7 +243,7 @@
             }
 
             document.cookie = "lastMediaSelection=" + dp.url + "; path=/;";
-        
+
             window.close();
         },
         closeWindow: function (e) {
@@ -290,9 +262,9 @@
                     break;
             }
         },
-        clicksBreadcrumbRespond: function(e){
+        clicksBreadcrumbRespond: function (e) {
             var t = e.target, newDir, tagName = t.tagName;
-            if (tagName === "LI") {
+            if (tagName === "SPAN") {
                 newDir = t.getAttribute("data-url");
                 fileBrowser.showInfo(-1);
                 fileBrowser.loadData(newDir, null);
@@ -319,7 +291,7 @@
                     isImage: liDp.getAttribute("data-isimage") === "true"
                 };
 
-                imageSizes = jQ(".image-sizes", liDp)
+                imageSizes = jQ(".image-sizes", liDp);
                 if (jQ(imageSizes).length > 0 && jQ("em.selected", imageSizes).length > 0) {
                     ems = jQ("em.selected", imageSizes);
                     dp.size = sizeReadble(Number(jQ(ems).data("size")));
@@ -330,6 +302,16 @@
                 html = parsePropertiesToPattern(html, me.i18Labels);
             }
             (me.divDetails).innerHTML = html;
+        },
+        clearListAndShowLoading: function () {
+            //Clear list before loading new list. Shows loading animation.
+            fileBrowser.list.innerHTML = "";
+            fileBrowser.listLis = [];
+
+            jQ(fileBrowser.list).addClass("loading");
+        },
+        hideListLoading: function () {
+            jQ(fileBrowser.list).removeClass("loading");
         },
         loadDataSearchClean: function () {
             if ((fileBrowser.qSearch).value !== "") {
@@ -347,22 +329,19 @@
         },
         loadDataSearch: function (force) {
             var q = (fileBrowser.qSearch).value,
-            path = fileBrowser.ajaxUrl,
-            firstPath = path + "?query=" + q;
+                path = fileBrowser.ajaxUrl,
+                firstPath = path + "?query=" + q;
 
             if (fileBrowser.lastSearch === q || !q) { return; }
 
             fileBrowser.lastSearch = q;
-            (fileBrowser.list).innerHTML = "";
-            fileBrowser.listLis = [];
             fileBrowser.loadData(null, q);
             fileBrowser.divBreadcrumb.innerHTML = "*";
         },
         loadData: function (newDir, searchText) {
             var me = fileBrowser,
                 ajaxUrl = me.ajaxUrl;
-                
-            jQ(fileBrowser.list).addClass("loading");
+
             me.api.getData(ajaxUrl, newDir, searchText, window.selectableExtensions, me.repaintList);
         },
         repaintList: function (data) {
@@ -377,8 +356,8 @@
                     "<div class=\"image-sizes\">{{ImageSizes}}</div></li>",
                 patternImgSizes = "<em class=\"{{ClassName}}\" data-size=\"{{Size}}\" data-url=\"{{Url}}\">{{SizeName}}</em>",
                 patternDir = "<li data-i=\"{{i}}\" data-url=\"{{Url}}\" class=\"dir\"><span class=\"file-ic glyphicon glyphicon-folder-open\"></span><label>{{Title}}</label></li>",
-                startI = 0,
-                imagePrefix = fileBrowser.list.getAttribute('data-imageprefix');
+                patternDirCreate = "<li data-i=\"{{i}}\" class=\"dir-create\"><span class=\"file-ic glyphicon glyphicon-folder-plus\"></span><label>{{Title}}</label></li>",
+                startI = 1;
 
             fileBrowser.showInfo(-1);
             jQ(fileBrowser.list).removeClass("loading");
@@ -399,17 +378,20 @@
                 for (i = 0, len = pathSplitted.length; i < len; i += 1) {
                     if (i > 0 && pathSplitted[i] === "") continue;
                     breadcrumber += i === 0 ? "" : pathSplitted[i] + "/";
-                    breadcrumbUl.push("<li data-url=\"" + breadcrumber + "\">" + pathSplitted[i] + "</li>");
+                    breadcrumbUl.push("<li><span data-url=\"" + breadcrumber + "\">" + pathSplitted[i] + "</span></li>");
                 }
                 fileBrowser.divBreadcrumb.innerHTML = "<ul>" + breadcrumbUl.join("") + "</ul>";
             }
 
+            //Create directory
+            lis.push(parsePropertiesToPattern(patternDirCreate, { Title: "Create a New Folder" }, 0));
+
             //Dirs
             if (data.Dirs) {
                 for (i = 0, len = data.Dirs.length; i < len; i += 1) {
-                    lis.push(parsePropertiesToPattern(patternDir, data.Dirs[i], i));
+                    lis.push(parsePropertiesToPattern(patternDir, data.Dirs[i], i + 1));
                 }
-                startI = len > 0 ? len : 0;
+                startI = len + startI;
             }
 
             //Files
@@ -417,30 +399,25 @@
                 for (i = 0, len = data.Files.length; i < len; i += 1) {
                     dpt = data.Files[i];
                     dpt.ImageSizes = "";
-                    if (imagePrefix) {
-                        if (dpt.Thumb && dpt.Thumb.substr(0, 8).toLowerCase() === '/upload/') {
-                            dpt.Thumb = imagePrefix + (dpt.Thumb.charAt(0) === '/' ? dpt.Thumb.substr(1) : dpt.Thumb);
-                        }
-                    }
                     if (dpt.IsImage && dpt.SCount > 0) {
                         lisImgs = [];
-                        dptImg = { "SizeName": "default", "Size": dpt.Size, "Url": dpt.Url, "ClassName": (fileBrowser.preferredSize == "" ? "selected" : "") };
+                        dptImg = { "SizeName": "default", "Size": dpt.Size, "Url": dpt.Url, "ClassName": (fileBrowser.preferredSize === "" ? "selected" : "") };
                         lisImgs.push(parsePropertiesToPattern(patternImgSizes, dptImg));
                         for (j = 0, len2 = dpt.SCount; j < len2; j += 1) {
                             dptImg = dpt.Children[j];
-                            dptImg.ClassName = fileBrowser.preferredSize == dptImg.SizeName ? "selected" : "";
+                            dptImg.ClassName = fileBrowser.preferredSize === dptImg.SizeName ? "selected" : "";
                             lisImgs.push(parsePropertiesToPattern(patternImgSizes, dptImg));
                         }
                         dpt.ImageSizes = lisImgs.join("");
                     }
                     lis.push(parsePropertiesToPattern(dpt.IsImage ? patternImg : patternFile, dpt, startI + i));
                 }
-
-                lisHtml = lis.join("");
-                fileBrowser.list.innerHTML = lisHtml;
-                fileBrowser.listLis = jQ(fileBrowser.list).children("li");
-                fileBrowser.cur = -1;
             }
+
+            lisHtml = lis.join("");
+            fileBrowser.list.innerHTML = lisHtml;
+            fileBrowser.listLis = jQ(fileBrowser.list).children("li");
+            fileBrowser.cur = -1;
 
             if (data.Path) {
                 fileBrowser.history = { breadcrumb: fileBrowser.divBreadcrumb.innerHTML, list: lisHtml };
@@ -544,7 +521,7 @@
                     url: ajaxUrl + '/uploadFile?selected=' + encodeURI(fileBrowser.lastPath) + '&overwrite=' + overwriteArr.join("|"),
                     contentType: false,
                     processData: false,
-                    data: datas,
+                    data: datas
                 });
 
                 function handlerUpload(d) {
@@ -568,12 +545,19 @@
                         fileBrowser.lastPath = "";
                         fileBrowser.loadData(lastPath, null);
                         jQ(fileBrowser.progressBar).removeClass("progress-bar-striped");
+                        fileBrowser.lblMessageUpload.innerHTML = "File uploaded.";
+                        fileBrowser.lblMessageUpload.style.display = "block";
                         setTimeout(function () {
-                            fileBrowser.showTabNum(0);
-                        }, 1000);
+                            fileBrowser.lblMessageUpload.innerHTML = "";
+                            fileBrowser.lblMessageUpload.style.display = "none";
+                        }, 3000);
 
                     } else {
-                        fileBrowser.lblMessageUpload.innerHTML = result.Message;
+                        var msg = result.Message;
+                        if (result.hasOwnProperty("Detail") && result.Detail.length)
+                            msg = msg + "<br />" + result.Detail;
+
+                        fileBrowser.lblMessageUpload.innerHTML = msg;
                         fileBrowser.lblMessageUpload.style.display = "block";
                         (fileBrowser.progressBar).parentNode.style.display = "none";
                     }
@@ -671,11 +655,11 @@
 
                     reqExists.done(function (d) {
                         var ptn = "<li><div class=\"btn-group btn-group-sm btn-group-ov-opts\" role=\"group\" data-name=\"{{name}}\" data-oname=\"{{oname}}\">" +
-                        "<button type=\"button\" class=\"btn btn-default active\" data-action=\"keep\">{{i18keep}}</button>" +
-                        "<button type=\"button\" class=\"btn btn-default\" data-action=\"replace\">{{i18repl}}</button>" +
-                        "<button type=\"button\" class=\"btn btn-default\" data-action=\"ignore\">{{i18ignr}}</button></div>" +
-                        "<span class='name'>{{name}}</span></li>",
-                        j, lenj, lis = [], btns, btnsHtml;
+                            "<button type=\"button\" class=\"btn btn-default active\" data-action=\"keep\">{{i18keep}}</button>" +
+                            "<button type=\"button\" class=\"btn btn-default\" data-action=\"replace\">{{i18repl}}</button>" +
+                            "<button type=\"button\" class=\"btn btn-default\" data-action=\"ignore\">{{i18ignr}}</button></div>" +
+                            "<span class='name'>{{name}}</span></li>",
+                            j, lenj, lis = [], btns, btnsHtml;
 
                         if (d.Status === "Checked") {
                             if (d.Files && d.Files.length > 0) { //Filenames exist on server
@@ -766,6 +750,44 @@
 
         },
 
+        createDirectory: function (ajaxUrl, curDir) {
+            var datas, reqCreate;
+
+            var name = prompt("Please enter the folder name: (Special characters will be stripped out)");
+            if (name === null) {
+                return;
+            }
+            else if (name === "") {
+                alert("Folder name required!");
+                return;
+            }
+
+            datas = new FormData();
+            datas.append("ticket", window.ticket);
+
+            reqCreate = jQ.ajax({
+                type: "POST",
+                url: ajaxUrl + "/directory/create?selected=" + encodeURI(curDir) + "&name=" + encodeURI(name),
+                contentType: false,
+                processData: false,
+                data: datas
+            });
+
+            reqCreate.done(function (d) {
+                if (d.Status !== "Ok") {
+                    var msg = d.Message;
+                    if (d.hasOwnProperty("Detail") && d.Detail.length)
+                        msg = msg + "\n" + d.Detail;
+                    alert(msg);
+                } else {
+                    fileBrowser.loadData(curDir, null);
+                }
+            });
+
+            reqCreate.fail(ajaxError);
+
+        },
+
         //This is the public API
         api: {
 
@@ -804,7 +826,7 @@
 
     return {
         api: fileBrowser.api
-    }
+    };
 
 
 }(jQuery));

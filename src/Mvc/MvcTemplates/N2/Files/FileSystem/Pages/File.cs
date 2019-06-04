@@ -1,13 +1,11 @@
 using System.IO;
 using System.Text;
-using System.Web;
-using N2.Engine;
+using N2.Definitions;
 using N2.Installation;
 using N2.Integrity;
-using N2.Persistence;
-using N2.Definitions;
-using N2.Web.Drawing;
 using N2.Management.Api;
+using N2.Persistence;
+using N2.Web.Drawing;
 
 namespace N2.Edit.FileSystem.Items
 {
@@ -21,8 +19,6 @@ namespace N2.Edit.FileSystem.Items
     [InterfaceFlags("Management")]
     public class File : AbstractNode, IActiveContent, IFileSystemFile
     {
-        public long Size { get; set; }
-        public bool IsIcon { get; set; }
         private string iconUrl;
 
         public File()
@@ -41,30 +37,9 @@ namespace N2.Edit.FileSystem.Items
             Created = file.Created;
         }
 
-        public override void AddTo(ContentItem newParent)
+        public bool Exists
         {
-            if (newParent != null && newParent != Parent)
-            {
-                MoveTo(newParent);
-            }
-        }
-
-        public override string LocalUrl
-        {
-            get { return N2.Web.Url.Combine(Directory.LocalUrl, Name); }
-        }
-
-        public override string Url
-        {
-            get
-            {
-                return N2.Web.Url.Combine(Directory.Url, Name);
-            }
-        }
-
-        public override bool IsPage
-        {
-            get { return !IsIcon; }
+            get { return LocalUrl != null && FileSystem.FileExists(LocalUrl); }
         }
 
         public override string IconUrl
@@ -74,26 +49,67 @@ namespace N2.Edit.FileSystem.Items
                 if (iconUrl != null)
                     return iconUrl;
 
-                string icon = ImagesUtility.GetResizedPath(LocalUrl, "icon");
-                if (FileSystem.FileExists(icon))
-                    this.iconUrl = icon;
-                else
-                    this.iconUrl = ImagesUtility.GetIconUrl(LocalUrl);
+                ////string icon = ImagesUtility.GetResizedPath(LocalUrl, "icon");
+                ////if (FileSystem.FileExists(icon))
+                ////    this.iconUrl = icon;
+                ////else
+                this.iconUrl = ImagesUtility.GetIconUrl(LocalUrl);
 
                 return iconUrl;
             }
         }
 
-        public bool Exists
+        public bool IsIcon { get; set; }
+
+        public override bool IsPage
         {
-            get { return LocalUrl != null && FileSystem.FileExists(LocalUrl); }
+            get { return !IsIcon; }
+        }
+
+        public override string LocalUrl
+        {
+            get { return N2.Web.Url.Combine(Directory.LocalUrl, Name); }
         }
 
         public string NewName { get; set; }
+        public long Size { get; set; }
+
+        public override string Url
+        {
+            get
+            {
+                return N2.Web.Url.Combine(Directory.Url, Name);
+            }
+        }
+
+        public override void AddTo(ContentItem newParent)
+        {
+            if (newParent != null && newParent != Parent)
+            {
+                MoveTo(newParent);
+            }
+        }
+
+        public string ReadFile()
+        {
+            using (var fs = FileSystem.OpenFile(LocalUrl, readOnly: true))
+            using (var sr = new StreamReader(fs))
+            {
+                return sr.ReadToEnd();
+            }
+        }
 
         public virtual void TransmitTo(Stream stream)
         {
             FileSystem.ReadFileContents(LocalUrl, stream);
+        }
+
+        public void WriteFile(string text)
+        {
+            using (var ms = new MemoryStream(Encoding.ASCII.GetBytes(text)))
+            {
+                FileSystem.WriteFile(LocalUrl, ms);
+            }
         }
 
         public void WriteToDisk(Stream stream)
@@ -112,13 +128,17 @@ namespace N2.Edit.FileSystem.Items
 
         #region IActiveContent Members
 
-        public void Save()
+        public ContentItem CopyTo(ContentItem destination)
         {
-            if (!string.IsNullOrEmpty(NewName))
-            {
-                FileSystem.MoveFile(LocalUrl, Combine(Directory.LocalUrl, NewName));
-                Name = NewName;
-            }
+            AbstractDirectory d = AbstractDirectory.EnsureDirectory(destination);
+
+            string to = Combine(d.LocalUrl, Name);
+            if (FileSystem.FileExists(to))
+                throw new NameOccupiedException(this, d);
+
+            FileSystem.CopyFile(LocalUrl, to);
+
+            return d.GetChild(Name);
         }
 
         public void Delete()
@@ -138,36 +158,15 @@ namespace N2.Edit.FileSystem.Items
             Parent = d;
         }
 
-        public ContentItem CopyTo(ContentItem destination)
+        public void Save()
         {
-            AbstractDirectory d = AbstractDirectory.EnsureDirectory(destination);
-
-            string to = Combine(d.LocalUrl, Name);
-            if (FileSystem.FileExists(to))
-                throw new NameOccupiedException(this, d);
-
-            FileSystem.CopyFile(LocalUrl, to);
-
-            return d.GetChild(Name);
+            if (!string.IsNullOrEmpty(NewName))
+            {
+                FileSystem.MoveFile(LocalUrl, Combine(Directory.LocalUrl, NewName));
+                Name = NewName;
+            }
         }
 
         #endregion IActiveContent Members
-
-        public string ReadFile()
-        {
-            using (var fs = FileSystem.OpenFile(LocalUrl, readOnly: true))
-            using (var sr = new StreamReader(fs))
-            {
-                return sr.ReadToEnd();
-            }
-        }
-
-        public void WriteFile(string text)
-        {
-            using (var ms = new MemoryStream(Encoding.ASCII.GetBytes(text)))
-            {
-                FileSystem.WriteFile(LocalUrl, ms);
-            }
-        }
     }
 }

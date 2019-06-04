@@ -228,10 +228,14 @@ namespace N2.Web.UI.WebControls
             button.Command += (s, a) =>
             {
 				var parentEditor = ItemUtility.FindInParents<ItemEditor>(Parent);
-				var parentVersion = parentEditor.GetAutosaveVersion()
-					?? ParentItem;
+                var autoSaveVersion = parentEditor.GetAutosaveVersion();
 
-				var path = EnsureDraft(parentVersion);
+                if(autoSaveVersion != null)
+                {
+                    Engine.Resolve<IVersionManager>().DeleteVersion(Find.ClosestPage(autoSaveVersion));
+                }                
+
+				var path = EnsureDraft(ParentItem);
 
 				UpdateItemFromTopEditor(path);
 
@@ -239,19 +243,23 @@ namespace N2.Web.UI.WebControls
 				item.AddTo(path.CurrentItem, ZoneName);
 				Utility.UpdateSortOrder(path.CurrentItem.Children).ToList();
 
-				if (path.CurrentPage.ID != 0 || path.CurrentPage.VersionOf.HasValue)
+                ////if (string.IsNullOrEmpty(item.Title))
+                ////{
+                ////    item.Title = template.Definition.Discriminator;
+                ////}
+
+                if (path.CurrentPage.VersionOf.HasValue)
 				{
 					var cvr = Engine.Resolve<ContentVersionRepository>();
 					cvr.Save(path.CurrentPage);
-
-					RedirectToVersionOfSelf(path.CurrentPage);
 				}
 				else
 				{
 					Engine.Persister.SaveRecursive(path.CurrentPage);
-					RedirectToVersionOfSelf(path.CurrentPage);
 				}
-			};
+
+                RedirectToVersionOfSelf(path.CurrentPage);
+            };
             container.Controls.Add(button);
             return button;
         }
@@ -352,8 +360,17 @@ namespace N2.Web.UI.WebControls
 				UpdateItemFromTopEditor(path);
 
 				path.CurrentItem.AddTo(null);
-				var cvr = Engine.Resolve<ContentVersionRepository>();
-				cvr.Save(path.CurrentPage);
+
+                if(path.CurrentPage.VersionOf.HasValue)
+                {
+                    var cvr = Engine.Resolve<ContentVersionRepository>();
+                    cvr.Save(path.CurrentPage);
+                }
+                else
+                {
+                    Engine.Persister.Delete(path.CurrentItem);
+                    Engine.Persister.SaveRecursive(path.CurrentPage);
+                }				
 			}
 
 			RedirectToVersionOfSelf(path.CurrentPage);
@@ -392,8 +409,15 @@ namespace N2.Web.UI.WebControls
 
 					UpdateItemFromTopEditor(path);
 
-					var cvr = Engine.Resolve<ContentVersionRepository>();
-					cvr.Save(path.CurrentPage);
+                    if(path.CurrentPage.VersionOf.HasValue)
+                    {
+                        var cvr = Engine.Resolve<ContentVersionRepository>();
+                        cvr.Save(path.CurrentPage);
+                    }
+                    else
+                    {
+                        Engine.Persister.SaveRecursive(path.CurrentPage);
+                    }					
 				}
 			}
 
@@ -428,8 +452,10 @@ namespace N2.Web.UI.WebControls
 		{
 			var page = Find.ClosestPage(item);
 
-			if (page.ID == 0)
-				return new PathData(page, item);
+            if (page.ID == 0 || (!page.VersionOf.HasValue && (page.State == ContentState.New || page.State == ContentState.Draft)))
+            {
+                return new PathData(page, item);
+            }
 
 			var cvr = Engine.Resolve<ContentVersionRepository>();
 			var vm = Engine.Resolve<IVersionManager>();

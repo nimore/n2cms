@@ -77,7 +77,7 @@ namespace N2.Security.AspNet.Identity
     /// </remarks>
     public abstract class IdentityAccountManager<TUser> : AccountManager where TUser : ContentUser
 	{
-        public IdentityAccountManager(
+        protected IdentityAccountManager(
             IdentityUserStore<TUser> userStore, IdentityUserManager<TUser> userManager,
             IdentityRoleStore roleStore, IdentityRoleManager roleManager)
 		{

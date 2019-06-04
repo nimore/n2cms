@@ -17,7 +17,9 @@ namespace N2.Details
 	[AttributeUsage(AttributeTargets.Property)]
 	public class EditableImageAttribute : EditableMediaAttribute
 	{
-		public EditableImageAttribute()
+        public bool ShowThumbnail { get; set; }
+
+        public EditableImageAttribute()
 			: this(null, 40)
 		{
 		}
@@ -26,7 +28,23 @@ namespace N2.Details
 			: base(title, sortOrder)
 		{
 		}
-	}
+
+        public override void UpdateEditor(ContentItem item, Control editor)
+        {
+            var composite = (SelectingMediaControl)editor;
+            composite.SelectorControl.ShowThumbnail = ShowThumbnail;
+
+            base.UpdateEditor(item, editor);
+        }
+
+        protected override Control AddEditor(Control container)
+        {
+            var composite = (SelectingMediaControl)base.AddEditor(container);
+            composite.SelectorControl.ShowThumbnail = ShowThumbnail;
+
+            return composite;
+        }
+    }
 }
 //		AbstractEditableAttribute, IRelativityTransformer, IWritingDisplayable
 //    {

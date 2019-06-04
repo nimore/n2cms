@@ -1,6 +1,7 @@
 using System.Configuration;
 using N2.Web.Drawing;
 using System;
+using System.Globalization;
 
 namespace N2.Configuration
 {
@@ -71,7 +72,7 @@ namespace N2.Configuration
 
         public override string ToString()
         {
-            return string.Format("{0}={1},{2},{3}", Name, Width, Height, Mode);
+            return string.Format(CultureInfo.InvariantCulture, "{0}={1},{2},{3}", Name, Width, Height, Mode);
         }
 
         public static ImageSizeElement Parse(string text)
@@ -81,8 +82,8 @@ namespace N2.Configuration
             return new ImageSizeElement 
             { 
                 Name = s[0], 
-                Width = int.Parse(s2[0]), 
-                Height = int.Parse(s2[1]), 
+                Width = int.Parse(s2[0], CultureInfo.InvariantCulture), 
+                Height = int.Parse(s2[1], CultureInfo.InvariantCulture), 
                 Mode = (ImageResizeMode)Enum.Parse(typeof(ImageResizeMode), s2[2])
             };
         }

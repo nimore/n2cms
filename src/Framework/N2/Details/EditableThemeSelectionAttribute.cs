@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Web.Hosting;
@@ -36,28 +37,28 @@ namespace N2.Details
         protected override Control AddEditor(Control container)
         {
             var editor = base.AddEditor(container);
-            Register.JavaScript(container.Page, N2.Web.Url.ResolveTokens("{ManagementUrl}/Resources/Js/jquery.editableThemeSelection.js"));
+            container.Page.JavaScript(N2.Web.Url.ResolveTokens("{ManagementUrl}/Resources/Js/jquery.editableThemeSelection.js"));
             
             StringBuilder initializationScript = new StringBuilder();
-            initializationScript.AppendFormat("jQuery('#{0}').editableThemeSelection({{ '' : null", editor.ClientID);
+            initializationScript.AppendFormat(CultureInfo.InvariantCulture, "jQuery('#{0}').editableThemeSelection({{ '' : null", editor.ClientID);
             foreach (string directoryPath in GetThemeDirectories())
             {
                 string thumbnailPath = Path.Combine(directoryPath, "thumbnail.jpg");
                 string themeName = Path.GetFileName(directoryPath);
                 if (File.Exists(thumbnailPath))
                 {
-                    initializationScript.AppendFormat(", '{0}' : '{1}'", 
+                    initializationScript.AppendFormat(CultureInfo.InvariantCulture, ", '{0}' : '{1}'", 
                         themeName, 
                         container.ResolveClientUrl(Url.ResolveTokens(Url.ThemesUrlToken + themeName + "/thumbnail.jpg")));
                 }
                 else
                 {
-                    initializationScript.AppendFormat(", '{0}' : null", 
+                    initializationScript.AppendFormat(CultureInfo.InvariantCulture, ", '{0}' : null", 
                         themeName);
                 }
             }
-            initializationScript.AppendFormat("}});");
-            Register.JavaScript(container.Page, initializationScript.ToString(), ScriptOptions.DocumentReady);
+            initializationScript.AppendFormat(CultureInfo.InvariantCulture, "}});");
+            container.Page.JavaScript(initializationScript.ToString(), ScriptOptions.DocumentReady);
 
             return editor;
         }
@@ -97,7 +98,7 @@ namespace N2.Details
             foreach (string directoryPath in GetThemeDirectories())
             {
                 string directoryName = Path.GetFileName(directoryPath);
-                if (!directoryName.StartsWith("."))
+                if (!directoryName.StartsWith(".", StringComparison.Ordinal))
                     items.Add(new ListItem(directoryName));
             }
 

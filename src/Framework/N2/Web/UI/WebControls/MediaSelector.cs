@@ -5,6 +5,7 @@ using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System;
 using N2.Engine;
+using System.IO;
 
 namespace N2.Web.UI.WebControls
 {
@@ -21,27 +22,51 @@ namespace N2.Web.UI.WebControls
 			ClearButton = new HtmlButton();
 			PopupButton = new HtmlButton();
             ShowButton = new HtmlButton();
-            UploadButton = new HtmlButton();
+            ThumbnailDiv = new HtmlGenericControl("div");
+            ShowThumbnail = false;
+            ////UploadButton = new HtmlButton();
 		}
 
 		public MediaSelector(string name)
 			: this()
 		{
 			Input.ID = name + "_input";
+            ThumbnailDiv.ID = Input.ID + "_thumbnail";
 		}
 
 		/// <summary>File extensions that may be selected using this selector.</summary>
 		public string SelectableExtensions { get; set; }
 
         public string BrowserUrl { get; set; }
+
         public string PopupOptions { get; set; }
+
+        public bool ShowThumbnail { get; set; }
+
         public string PreferredSize { get; set; }
 
         /// <summary>The selected url.</summary>
         public virtual string Url
         {
             get { return Input.Text; }
-            set { Input.Text = value; }
+            set {
+                Input.Text = value;
+
+                if(ShowThumbnail)
+                {
+                    var ext = Path.GetExtension(value);
+                    if(!string.IsNullOrWhiteSpace(ext) && ImageExtensions.Contains(ext))
+                    {
+                        ThumbnailDiv.InnerHtml = string.Format("<img src=\"{0}\" />", value);
+                        ThumbnailDiv.Style.Remove(HtmlTextWriterStyle.Display);
+                    }
+                    else
+                    {
+                        ThumbnailDiv.InnerHtml = string.Empty;
+                        ThumbnailDiv.Style.Add(HtmlTextWriterStyle.Display, "none");
+                    }
+                }
+            }
         }
 
         /// <summary>Format for the javascript invoked when the open popup button is clicked.</summary>
@@ -51,6 +76,7 @@ namespace N2.Web.UI.WebControls
         }
 
 		private IEngine engine;
+
 		protected IEngine Engine
 		{
 			get { return engine ?? N2.Context.Current; }
@@ -68,7 +94,9 @@ namespace N2.Web.UI.WebControls
 		public HtmlButton ClearButton { get; private set; }
         public HtmlButton PopupButton { get; private set; }
         public HtmlButton ShowButton { get; private set; }
-		public HtmlButton UploadButton { get; private set; }
+
+        public HtmlGenericControl ThumbnailDiv { get; private set; }
+        ////public HtmlButton UploadButton { get; private set; }
         public HtmlGenericControl Buttons { get; private set; }
 
 		protected virtual void RegisterClientScripts()
@@ -93,14 +121,15 @@ namespace N2.Web.UI.WebControls
 
 			Attributes["class"] = "mediaSelector selector input-append";
 
-            Controls.Add(ShowButton);
+            Controls.Add(ShowButton);            
             Controls.Add(Input);
 			Controls.Add(ClearButton);
 			Controls.Add(Buttons);
 			Buttons.Controls.Add(PopupButton);
-            Buttons.Controls.Add(UploadButton);
+            ////Buttons.Controls.Add(UploadButton);
+            Controls.Add(ThumbnailDiv);
 
-			ShowButton.InnerHtml = "<b class='fa fa-eye'></b>";
+            ShowButton.InnerHtml = "<b class='fa fa-eye'></b>";
 			ShowButton.Attributes["title"] = Utility.GetGlobalResourceString("UrlSelector", "View") ?? "View";
 			ShowButton.Attributes["class"] = "revealer showLayoverButton";
 
@@ -115,12 +144,16 @@ namespace N2.Web.UI.WebControls
 			PopupButton.InnerHtml = ButtonText;
 			PopupButton.Attributes["title"] = Utility.GetGlobalResourceString("UrlSelector", "Select") ?? "Select";
 			PopupButton.Attributes["class"] = "btn popupButton selectorButton";
-			UploadButton.InnerHtml = "<b class='fa fa-upload'></b>";
-			UploadButton.Attributes["title"] = Utility.GetGlobalResourceString("UrlSelector", "Upload") ?? "View";
-			UploadButton.Attributes["class"] = "btn uploadButton";
-		}
+            ////UploadButton.InnerHtml = "<b class='fa fa-upload'></b>";
+            ////UploadButton.Attributes["title"] = Utility.GetGlobalResourceString("UrlSelector", "Upload") ?? "View";
+            ////UploadButton.Attributes["class"] = "btn uploadButton";
 
-		protected override void OnPreRender(EventArgs e)
+            ThumbnailDiv.Attributes["class"] = "thumbnail";
+            ThumbnailDiv.Attributes["title"] = Utility.GetGlobalResourceString("UrlSelector", "View") ?? "View";
+            ThumbnailDiv.Style.Add(HtmlTextWriterStyle.Display, ShowThumbnail ? string.Empty : "display:none;");
+        }
+
+        protected override void OnPreRender(EventArgs e)
         {
             base.OnPreRender(e);
             RegisterClientScripts();
@@ -133,17 +166,17 @@ namespace N2.Web.UI.WebControls
 													  !string.IsNullOrWhiteSpace(SelectableExtensions) ? SelectableExtensions : ImageExtensions
                                                       );
 
-			UploadButton.Attributes["onclick"] = string.Format(OpenPopupFormat,
-													  N2.Web.Url.ResolveTokens(BrowserUrl ?? Engine.ManagementPaths.MediaBrowserUrl.ToUrl().AppendQuery("mc=true").AppendQuery("tab=upload")),
-													  Input.ClientID,
-													  PopupOptions,
-													  PreferredSize,
-													  !string.IsNullOrWhiteSpace(SelectableExtensions) ? SelectableExtensions : ImageExtensions
-													  );
+			////UploadButton.Attributes["onclick"] = string.Format(OpenPopupFormat,
+			////										  N2.Web.Url.ResolveTokens(BrowserUrl ?? Engine.ManagementPaths.MediaBrowserUrl.ToUrl().AppendQuery("mc=true").AppendQuery("tab=upload")),
+			////										  Input.ClientID,
+			////										  PopupOptions,
+			////										  PreferredSize,
+			////										  !string.IsNullOrWhiteSpace(SelectableExtensions) ? SelectableExtensions : ImageExtensions
+			////										  );
 
 			ClearButton.Attributes["onclick"] = "n2MediaSelection.clearMediaSelector('" + Input.ClientID + "'); return false;";
 
-            ShowButton.Attributes["onclick"] = "n2MediaSelection.showMediaSelectorOverlay('" + Input.ClientID + "'); return false;";
+            ShowButton.Attributes["onclick"] = ThumbnailDiv.Attributes["onclick"] = "n2MediaSelection.showMediaSelectorOverlay('" + Input.ClientID + "'); return false;";
         }
 
         /// <summary>Renders and tag and the open popup window button.</summary>

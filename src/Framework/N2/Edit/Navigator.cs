@@ -1,19 +1,19 @@
 using System;
 using N2.Engine;
 using N2.Persistence;
-using N2.Web;
 using N2.Persistence.Sources;
+using N2.Web;
 
 namespace N2.Edit
 {
     [Service]
     public class Navigator
     {
-        private IPersister persister;
-        private IHost host;
-        private VirtualNodeFactory virtualNodes;
-        private ContentSource sources;
-        
+        private readonly IHost host;
+        private readonly IPersister persister;
+        private readonly ContentSource sources;
+        private readonly VirtualNodeFactory virtualNodes;
+
         public Navigator(IPersister persister, IHost host, VirtualNodeFactory nodes, ContentSource sources)
         {
             this.persister = persister;
@@ -24,6 +24,8 @@ namespace N2.Edit
 
         public virtual ContentItem Navigate(ContentItem startingPoint, string path)
         {
+            ////TraceSources.AzureTraceSource.TraceInformation(string.Format("Navigate: {0}; {0}", startingPoint.Url, path));
+
             return startingPoint.GetChild(path)
                 ?? sources.ResolvePath(startingPoint, path).CurrentItem
                 ?? virtualNodes.Get(startingPoint.Path + path.TrimStart('/'))
@@ -32,7 +34,9 @@ namespace N2.Edit
 
         public virtual ContentItem Navigate(string path)
         {
-            if (path == null) 
+            ////TraceSources.AzureTraceSource.TraceInformation(string.Format("Navigate: {0}", path));
+
+            if (path == null)
                 return null;
 
             if (!path.StartsWith("/"))

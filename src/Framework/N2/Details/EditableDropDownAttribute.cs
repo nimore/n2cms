@@ -8,9 +8,9 @@ namespace N2.Details
     /// </summary>
     public abstract class EditableDropDownAttribute : EditableListControlAttribute
     {
-        public EditableDropDownAttribute(): base() {}
+        protected EditableDropDownAttribute(): base() {}
 
-        public EditableDropDownAttribute(string title, int sortOrder)
+        protected EditableDropDownAttribute(string title, int sortOrder)
             : base(title, sortOrder)
         {
 			ClientAdapter = "n2autosave.select";

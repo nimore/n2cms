@@ -22,7 +22,7 @@ namespace N2.Addons.Tagging.Items
         
         public IEnumerable<ITag> GetTags()
         {
-            foreach(Tag t in GetChildren(new TypeFilter(typeof (Tag))))
+            foreach(Tag t in GetChildPartsUnfiltered().Where(new TypeFilter(typeof (Tag))))
                 yield return t;
         }
 

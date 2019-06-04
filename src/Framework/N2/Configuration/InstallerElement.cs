@@ -9,9 +9,9 @@ namespace N2.Configuration
         public const string No = "No";
         public static string Parse(string configValue)
         {
-            if (configValue == AnonymousUser || "true".Equals(configValue, System.StringComparison.InvariantCultureIgnoreCase))
+            if (configValue == AnonymousUser || "true".Equals(configValue, System.StringComparison.OrdinalIgnoreCase))
                 return AnonymousUser;
-            if (configValue == No || "false".Equals(configValue, System.StringComparison.InvariantCultureIgnoreCase))
+            if (configValue == No || "false".Equals(configValue, System.StringComparison.OrdinalIgnoreCase))
                 return No;
             
             return Administrator;

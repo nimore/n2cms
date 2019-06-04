@@ -97,7 +97,7 @@ namespace N2.Web.Mvc.Html
 				set { includeJQueryPlugins = value; }
 			}
 
-            public string CspScriptNonce
+            public new string CspScriptNonce
             {
                 get { return cspScriptNonce; }
                 set { cspScriptNonce = value; }

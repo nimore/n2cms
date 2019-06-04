@@ -1,6 +1,7 @@
 using N2.Web.Drawing;
 using N2.Web.UI.WebControls;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Web;
 using System.Web.UI;
@@ -207,7 +208,7 @@ namespace N2.Details
 		";
 		private void WriteFlash(string url, TextWriter writer)
 		{
-			writer.Write(string.Format(flashFormat, url, Width, Height, BackgroundColor));
+			writer.Write(string.Format(CultureInfo.InvariantCulture, flashFormat, url, Width, Height, BackgroundColor));
 		}
 
 		static string movieFormat = @"<object width=""{1}"" height=""{2}"" classid=""CLSID:22D6f312-B0F6-11D0-94AB-0080C74C7E95"" standby=""Loading Windows Media Player components..."" type=""application/x-oleobject"" codebase=""http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#Version=6,4,7,1112"">
@@ -219,7 +220,7 @@ namespace N2.Details
 
 		private void WriteMovie(string url, TextWriter writer)
 		{
-			writer.Write(string.Format(movieFormat, url, Width, Height, BackgroundColor));
+			writer.Write(string.Format(CultureInfo.InvariantCulture, movieFormat, url, Width, Height, BackgroundColor));
 		}
 
 		static string audioFormat = @"<object width=""{1}"" height=""{2}"" classid=""CLSID:22D6f312-B0F6-11D0-94AB-0080C74C7E95"" standby=""Loading Windows Media Player components..."" type=""application/x-oleobject"" codebase=""http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#Version=6,4,7,1112"">
@@ -231,7 +232,7 @@ namespace N2.Details
 
 		private void WriteAudio(string url, TextWriter writer)
 		{
-			writer.Write(string.Format(audioFormat, url, Width, Height, BackgroundColor));
+			writer.Write(string.Format(CultureInfo.InvariantCulture, audioFormat, url, Width, Height, BackgroundColor));
 		}
 
 		private static void WriteUrl(ContentItem item, string propertyName, string cssClass, TextWriter writer, string url)

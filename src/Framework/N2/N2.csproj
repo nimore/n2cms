@@ -193,6 +193,7 @@
     <Compile Include="Engine\Globalization\ContentTranslator.cs" />
     <Compile Include="Engine\Globalization\ITranslator.cs" />
     <Compile Include="Engine\Globalization\TranslationExtensions.cs" />
+    <Compile Include="TraceSources.cs" />
     <Compile Include="Persistence\LinqQueryFacade.cs" />
     <Compile Include="Persistence\NH\LinqNHQueryFacade.cs" />
     <Compile Include="Persistence\Xml\CacheBox.cs" />

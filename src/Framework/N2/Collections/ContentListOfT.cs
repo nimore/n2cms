@@ -245,7 +245,7 @@ namespace N2.Collections
         /// <returns>The item with the given name or null if no item was found.</returns>
         public virtual T FindNamed(string name)
         {
-            return Inner.FirstOrDefault(i => string.Equals(i.Name, name, StringComparison.InvariantCultureIgnoreCase));
+            return Inner.FirstOrDefault(i => string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase));
         }
 
         #endregion
@@ -254,8 +254,9 @@ namespace N2.Collections
 
         int IList.Add(object value)
         {
-            Add(value as T);
-            return IndexOf(value as T);
+            T val = value as T;
+            Add(val);
+            return IndexOf(val);
         }
 
         bool IList.Contains(object value)

@@ -76,6 +76,10 @@ namespace N2.Edit.Navigation
                         case "/uploadFile":
                             WriteUploadFile(context);
                             return;
+
+                        case "/directory/create":
+                            WriteDirectoryCreate(context);
+                            return;
                     }
                     break;
             }
@@ -89,20 +93,20 @@ namespace N2.Edit.Navigation
 
         #region RegionHelpers
 
-        public static List<FileReducedListModel> GetFileReducedList(List<File> files, Management.Files.FileSystem.Pages.ImageSizeCache imageSizes, string exts = "")
+        public static List<FileReducedListModel> GetFileReducedList(List<File> files, Management.Files.FileSystem.Pages.ImageSizeCache imageSizes, string exts = "", string fsRootPath = "")
         {
             var regIsImage = new Regex(@"^.*\.(jpg|jpeg|gif|png)$", RegexOptions.IgnoreCase);
 
             var ret = files.Select(d => new FileReducedListModel
             {
                 Title = d.Title,
-                Url = d.LocalUrl,
+                Url = fsRootPath + d.LocalUrl,
                 IsImage = regIsImage.IsMatch(d.Title),
-                Thumb = regIsImage.IsMatch(d.Title) ? N2.Web.Drawing.ImagesUtility.GetExistingImagePath(d.LocalUrl, "thumb") : null,
+                Thumb = regIsImage.IsMatch(d.Title) ? fsRootPath + N2.Web.Drawing.ImagesUtility.GetExistingImagePath(d.LocalUrl, "thumb") : null,
                 Size = d.Size,
                 Date = string.Format("{0:s}", d.Created),
                 SCount = d.Children.Count,
-                Children = regIsImage.IsMatch(d.Title) ? GetFileReducedChildren(d, imageSizes) : null
+                Children = regIsImage.IsMatch(d.Title) ? GetFileReducedChildren(d, imageSizes, fsRootPath) : null
             }).ToList();
 
             if (!string.IsNullOrEmpty(exts))
@@ -141,7 +145,7 @@ namespace N2.Edit.Navigation
             }
         }
 
-        private static List<FileReducedChildrenModel> GetFileReducedChildren(File file, Management.Files.FileSystem.Pages.ImageSizeCache imageSizes)
+        private static List<FileReducedChildrenModel> GetFileReducedChildren(File file, Management.Files.FileSystem.Pages.ImageSizeCache imageSizes, string fsRootPath = "")
         {
             if (file.Children == null) return null;
             try
@@ -150,8 +154,8 @@ namespace N2.Edit.Navigation
                     cc => new FileReducedChildrenModel
                     {
                         SizeName = imageSizes.GetSizeName(cc.Title) ?? GetUnreferencedImageSize(cc.Title),
-                        Url = cc.Url,
-                        Size = (cc as File) != null ? (cc as File).Size : -1
+                        Url = fsRootPath + cc.Url,
+                        Size = cc is File ? (cc as File).Size : -1
                     }
                     ).ToList();
             }
@@ -261,10 +265,12 @@ namespace N2.Edit.Navigation
             var selectionTrail = Find.EnumerateParents(selected, null, true).ToList().Where(a => a is AbstractNode).Reverse().ToList();
             var selectedPath = selected.Path;
 
+            FS = Engine.Resolve<IFileSystem>();
+
             var dir = selected as Directory;
             if (dir == null)
             {
-                FS = Engine.Resolve<IFileSystem>();
+                
                 var uploadDirectories = MediaBrowserUtils.GetAvailableUploadFoldersForAllSites(context, root, selectionTrail, Engine, FS);
                 dirs = new List<Directory>();
                 files = new List<File>();
@@ -280,6 +286,9 @@ namespace N2.Edit.Navigation
                 files = dir.GetFiles();
             }
 
+            var directory = FS.GetDirectory(selectedPath);
+            var fsRootPath = directory != null && !string.IsNullOrWhiteSpace(directory.RootPath) ? directory.RootPath : "";
+
             var selectableExtensions = context.Request["exts"];
 
             context.Response.WriteJson(new
@@ -288,7 +297,7 @@ namespace N2.Edit.Navigation
                 Total = dirs.Count + files.Count,
                 Trail = selectionTrail.Select(d => new { d.Title, Url = d.Url }).ToList(),
                 Dirs = dirs.Select(d => new { d.Title, Url = VirtualPathUtility.ToAppRelative(d.LocalUrl).Trim('~') }).ToList(),
-                Files = GetFileReducedList(files.ToList(), ImageSizes, selectableExtensions)
+                Files = GetFileReducedList(files.ToList(), ImageSizes, selectableExtensions, fsRootPath)
             });
         }
 
@@ -362,13 +371,16 @@ namespace N2.Edit.Navigation
             }
             files.Sort(new TitleComparer<File>());
 
+            var directory = FS.GetDirectory("/upload/");
+            var fsRootPath = directory != null && !string.IsNullOrWhiteSpace(directory.RootPath) ? directory.RootPath : "";
+
             var selectableExtensions = context.Request["exts"];
 
             context.Response.WriteJson(new
             {
                 Path = "",
                 Total = files.Count,
-                Files = GetFileReducedList(files, ImageSizes, selectableExtensions)
+                Files = GetFileReducedList(files, ImageSizes, selectableExtensions, fsRootPath)
             });
         }
 
@@ -439,6 +451,56 @@ namespace N2.Edit.Navigation
                 context.Response.WriteJson(new { Status = "Error", Message = "Upload failed", Detail = e.Message });
                 return;
             }
+        }
+
+        private void WriteDirectoryCreate(HttpContext context)
+        {
+            ValidateTicket(context.Request["ticket"]);
+            FS = Engine.Resolve<IFileSystem>();
+
+            var parentDirectory = context.Request["selected"];
+            var selected = new Directory(DirectoryData.Virtual(parentDirectory), null);
+
+            if (string.IsNullOrEmpty(parentDirectory) || !Engine.SecurityManager.IsAuthorized(context.User, selected, N2.Security.Permission.Write))
+            {
+                context.Response.WriteJson(new { Status = "Error", Message = "Not allowed" });
+                return;
+            }
+
+            var name = context.Request["name"];
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                context.Response.WriteJson(new { Status = "Error", Message = "Directory name required" });
+                return;
+            }
+
+            var regex = new Regex("[^a-zA-Z0-9_ ]");
+            name = regex.Replace(name, "");
+            if (name.Length == 0)
+            {
+                context.Response.WriteJson(new { Status = "Error", Message = "Directory name required (Special characters are stripped out)" });
+                return;
+            }
+
+            var newDir = VirtualPathUtility.AppendTrailingSlash(VirtualPathUtility.Combine(context.Request.ApplicationPath, selected.Url)) + name;
+
+            try
+            {
+                if (FS.DirectoryExists(newDir))
+                {
+                    context.Response.WriteJson(new { Status = "Exists", Message = "Directory already exists" });
+                }
+                else
+                {
+                    FS.CreateDirectory(newDir);
+                    context.Response.WriteJson(new { Status = "Ok", Message = "Directory created" });
+                }
+            }
+            catch (Exception e)
+            {
+                context.Response.WriteJson(new { Status = "Error", Message = "Create directory failed", Detail = e.Message });
+            }
+
         }
 
         #endregion RegionPrivateActions

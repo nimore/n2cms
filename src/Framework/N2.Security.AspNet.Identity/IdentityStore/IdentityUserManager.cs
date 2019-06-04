@@ -13,7 +13,7 @@ namespace N2.Security.AspNet.Identity
     public abstract class IdentityUserManager<TUser> : UserManager<TUser, int>
         where TUser : ContentUser
     {
-        public IdentityUserManager(IdentityUserStore<TUser> store)
+        protected IdentityUserManager(IdentityUserStore<TUser> store)
             : base(store)
         {
         }		

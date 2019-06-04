@@ -1,30 +1,28 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.UI.WebControls;
 using System.Web.UI;
-using N2.Web.UI;
+using System.Web.UI.WebControls;
 using N2.Security;
+using N2.Web.UI;
 
 namespace N2.Edit.Web.UI.Controls
 {
     public class PermissionPanel : PlaceHolder
     {
-        CustomValidator cv = new CustomValidator
+        private CustomValidator cv = new CustomValidator
         {
             CssClass = "info",
             Text = "You do not have sufficient permissions.",
             Display = ValidatorDisplay.Dynamic
         };
 
+        public Permission RequiredPermission { get; set; }
+
         public string Text
         {
             get { return cv.Text; }
             set { cv.Text = value; }
         }
-
-        public Permission RequiredPermission { get; set; }
 
         protected override void CreateChildControls()
         {
@@ -35,6 +33,8 @@ namespace N2.Edit.Web.UI.Controls
 
         protected override void Render(HtmlTextWriter writer)
         {
+            ////TraceSources.AzureTraceSource.TraceInformation("Render");
+
             if (RequiredPermission == Permission.None)
                 RequiredPermission = Page.GetType().GetCustomAttributes(typeof(IPermittable), true).OfType<IPermittable>()
                     .Select(p => PermissionMap.GetMaximumPermission(p.RequiredPermission))

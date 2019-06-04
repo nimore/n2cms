@@ -31,11 +31,6 @@ namespace N2.Web.UI.WebControls
     /// <summary>A form that generates an edit interface for content items.</summary>
     public class ItemEditor : WebControl, INamingContainer, IItemEditor, IContentForm<CommandContext>, IPlaceHolderAccessor
     {
-		protected override void LoadViewState(object savedState)
-		{
-			base.LoadViewState(savedState);
-		}
-
         #region Constructor
 
         public ItemEditor()
@@ -339,15 +334,30 @@ namespace N2.Web.UI.WebControls
                 BinderContext = value;
                 EnsureChildControls();
                 if (ZoneName != null && ZoneName != value.Content.ZoneName)
+                {
                     value.Content.ZoneName = ZoneName;
+                }
+
                 foreach (string key in AddedEditors.Keys)
+                {
                     BinderContext.GetDefinedDetails().Add(key);
+                }
+
                 var modifiedDetails = EditAdapter.UpdateItem(value.Definition, value.Content, AddedEditors, Page.User);
                 if (modifiedDetails.Length == 0)
+                {
                     return false;
+                }
+
                 foreach (string detailName in modifiedDetails)
+                {
                     BinderContext.GetUpdatedDetails().Add(detailName);
+                }
+
                 BinderContext.RegisterItemToSave(value.Content);
+
+                Saved?.Invoke(this, new ItemEventArgs(value.Content));
+
                 return true;
             }
             finally

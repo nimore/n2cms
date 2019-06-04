@@ -1,35 +1,35 @@
 ﻿(function (n2Module) {
-	n2Module.value('$strapConfig', {
-		datepicker: {
-			language: 'en',
-			format: 'M d, yyyy'
-		}
-	});
+    n2Module.value('$strapConfig', {
+        datepicker: {
+            language: 'en',
+            format: 'M d, yyyy'
+        }
+    });
 })(angular.module('n2', ['n2.directives', 'n2.services', 'n2.localization', 'ui', '$strap.directives', "ngRoute", "ngSanitize"], function ($routeProvider, $locationProvider, $httpProvider, $provide) {
-	if (history.pushState) {
-		$locationProvider.html5Mode(true);
-		$locationProvider.hashPrefix("!");
-	}
-	$routeProvider.otherwise({
-		templateUrl: "App/Partials/Framework.html",
-		controller: "ManagementCtrl",
-		reloadOnSearch: false
-	});
+    if (history.pushState) {
+        $locationProvider.html5Mode(true);
+        $locationProvider.hashPrefix("!");
+    }
+    $routeProvider.otherwise({
+        templateUrl: "App/Partials/Framework.html",
+        controller: "ManagementCtrl",
+        reloadOnSearch: false
+    });
 
-	$provide.factory('EmittingInterceptor', function ($q, $rootScope) {
-		return {
-			'request': function (config) {
-				$rootScope.$emit("request", config);
-				return config;
-			},
-			'responseError': function (rejection) {
-				$rootScope.$emit("responseError", rejection);
-				return $q.reject(rejection);
-			}
-		}
-	});
-	$httpProvider.interceptors.push('EmittingInterceptor');
-}))
+    $provide.factory('EmittingInterceptor', function ($q, $rootScope) {
+        return {
+            'request': function (config) {
+                $rootScope.$emit("request", config);
+                return config;
+            },
+            'responseError': function (rejection) {
+                $rootScope.$emit("responseError", rejection);
+                return $q.reject(rejection);
+            }
+        };
+    });
+    $httpProvider.interceptors.push('EmittingInterceptor');
+}));
 
 function findBranch(node, selectedPath) {
 	if (!node)
@@ -78,7 +78,7 @@ function decorate(obj, name, callback) {
 		original.apply(this, arguments);
 		callback.apply(this, arguments);
 	};
-};
+}
 
 function getParentPath(path) {
 	var parentPathExpr = /((.*)[/])[^/]+[/]/;
@@ -296,10 +296,10 @@ function ManagementCtrl($scope, $window, $timeout, $interpolate, $location, $roo
 							timeout: 5000
 						});
 					} else {
-						retryStatus(result.Message, retryTimeout + 10000)
+                        retryStatus(result.Message, retryTimeout + 10000);
 					}
 				}, function failure() {
-					retryStatus(message, retryTimeout + 10000)
+                        retryStatus(message, retryTimeout + 10000);
 				});
 			}, retryTimeout);
 		}
@@ -390,25 +390,25 @@ function ManagementCtrl($scope, $window, $timeout, $interpolate, $location, $roo
 		});
 	};
 
-	$scope.expandTo = function (nodeOrPath, select) {
-		var path = typeof nodeOrPath == "string" ? nodeOrPath : nodeOrPath && nodeOrPath.Current && nodeOrPath.Current.Path;
-		if (!path)
-			return;
-		var branch = findBranch($scope.Context.Content, path);
-		for (var i in branch) {
-			if (i == 0)
-				$scope.Context.SelectedNode = branch[0];
-			else
-				branch[i].Expanded = true;
-		}
-	}
+    $scope.expandTo = function (nodeOrPath, select) {
+        var path = typeof nodeOrPath == "string" ? nodeOrPath : nodeOrPath && nodeOrPath.Current && nodeOrPath.Current.Path;
+        if (!path)
+            return;
+        var branch = findBranch($scope.Context.Content, path);
+        for (var i in branch) {
+            if (i == 0)
+                $scope.Context.SelectedNode = branch[0];
+            else
+                branch[i].Expanded = true;
+        }
+    };
 
-	$scope.reloadTree = function (selectedPath) {
-		Content.branch(Content.applySelection({}, selectedPath), function (data) {
-			$scope.Context.Content = data.Branch;
-			$scope.select(selectedPath);
-		});
-	}
+    $scope.reloadTree = function (selectedPath) {
+        Content.branch(Content.applySelection({}, selectedPath), function (data) {
+            $scope.Context.Content = data.Branch;
+            $scope.select(selectedPath);
+        });
+    };
 
 	$scope.select = function (nodeOrPath, versionIndex, keepFlags, forceContextRefresh, preventReload, disregardNodeUrl) {
 		if (typeof nodeOrPath == "string") {
@@ -442,7 +442,7 @@ function ManagementCtrl($scope, $window, $timeout, $interpolate, $location, $roo
 			}
 
 			$timeout(function () {
-				$scope.refreshContext(node, versionIndex, keepFlags)
+                $scope.refreshContext(node, versionIndex, keepFlags);
 			}, 10);
 			return true;
 		}
@@ -522,14 +522,14 @@ function ManagementCtrl($scope, $window, $timeout, $interpolate, $location, $roo
 
 angular.module('n2').controller("ManagementConfirmCtrl", ManagementConfirmCtrl);
 function ManagementConfirmCtrl($rootScope, $scope) {
-	$scope.confirm = function () {
-		$scope.settings.confirmed && $scope.settings.confirmed();
-		delete $scope.settings;
-	}
-	$scope.close = function () {
-		$scope.settings.cancelled && $scope.settings.cancelled();
-		delete $scope.settings;
-	}
+    $scope.confirm = function () {
+        $scope.settings.confirmed && $scope.settings.confirmed();
+        delete $scope.settings;
+    };
+    $scope.close = function () {
+        $scope.settings.cancelled && $scope.settings.cancelled();
+        delete $scope.settings;
+    };
 	$rootScope.$on("confirm", function (e, settings) {
 		$scope.settings = settings;
 		if (!$scope.$$phase) {
@@ -590,10 +590,10 @@ function TrunkCtrl($scope, $rootScope, Content, SortHelperFactory, Uri, Notify) 
 		else if (ctx.CurrentItem)
 			$scope.Context.SelectedNode = findNodeRecursive($scope.Context.Content, ctx.CurrentItem.Path);
 	});
-	$scope.nodeClicked = function (node) {
-		$scope.Context.User.Settings.Selected = node.Current.Path;
-		$scope.select(node);
-	}
+    $scope.nodeClicked = function (node) {
+        $scope.Context.User.Settings.Selected = node.Current.Path;
+        $scope.select(node);
+    };
 	$scope.toggle = function (node) {
 		if (node.Expanded) {
 			if (node.Children.length && !node.Current.MetaInformation.placeholder)
@@ -607,16 +607,16 @@ function TrunkCtrl($scope, $rootScope, Content, SortHelperFactory, Uri, Notify) 
 		}
 		node.Expanded = !node.Expanded;
 	};
-	$scope.loadRemaining = function (node) {
-		node.Loading = true;
-		Content.children(Content.applySelection({ skip: node.Children.length }, node.Current), function (data) {
-			node.Children.length--;
-			for (var i in data.Children)
-				node.Children.push(data.Children[i]);
-			node.Loading = false;
-			node.IsPaged = false;
-		});
-	}
+    $scope.loadRemaining = function (node) {
+        node.Loading = true;
+        Content.children(Content.applySelection({ skip: node.Children.length }, node.Current), function (data) {
+            node.Children.length--;
+            for (var i in data.Children)
+                node.Children.push(data.Children[i]);
+            node.Loading = false;
+            node.IsPaged = false;
+        });
+    };
 	$scope.sort = new SortHelperFactory($scope, Content);
 	$scope.parts = {
 		show: function (node) {
@@ -846,10 +846,10 @@ angular.module('n2').controller("SearchCtrl", SearchCtrl);
 function SearchCtrl($scope, $rootScope, Content, Eventually) {
 	$scope.item.Children = [{}];
 
-	$scope.$parent.toggleSearch = function () {
-		$scope.$parent.search.show = !$scope.$parent.search.show;
-		$scope.$parent.search.query = null;
-	}
+    $scope.$parent.toggleSearch = function () {
+        $scope.$parent.search.show = !$scope.$parent.search.show;
+        $scope.$parent.search.query = null;
+    };
 
 	$scope.$parent.search = {
 		execute: function (searchQuery) {
@@ -875,7 +875,7 @@ function SearchCtrl($scope, $rootScope, Content, Eventually) {
 		hits: null,
 		query: "",
 		searching: false,
-		focused: undefined,
+		focused: undefined
 	};
 	$scope.$watch("search.query", function (searchQuery) {
 		Eventually(function () {
@@ -923,11 +923,11 @@ function PagePublishCtrl($scope, $rootScope, $modal, Content, Confirm, Translate
 			item: $scope.Context.CurrentItem,
 			template: "<b class='ico' ng-show='settings.item.IconClass || settings.item.IconUrl' ng-class='settings.item.IconClass' x-background-image='settings.item.IconUrl'></b> {{settings.item.Title}}",
 			confirmed: function () {
-				Content.unpublish(Content.applySelection({}, $scope.Context.CurrentItem), function (result) {
-					$scope.previewUrl(result.Current.PreviewUrl);
+                Content.unpublish(Content.applySelection({}, $scope.Context.CurrentItem), function (result) {
+                    $scope.previewUrl(result.Current.PreviewUrl);
 
-					$scope.reloadNode(result.Current.Path, $scope.refreshContext);
-				})
+                    $scope.reloadNode(result.Current.Path, $scope.refreshContext);
+                });
 			}
 		};
 		if ($scope.Context.CurrentItem.MetaInformation.authority) {
@@ -961,17 +961,17 @@ function PageScheduleCtrl($scope, Content) {
 
 angular.module('n2').controller("FrameActionCtrl", FrameActionCtrl);
 function FrameActionCtrl($scope, $rootScope, $timeout, FrameManipulator) {
-	$scope.execute = function (action) {
-		//FrameManipulator.click(action.Current.Selector);
-	}
+    $scope.execute = function (action) {
+        //FrameManipulator.click(action.Current.Selector);
+    };
 	$scope.$parent.manipulator = FrameManipulator;
 	$rootScope.$on("contextchanged", function (scope, e) {
 		$scope.$parent.action = null;
 		$scope.$parent.item.Children = [];
 		var extraFlags = FrameManipulator.getFlags();
-		angular.forEach(extraFlags, function (flag) {
-			$scope.Context.Flags[flag] = true;
-		})
+        angular.forEach(extraFlags, function (flag) {
+            $scope.Context.Flags[flag] = true;
+        });
 
 		if ($scope.isFlagged("Management")) {
 			function loadActions() {
@@ -1004,7 +1004,7 @@ function FrameActionCtrl($scope, $rootScope, $timeout, FrameManipulator) {
 				loadActions();
 		}
 	});
-};
+}
 
 angular.module('n2').controller("NotifyCtrl", NotifyCtrl);
 function NotifyCtrl($scope, $timeout, Notify) {
@@ -1033,12 +1033,12 @@ function MessagesCtrl($scope, $rootScope, $sce, Context, Content, Confirm) {
 			if (this.show) {
 				this.close();
 			} else {
-				this.open($scope.Context.Messages)
+                this.open($scope.Context.Messages);
 			}
 		},
 		open: function (messages) {
 			this.show = true;
-			this.list = messages
+            this.list = messages;
 		},
 		close: function (messages) {
 			this.show = false;
@@ -1075,15 +1075,15 @@ function MessagesCtrl($scope, $rootScope, $sce, Context, Content, Confirm) {
 		}
 	};
 
-	$scope.$watch("Context.Messages", function (messages) {
-		if (messages && messages.length) {
-			angular.forEach(messages, function (message) {
-				if (message.Alert) {
-					message.Expanded = true;
-					$scope.messages.open(messages);
-				}
-			});
-		} else if ($scope.messages.show)
-			$scope.messages.list = messages;
-	})
+    $scope.$watch("Context.Messages", function (messages) {
+        if (messages && messages.length) {
+            angular.forEach(messages, function (message) {
+                if (message.Alert) {
+                    message.Expanded = true;
+                    $scope.messages.open(messages);
+                }
+            });
+        } else if ($scope.messages.show)
+            $scope.messages.list = messages;
+    });
 }

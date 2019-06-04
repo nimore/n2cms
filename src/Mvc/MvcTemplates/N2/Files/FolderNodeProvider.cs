@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using N2.Edit.FileSystem.Items;
-using N2.Management.Files;
-using N2.Engine;
-using N2.Edit.FileSystem;
 using N2.Edit;
+using N2.Edit.FileSystem;
+using N2.Edit.FileSystem.Items;
+using N2.Engine;
 using N2.Persistence;
-using N2.Collections;
 using N2.Security;
 
 namespace N2.Management.Files
@@ -20,11 +15,9 @@ namespace N2.Management.Files
     [Service]
     public class FolderNodeProvider : INodeProvider
     {
+        private IDependencyInjector dependencyInjector;
         private IFileSystem fs;
         private IRepository<ContentItem> repository;
-        private IDependencyInjector dependencyInjector;
-
-        internal FolderReference[] UploadFolderPaths { get; set; }
 
         public FolderNodeProvider(IFileSystem fs, IRepository<ContentItem> repository, IDependencyInjector dependencyInjector)
         {
@@ -34,11 +27,14 @@ namespace N2.Management.Files
             this.dependencyInjector = dependencyInjector;
         }
 
+        internal FolderReference[] UploadFolderPaths { get; set; }
 
         #region INodeProvider Members
 
         public ContentItem Get(string path)
         {
+            ////TraceSources.AzureTraceSource.TraceInformation(string.Format("Get: {0}", path));
+
             foreach (var pair in UploadFolderPaths)
             {
                 if (path.StartsWith(pair.Path, StringComparison.InvariantCultureIgnoreCase))
@@ -57,6 +53,8 @@ namespace N2.Management.Files
 
         public IEnumerable<ContentItem> GetChildren(string path)
         {
+            ////TraceSources.AzureTraceSource.TraceInformation(string.Format("GetChildren: {0}", path));
+
             foreach (var pair in UploadFolderPaths)
             {
                 if (pair.ParentPath.Equals(path, StringComparison.InvariantCultureIgnoreCase))
@@ -75,7 +73,8 @@ namespace N2.Management.Files
 
                     if (dir != null)
                     {
-                        foreach (var child in dir.GetChildren(new NullFilter()))
+                        ////foreach (var child in dir.GetChildren(new NullFilter()))
+                        foreach (var child in dir.GetChildPagesUnfiltered())
                         {
                             yield return child;
                         }
@@ -84,13 +83,10 @@ namespace N2.Management.Files
             }
         }
 
-        private Directory CreateDirectory(FolderReference pair)
-        {
-            return CreateDirectory(pair.Folder, fs, repository, dependencyInjector);
-        }
-
         internal static Directory CreateDirectory(FileSystemRoot folder, IFileSystem fs, IRepository<ContentItem> persister, IDependencyInjector dependencyInjector)
         {
+            ////TraceSources.AzureTraceSource.TraceInformation(string.Format("CreateDirectory: {0}", folder.Path));
+
             var dd = fs.GetDirectoryOrVirtual(folder.Path);
             var parent = persister.Get(folder.GetParentID());
 
@@ -113,6 +109,11 @@ namespace N2.Management.Files
                 DynamicPermissionMap.SetAllRoles(dir, map.Permissions);
         }
 
-        #endregion
+        private Directory CreateDirectory(FolderReference pair)
+        {
+            return CreateDirectory(pair.Folder, fs, repository, dependencyInjector);
+        }
+
+        #endregion INodeProvider Members
     }
 }

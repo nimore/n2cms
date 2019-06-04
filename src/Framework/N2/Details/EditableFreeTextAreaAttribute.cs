@@ -9,6 +9,7 @@ using N2.Web;
 using NHibernate.Criterion;
 using System.Web;
 using N2.Web.UI.WebControls;
+using System.Globalization;
 
 namespace N2.Details
 {
@@ -85,9 +86,9 @@ namespace N2.Details
             // 1 column is evaluated to 10px
             // 1 row is evaluated to 20px
             if (Columns > 0)
-                tb.Style.Add("width", (Columns * 10).ToString() + "px");
+                tb.Style.Add("width", (Columns * 10).ToString(CultureInfo.InvariantCulture) + "px");
             if (Rows > 0)
-                tb.Style.Add("height", (Rows * 20).ToString() + "px");
+                tb.Style.Add("height", (Rows * 20).ToString(CultureInfo.InvariantCulture) + "px");
         }
 
         protected override TextBox CreateEditor()

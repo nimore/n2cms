@@ -1,6 +1,7 @@
 ﻿using N2.Web;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -12,16 +13,16 @@ namespace N2.Edit.Api
 		public ContentHandlerBase()
 		{
 			string name = GetType().Name;
-			PathInfo = name.EndsWith("ContentHandler")
-					? "/" + name.Substring(0, name.Length - "ContentHandler".Length).ToLower()
-					: "/" + name.ToLower(); 
+			PathInfo = name.EndsWith("ContentHandler", StringComparison.OrdinalIgnoreCase)
+					? "/" + name.Substring(0, name.Length - "ContentHandler".Length).ToLower(CultureInfo.InvariantCulture)
+					: "/" + name.ToLower(CultureInfo.InvariantCulture);
 		}
 
 		public virtual string PathInfo { get; set; }
 
 		public virtual bool Handle(System.Web.HttpContextBase context)
 		{
-			if (!context.Request.PathInfo.StartsWith(PathInfo))
+			if (!context.Request.PathInfo.StartsWith(PathInfo, StringComparison.OrdinalIgnoreCase))
 				return false;
 
 			try
@@ -47,9 +48,9 @@ namespace N2.Edit.Api
 				action = "Index";
 
 			if (context.Request.HttpMethod != "GET")
-				action = context.Request.HttpMethod[0] + context.Request.HttpMethod.Substring(1).ToLower() + action;
+				action = context.Request.HttpMethod[0] + context.Request.HttpMethod.Substring(1).ToLower(CultureInfo.InvariantCulture) + action;
 
-			var method = GetType().GetMethods().FirstOrDefault(m => m.Name.Equals(action, StringComparison.InvariantCultureIgnoreCase));
+			var method = Array.Find(GetType().GetMethods(), m => m.Name.Equals(action, StringComparison.OrdinalIgnoreCase));
 			if (method == null)
 				throw new HttpException(404, action + " not found");
 

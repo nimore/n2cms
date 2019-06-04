@@ -13,19 +13,17 @@ using N2.Web.UI;
 namespace N2.Edit.Web
 {
     /// <summary>
-    /// Base class for edit mode pages. Provides functionality to parse 
+    /// Base class for edit mode pages. Provides functionality to parse
     /// selected item and refresh navigation.
     /// </summary>
     public class EditPage : Page, IProvider<IEngine>
     {
         private readonly Engine.Logger<EditPage> logger;
 
-        protected override void OnPreInit(EventArgs e)
+        public override bool EnableTheming
         {
-            base.OnPreInit(e);
-            SetupAspNetTheming();
-            ApplyConcerns();
-            Authorize(User);
+            get { return !String.IsNullOrEmpty(Engine.EditManager.EditTheme); }
+            set { base.EnableTheming = value; }
         }
 
         protected virtual void ApplyConcerns()
@@ -37,30 +35,85 @@ namespace N2.Edit.Web
                 concern.OnPreInit(this, Selection.SelectedItem);
         }
 
-        protected virtual void SetupClientConstants()
-        {
-            if(Page.Header != null)
-                this.JavaScript(Register.SelectedQueryKeyRegistrationScript(), ScriptOptions.Prioritize | ScriptOptions.ScriptTags);
-        }
-
         /// <summary>Determines whether the current page can be displayed.</summary>
         /// <param name="user">The user to authorize.</param>
         /// <returns>True if the user is authorized.</returns>
         protected virtual void Authorize(IPrincipal user)
         {
-	        try
-	        {
-		        if (Engine.SecurityManager.IsAuthorized(user, Permission.Write))
-			        Engine.Resolve<ISecurityEnforcer>().AuthorizeRequest(user, Selection.SelectedItem, Permission.Read);
-		        else
-			        Engine.Resolve<ISecurityEnforcer>().AuthorizeRequest(user, Selection.SelectedItem, Permission.Write);
-	        }
-	        catch (PermissionDeniedException ex)
-	        {
-		        Response.StatusCode = ex.GetHttpCode();
-		        Response.Write(ex.GetHtmlErrorMessage() ?? string.Empty);
-				Response.End();
-	        }
+            ////TraceSources.AzureTraceSource.TraceInformation("Authorize");
+
+            try
+            {
+                if (Engine.SecurityManager.IsAuthorized(user, Permission.Write))
+                    Engine.Resolve<ISecurityEnforcer>().AuthorizeRequest(user, Selection.SelectedItem, Permission.Read);
+                else
+                    Engine.Resolve<ISecurityEnforcer>().AuthorizeRequest(user, Selection.SelectedItem, Permission.Write);
+            }
+            catch (PermissionDeniedException ex)
+            {
+                Response.StatusCode = ex.GetHttpCode();
+                Response.Write(ex.GetHtmlErrorMessage() ?? string.Empty);
+                Response.End();
+            }
+        }
+
+        protected virtual string CancelUrl()
+        {
+            if (!string.IsNullOrEmpty(Request["returnUrl"]))
+                return Request["returnUrl"];
+            var item = Selection.SelectedItem.VersionOf.HasValue
+                ? Selection.SelectedItem.VersionOf.Value
+                : Selection.SelectedItem;
+            return NodeAdapter(item).GetPreviewUrl(item);
+        }
+
+        /// <summary>Checks that the user has the required permission on the given item. Throws exceptions if authorization is missing.</summary>
+        /// <param name="item">The item to check permissions on.</param>
+        /// <param name="permission">The permission to check.</param>
+        protected void EnsureAuthorization(ContentItem item, Permission permission)
+        {
+            if (!IsAuthorized(item, permission))
+                throw new PermissionDeniedException(item, User);
+        }
+
+        /// <summary>Checks that the user has the required permission on the selected item. Throws exceptions if authorization is missing.</summary>
+        /// <param name="permission">The permission to check.</param>
+        protected virtual void EnsureAuthorization(Permission permission)
+        {
+            EnsureAuthorization(Selection.SelectedItem, permission);
+        }
+
+        protected virtual void EnsureValidSelection()
+        {
+            if (IsPostBack && Selection.ParseSelectionFromRequest() == null && !string.IsNullOrEmpty(Request["selected"]))
+                throw new HttpException(404, "Not Found");
+        }
+
+        protected virtual string GetToolbarSelectScript(string toolbarPluginName)
+        {
+            return string.Format("if(n2ctx){{ n2ctx.select('{0}'); jQuery(window).unload(function(){{n2ctx.unselect('{0}');}}); }}", toolbarPluginName);
+        }
+
+        /// <summary>Checks that the user has the required permission on the given item.</summary>
+        /// <param name="item">The item to check permissions on.</param>
+        /// <param name="permission">The permission to check.</param>
+        protected bool IsAuthorized(ContentItem item, Permission permission)
+        {
+            if (Engine.SecurityManager.IsAdmin(User))
+                return true;
+            return Engine.SecurityManager.IsAuthorized(User, item, permission);
+        }
+
+        /// <summary>Checks that the user has the required permission on the selected item.</summary>
+        /// <param name="permission">The permission to check.</param>
+        protected bool IsAuthorized(Permission permission)
+        {
+            return IsAuthorized(Selection.SelectedItem, permission);
+        }
+
+        protected string MapCssUrl(string cssFileName)
+        {
+            return Url.ResolveTokens("{ManagementUrl}/Resources/Css/" + cssFileName);
         }
 
         protected override void OnInit(EventArgs e)
@@ -74,14 +127,54 @@ namespace N2.Edit.Web
             Response.ExpiresAbsolute = N2.Utility.CurrentTime().AddDays(-1);
             SetupClientConstants();
             RegisterModalScrollFix();
-            
+
             base.OnInit(e);
         }
 
-        protected virtual void EnsureValidSelection()
+        protected override void OnPreInit(EventArgs e)
         {
-            if (IsPostBack && Selection.ParseSelectionFromRequest() == null && !string.IsNullOrEmpty(Request["selected"]))
-                throw new HttpException(404, "Not Found");
+            base.OnPreInit(e);
+            SetupAspNetTheming();
+            ApplyConcerns();
+            Authorize(User);
+        }
+
+        protected virtual void RegisterScripts()
+        {
+            Register.JQuery(this);
+            Register.JQueryPlugins(this);
+            //Register.FrameInteraction(this);
+        }
+
+        /// <summary>Selects a toolbar item in the top frame</summary>
+        protected virtual void RegisterToolbarSelection()
+        {
+            foreach (ToolbarPluginAttribute toolbarPlugin in GetType().GetCustomAttributes(typeof(ToolbarPluginAttribute), true))
+            {
+                string script = GetToolbarSelectScript(toolbarPlugin.Name);
+                Register.JavaScript(this, script, ScriptPosition.Bottom, ScriptOptions.ScriptTags);
+            }
+        }
+
+        protected new string ResolveUrl(string url)
+        {
+            return Engine.ManagementPaths.ResolveResourceUrl(url);
+        }
+
+        protected string ResolveUrl(object url)
+        {
+            return ResolveUrl(url as string);
+        }
+
+        protected virtual void SetupClientConstants()
+        {
+            if (Page.Header != null)
+                this.JavaScript(Register.SelectedQueryKeyRegistrationScript(), ScriptOptions.Prioritize | ScriptOptions.ScriptTags);
+        }
+
+        private NodeAdapter NodeAdapter(ContentItem item)
+        {
+            return Engine.GetContentAdapter<NodeAdapter>(item);
         }
 
         private void RegisterModalScrollFix()
@@ -102,105 +195,29 @@ namespace N2.Edit.Web
 
         private void SetupAspNetTheming()
         {
-            // asp.net themes are a bit cumbersome to work and deploy 
+            // asp.net themes are a bit cumbersome to work and deploy
             // so I think this is going to be deprecated some time in the future
             if (EnableTheming)
                 Theme = Engine.EditManager.EditTheme;
         }
 
-        public override bool EnableTheming
-        {
-            get { return !String.IsNullOrEmpty(Engine.EditManager.EditTheme); }
-            set { base.EnableTheming = value; }
-        }
-
-        protected virtual void RegisterScripts()
-        {
-            Register.JQuery(this);
-            Register.JQueryPlugins(this);
-            //Register.FrameInteraction(this);
-        }
-
-        /// <summary>Selects a toolbar item in the top frame</summary>
-        protected virtual void RegisterToolbarSelection()
-        {
-            foreach (ToolbarPluginAttribute toolbarPlugin in GetType().GetCustomAttributes(typeof(ToolbarPluginAttribute), true))
-            {
-                string script = GetToolbarSelectScript(toolbarPlugin.Name);
-                Register.JavaScript(this, script, ScriptPosition.Bottom, ScriptOptions.ScriptTags);
-            }
-        }
-
-        protected virtual string GetToolbarSelectScript(string toolbarPluginName)
-        {
-            return string.Format("if(n2ctx){{ n2ctx.select('{0}'); jQuery(window).unload(function(){{n2ctx.unselect('{0}');}}); }}", toolbarPluginName);
-        }
-
-        protected virtual string CancelUrl()
-        {
-            if(!string.IsNullOrEmpty(Request["returnUrl"]))
-                return Request["returnUrl"];
-            var item = Selection.SelectedItem.VersionOf.HasValue
-                ? Selection.SelectedItem.VersionOf.Value
-                : Selection.SelectedItem;
-            return NodeAdapter(item).GetPreviewUrl(item);
-        }
-
-        private NodeAdapter NodeAdapter(ContentItem item)
-        {
-            return Engine.GetContentAdapter<NodeAdapter>(item);
-        }
-
-        /// <summary>Checks that the user has the required permission on the given item. Throws exceptions if authorization is missing.</summary>
-        /// <param name="item">The item to check permissions on.</param>
-        /// <param name="permission">The permission to check.</param>
-        protected void EnsureAuthorization(ContentItem item, Permission permission)
-        {
-            if (!IsAuthorized(item, permission))
-                throw new PermissionDeniedException(item, User);
-        }
-
-        /// <summary>Checks that the user has the required permission on the selected item. Throws exceptions if authorization is missing.</summary>
-        /// <param name="permission">The permission to check.</param>
-        protected virtual void EnsureAuthorization(Permission permission)
-        {
-            EnsureAuthorization(Selection.SelectedItem, permission);
-        }
-
-        /// <summary>Checks that the user has the required permission on the given item.</summary>
-        /// <param name="item">The item to check permissions on.</param>
-        /// <param name="permission">The permission to check.</param>
-        protected bool IsAuthorized(ContentItem item, Permission permission)
-        {
-            if(Engine.SecurityManager.IsAdmin(User))
-                return true;
-            return Engine.SecurityManager.IsAuthorized(User, item, permission);
-        }
-
-        /// <summary>Checks that the user has the required permission on the selected item.</summary>
-        /// <param name="permission">The permission to check.</param>
-        protected bool IsAuthorized(Permission permission)
-        {
-            return IsAuthorized(Selection.SelectedItem, permission);
-        }
-
-        protected new string ResolveUrl(string url)
-        {
-            return Engine.ManagementPaths.ResolveResourceUrl(url);
-        }
-
-        protected string ResolveUrl(object url)
-        {
-            return ResolveUrl(url as string);
-        }
-
-        protected string MapCssUrl(string cssFileName)
-        {
-            return Url.ResolveTokens("{ManagementUrl}/Resources/Css/" + cssFileName);
-        }
-
         #region Refresh Methods
-        
+
+        protected string GetNavigationUrl(ContentItem selectedItem)
+        {
+            return Page.GetNavigationUrl(Engine, selectedItem);
+        }
+
+        protected virtual string GetPreviewUrl(ContentItem selectedItem)
+        {
+            return Page.GetPreviewUrl(Engine, selectedItem);
+        }
+
+        protected string GetRefreshScript(ContentItem item, ToolbarArea area, bool force = true)
+        {
+            return Page.GetRefreshFramesScript(item, area, force);
+        }
+
         protected virtual void Refresh(ContentItem item)
         {
             Page.RefreshManagementInterface(item);
@@ -222,24 +239,11 @@ namespace N2.Edit.Web
             Page.RefreshFrames(item, area, force);
         }
 
-        protected string GetRefreshScript(ContentItem item, ToolbarArea area, bool force = true)
-        {
-            return Page.GetRefreshFramesScript(item, area, force);
-        }
-
-        protected string GetNavigationUrl(ContentItem selectedItem)
-        {
-            return Page.GetNavigationUrl(Engine, selectedItem);
-        }
-
-        protected virtual string GetPreviewUrl(ContentItem selectedItem)
-        {
-            return Page.GetPreviewUrl(Engine, selectedItem);
-        }
-        #endregion
+        #endregion Refresh Methods
 
         #region Setup Toolbar Methods
-        const string UpdateToolbarScript = "n2ctx.update({{ path:'{0}', id:'{1}', previewUrl:'{2}', permission:'{3}'}});";
+
+        private const string UpdateToolbarScript = "n2ctx.update({{ path:'{0}', id:'{1}', previewUrl:'{2}', permission:'{3}'}});";
 
         protected virtual void RegisterSetupToolbarScript(ContentItem item)
         {
@@ -247,9 +251,22 @@ namespace N2.Edit.Web
             ClientScript.RegisterClientScriptBlock(typeof(EditPage), "AddSetupToolbarScript", script, true);
         }
 
-        #endregion
+        #endregion Setup Toolbar Methods
 
         #region Get Resource Methods
+
+        protected string GetGlobalResourceString(string className, string resourceKey)
+        {
+            try
+            {
+                return (string)GetGlobalResourceObject(className, resourceKey);
+            }
+            catch (MissingManifestResourceException)
+            {
+                return null;
+            }
+        }
+
         protected string GetLocalResourceString(string resourceKey, string defaultText = null)
         {
             try
@@ -263,21 +280,10 @@ namespace N2.Edit.Web
             }
         }
 
-        protected string GetGlobalResourceString(string className, string resourceKey)
-        {
-            try
-            {
-                return (string)GetGlobalResourceObject(className, resourceKey);
-            }
-            catch(MissingManifestResourceException)
-            {
-                return null;
-            }
-        } 
-
-        #endregion
+        #endregion Get Resource Methods
 
         #region Error Handling
+
         protected virtual void SetErrorMessage(BaseValidator validator, N2.Integrity.NameOccupiedException ex)
         {
             logger.Debug(ex);
@@ -297,6 +303,7 @@ namespace N2.Edit.Web
                 ex.DestinationItem.Name);
             SetErrorMessage(validator, message);
         }
+
         protected void SetErrorMessage(BaseValidator validator, N2.Definitions.NotAllowedParentException ex)
         {
             logger.Debug(ex);
@@ -320,20 +327,9 @@ namespace N2.Edit.Web
             validator.ErrorMessage = message;
         }
 
-        #endregion
+        #endregion Error Handling
 
         #region Obsolete
-        [Obsolete("Don't use")]
-        protected string Path
-        {
-            get { return Request["root"] ?? "/"; }
-        }
-
-        [Obsolete("Don't use")]
-        protected virtual INode SelectedNode
-        {
-            get { return Selection.SelectedItem as INode; }
-        }
 
         /// <summary>Gets the currently selected item by the tree menu in edit mode.</summary>
         [Obsolete("Use Selection.SelectedItem")]
@@ -348,25 +344,39 @@ namespace N2.Edit.Web
         {
             get { return Selection.MemorizedItem; }
         }
-        #endregion
+
+        [Obsolete("Don't use")]
+        protected string Path
+        {
+            get { return Request["root"] ?? "/"; }
+        }
+
+        [Obsolete("Don't use")]
+        protected virtual INode SelectedNode
+        {
+            get { return Selection.SelectedItem as INode; }
+        }
+
+        #endregion Obsolete
 
         #region Properties
 
+        private Engine.IEngine engine;
         private HtmlSanitizer sanitizer;
-        public HtmlSanitizer Sanitizer
-	    {
-            get { return sanitizer ?? (sanitizer = Engine.Resolve<HtmlSanitizer>()); }
-			set { sanitizer = value; }
-	    }
+        private SelectionUtility selection;
 
-        Engine.IEngine engine;
         public Engine.IEngine Engine
         {
             get { return engine ?? (engine = N2.Context.Current); }
             set { engine = value; }
         }
 
-        SelectionUtility selection;
+        public HtmlSanitizer Sanitizer
+        {
+            get { return sanitizer ?? (sanitizer = Engine.Resolve<HtmlSanitizer>()); }
+            set { sanitizer = value; }
+        }
+
         public SelectionUtility Selection
         {
             get { return selection ?? (selection = new SelectionUtility(this, Engine)); }
@@ -379,7 +389,7 @@ namespace N2.Edit.Web
             get { return Engine.Resolve<Navigator>().Navigate(Path); }
         }
 
-        #endregion
+        #endregion Properties
 
         #region IProvider<IEngine> Members
 
@@ -393,6 +403,6 @@ namespace N2.Edit.Web
             return Engine.Container.ResolveAll<IEngine>();
         }
 
-        #endregion
+        #endregion IProvider<IEngine> Members
     }
 }

@@ -93,7 +93,7 @@ namespace N2.Web.UI.WebControls
                 iconIndex = icons.Count;
                 icons.Add(iconUrl);
             }
-            className.Append("i" + iconIndex + " ");
+            className.Append('i').Append(iconIndex).Append(' ');
 
             ILinkBuilder builder = Link.To(item).Target(target).Href(item.Url);
             if (className.Length > 0)

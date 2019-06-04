@@ -5,30 +5,32 @@ using N2.Web;
 
 namespace N2.Management.Api
 {
-	public class ApiHandlerDispatcher : IHttpHandler
-	{		
-		public bool IsReusable
-		{
-			get { return true; }
-		}
+    public class ApiHandlerDispatcher : IHttpHandler
+    {
+        public bool IsReusable
+        {
+            get { return true; }
+        }
 
-		public void ProcessRequest(HttpContext context)
-		{
-			var dir = Url.ResolveTokens("{ManagementUrl}/Api/");
-			if (!context.Request.FilePath.StartsWith(dir, StringComparison.InvariantCultureIgnoreCase))
-				return;
+        public void ProcessRequest(HttpContext context)
+        {
+            ////TraceSources.AzureTraceSource.TraceInformation("ProcessRequest");
 
-			var name = context.Request.FilePath.Substring(dir.Length).Replace(".ashx", "Handler");
+            var dir = Url.ResolveTokens("{ManagementUrl}/Api/");
+            if (!context.Request.FilePath.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
+                return;
 
-			// Use case insensitive match when finding the handler which matches the request
-			var handler =
-				Context.Current.Container.ResolveAll<IApiHandler>()
-					.FirstOrDefault(h => h.GetType().Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            var name = context.Request.FilePath.Substring(dir.Length).Replace(".ashx", "Handler");
 
-			if(handler != null)
-			{
-				handler.ProcessRequest(context.GetHttpContextBase());
-			}			
-		}
-	}
+            // Use case insensitive match when finding the handler which matches the request
+            var handler =
+                Context.Current.Container.ResolveAll<IApiHandler>()
+                    .FirstOrDefault(h => h.GetType().Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (handler != null)
+            {
+                handler.ProcessRequest(context.GetHttpContextBase());
+            }
+        }
+    }
 }

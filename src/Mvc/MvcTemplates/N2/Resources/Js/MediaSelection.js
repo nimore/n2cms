@@ -62,12 +62,30 @@ var n2MediaSelection = (function () {
         var input = document.getElementById(inputId);
         input.value = "";
         showHideViewerButton(inputId, false);
+
+        var thumbnail = document.getElementById(inputId + "_thumbnail");
+        if (thumbnail) {
+            thumbnail.innerHTML = "";
+            thumbnail.style.display = "none;";
+        }
     }
 
     function setMediaSelectorValue(inputId, val) {
         var input = document.getElementById(inputId);
         input.value = val;
         showHideViewerButton(inputId, val);
+
+        var thumbnail = document.getElementById(inputId + "_thumbnail");
+        if (thumbnail) {
+            while (thumbnail.firstChild) {
+                thumbnail.removeChild(thumbnail.firstChild);
+            }
+
+            var img = new Image();
+            img.src = val + "?v=" + (new Date().getTime());            
+            thumbnail.appendChild(img);            
+            thumbnail.style.display = "";
+        }
     }
 
     function showMediaSelectorOverlay(inputId) {
@@ -102,7 +120,7 @@ var n2MediaSelection = (function () {
         noImg.setAttribute("style", "position:absolute; top:50%; left:50%; width:100px; height:50px; font-size:20px; color:#ff0000; margin:-25px 0 0 -50px;");
         close.setAttribute("style", "position:absolute; top:20px; right:20px; line-height:35px; height:40px; width:40px; color:black; font-size:30px; text-align:center; background:#ccc;z-index:10; border-radius:20px; cursor:pointer;");
 
-        close.innerHTML = "&times;"
+        close.innerHTML = "&times;";
         close.onclick = function (e) {
             document.body.removeChild(document.getElementById("image-overlay"));
         };
@@ -113,10 +131,10 @@ var n2MediaSelection = (function () {
 
         img.onload = function () {
             ovly.appendChild(img);
-        }
+        };
         img.onerror = function () {
             ovly.appendChild(noImg);
-        }
+        };
         img.src = url + "?v=" + (new Date().getTime());
 
         ovly.appendChild(close);
@@ -132,6 +150,6 @@ var n2MediaSelection = (function () {
         showMediaSelectorOverlay: showMediaSelectorOverlay,
         setMediaSelectorValue: setMediaSelectorValue,
         initializeEditableMedia: initializeEditableMedia
-    }
+    };
 
 }());

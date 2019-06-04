@@ -8,6 +8,9 @@ namespace N2.Edit.FileSystem
     public abstract class AbstractFileSystemItem
     {
         public string Name { get; set; }
+
+        public string RootPath { get; set; }
+
         public string VirtualPath { get; set; }
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }

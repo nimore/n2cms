@@ -8,7 +8,7 @@ namespace N2.Definitions
     /// </summary>
     public abstract class AbstractDefinitionRefiner : Attribute, ISortableRefiner
     {
-        public AbstractDefinitionRefiner()
+        protected AbstractDefinitionRefiner()
         {
             RefinementOrder = Definitions.RefineOrder.Middle;
         }

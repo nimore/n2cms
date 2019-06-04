@@ -10,6 +10,7 @@ using N2.Persistence;
 using N2.Persistence.Proxying;
 using N2.Security;
 using N2.Resources;
+using System.Globalization;
 
 namespace N2.Details
 {
@@ -187,7 +188,7 @@ namespace N2.Details
             Control editor = AddEditor(panel);
 			if (!string.IsNullOrEmpty(ClientAdapter))
 			{
-				panel.Page.JavaScript(string.Format("window.n2autosave && n2autosave.register('{0}', '{1}', '{2}')", editor.ClientID, Name, ClientAdapter), ScriptOptions.DocumentReady);
+				panel.Page.JavaScript(string.Format(CultureInfo.InvariantCulture, "window.n2autosave && n2autosave.register('{0}', '{1}', '{2}')", editor.ClientID, Name, ClientAdapter), ScriptOptions.DocumentReady);
 			}
             if (label != null && editor != null && !string.IsNullOrEmpty(editor.ID))
                 label.AssociatedControlID = editor.ID;
@@ -399,7 +400,7 @@ namespace N2.Details
             Label label = new Label();
             label.ID = "lbl" + Name;
             label.CssClass = "editorLabel";
-            label.Attributes["data-sortorder"] = SortOrder.ToString();
+            label.Attributes["data-sortorder"] = SortOrder.ToString(CultureInfo.InvariantCulture);
             container.Controls.Add(label);
 
             label.Controls.Add(new LiteralControl(GetLocalizedText("Title") ?? Title));

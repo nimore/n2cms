@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Principal;
@@ -227,7 +228,7 @@ namespace N2
 		[NonInterceptable]
 		public virtual string Name
 		{
-			get { return name ?? (ID > 0 ? ID.ToString() : null); }
+			get { return name ?? (ID > 0 ? ID.ToString(CultureInfo.InvariantCulture) : null); }
 			set
 			{
 				//if (value != null && value.IndexOfAny(invalidCharacters) >= 0) throw new N2Exception("Invalid characters in name, '%', '?', '&', '/', ':', '+', '.' not allowed.");
@@ -1111,7 +1112,7 @@ namespace N2
 		private static void CloneFields(ContentItem source, ContentItem destination, bool includeID, bool includeParent)
 		{
 			destination.title = source.title;
-			if (source.id.ToString() != source.name)
+			if (source.id.ToString(CultureInfo.InvariantCulture) != source.name)
 				destination.name = source.name;
 			destination.alteredPermissions = source.alteredPermissions;
 			destination.created = source.created;
@@ -1442,7 +1443,7 @@ namespace N2
 			if (newChild == null)
 				throw new NotSupportedException(child.GetType() + " isn't a supported child type.");
 
-			if (string.IsNullOrEmpty(newChild.Name) || (newChild.Name == newChild.ID.ToString()))
+			if (string.IsNullOrEmpty(newChild.Name) || (newChild.Name == newChild.ID.ToString(CultureInfo.InvariantCulture)))
 				newChild.Name = childName;
 			if (newChild.parent == null)
 				newChild.AddTo(this);

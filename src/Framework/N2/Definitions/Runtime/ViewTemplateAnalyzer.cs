@@ -11,6 +11,7 @@ using N2.Definitions.Static;
 using N2.Engine;
 using N2.Web.Mvc;
 using N2.Web;
+using System.Globalization;
 
 namespace N2.Definitions.Runtime
 {
@@ -44,16 +45,16 @@ namespace N2.Definitions.Runtime
 
 				virtualDirList.AddRange(
 					from virtualDirectory in vpp.GetDirectory("~/Areas/").Directories.Cast<VirtualDirectory>()
-					let virtualPath = String.Format("~/Areas/{0}/Views/{1}", virtualDirectory.Name, source.ControllerName)
+					let virtualPath = String.Format(CultureInfo.InvariantCulture, "~/Areas/{0}/Views/{1}", virtualDirectory.Name, source.ControllerName)
 					select virtualPath);
 
 				foreach (var virtualDir in virtualDirList.Where(vpp.DirectoryExists))
 				{
-					logger.Debug(String.Format("Analyzing directory {0}", virtualDir));
+					logger.Debug(String.Format(CultureInfo.InvariantCulture, "Analyzing directory {0}", virtualDir));
 					foreach (var file in vpp.GetDirectory(virtualDir).Files.OfType<VirtualFile>())
 					{
 						Debug.Assert(file.Name != null, "file.Name != null");
-						if (!file.Name.EndsWith(source.ViewFileExtension) || file.Name.StartsWith("_"))
+						if (!file.Name.EndsWith(source.ViewFileExtension, StringComparison.OrdinalIgnoreCase) || file.Name.StartsWith("_", StringComparison.Ordinal))
 						{
 							logger.Info(String.Format("Skipping file {0}", file.VirtualPath));
 							continue;

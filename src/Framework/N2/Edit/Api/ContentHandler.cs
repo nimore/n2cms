@@ -106,7 +106,7 @@ namespace N2.Management.Api
 							context.Response.WriteJson(new { Node = node });
 							return;
 						default:
-							if (context.Request.PathInfo.StartsWith("/"))
+							if (context.Request.PathInfo.StartsWith("/", StringComparison.Ordinal))
 							{
 								int id;
 								if (int.TryParse(context.Request.PathInfo.Trim('/'), out id))
@@ -259,7 +259,7 @@ namespace N2.Management.Api
 				throw new HttpException((int)HttpStatusCode.NotFound, "Not Found");
 
 			var requestBody = context.GetOrDeserializeRequestStreamJsonDictionary<object>();
-			var discriminator = EditExtensions.GetDiscriminator(context.Request);
+			var discriminator = context.Request.GetDiscriminator();
 
 			var versions = engine.Resolve<IVersionManager>();
 			ContentItem item;

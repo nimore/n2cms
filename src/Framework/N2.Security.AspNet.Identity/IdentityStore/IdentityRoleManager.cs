@@ -10,7 +10,7 @@ namespace N2.Security.AspNet.Identity
     /// <summary> Manages user roles, stored in IdentityRoleStore </summary>
     public abstract class IdentityRoleManager : RoleManager<IRole>
     {
-        public IdentityRoleManager(IdentityRoleStore store)
+        protected IdentityRoleManager(IdentityRoleStore store)
             : base(store)
         {
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Web.UI.WebControls;
 
 namespace N2.Details
@@ -44,7 +45,7 @@ namespace N2.Details
                 int value = (int)values.GetValue(i);
                 string name = Utility.GetGlobalResourceString(EnumType.Name, Enum.GetName(EnumType, value)) 
                     ?? Enum.GetName(EnumType, value);
-                items[i] = new ListItem(name, value.ToString());
+                items[i] = new ListItem(name, value.ToString(CultureInfo.InvariantCulture));
             }
             return items;
         }
@@ -63,14 +64,14 @@ namespace N2.Details
 
             if (value is string)
                 // an enum as string we assume
-                return ((int)Enum.Parse(EnumType, (string)value)).ToString();
+                return ((int)Enum.Parse(EnumType, (string)value)).ToString(CultureInfo.InvariantCulture);
 
             if (value is int)
                 // an enum as int we hope
                 return value.ToString();
 
             // hopefully an enum type;
-            return ((int)value).ToString();
+            return ((int)value).ToString(CultureInfo.InvariantCulture);
         }
 
         protected override object ConvertToValue(string value)

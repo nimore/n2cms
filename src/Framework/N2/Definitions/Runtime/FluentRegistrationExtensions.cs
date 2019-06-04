@@ -41,7 +41,7 @@ namespace N2.Definitions.Runtime
 		{
 			string typeName = type.FullName;
 			string assemblyName = type.Assembly.GetName().Name;
-			if (type.FullName.StartsWith(assemblyName))
+			if (type.FullName.StartsWith(assemblyName, StringComparison.OrdinalIgnoreCase))
 				typeName = type.FullName.Substring(assemblyName.Length + 1);
 
 			return "~/" + typeName.Replace('.', '/') + extension;

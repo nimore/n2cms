@@ -127,7 +127,7 @@ jQuery(document).ready(function(){{
                 return;
             }
 
-            Register.StyleSheet(Page, Register.DefaultIconsCssPath);
+            Page.StyleSheet(Register.DefaultIconsCssPath);
 
 
             if (state.IsFlagSet(ControlPanelState.Visible))
@@ -149,8 +149,8 @@ jQuery(document).ready(function(){{
             }
             if (state.IsFlagSet(ControlPanelState.Editing))
             {
-                Register.JQuery(Page);
-                Register.StyleSheet(Page, Url.ToAbsolute(StyleSheetUrl), Media.All);
+                Page.JQuery();
+                Page.StyleSheet(Url.ToAbsolute(StyleSheetUrl), Media.All);
             }
 
             if (state.IsFlagSet(ControlPanelState.Previewing))
@@ -225,16 +225,16 @@ jQuery(document).ready(function(){{
 
         private void RegisterDragDropStyles()
         {
-            Register.StyleSheet(Page, DragDropStyleSheetUrl, Media.All);
+            Page.StyleSheet(DragDropStyleSheetUrl, Media.All);
         }
 
         private void RegisterDragDropScripts()
         {
-            Register.JavaScript(Page, Register.SelectedQueryKeyRegistrationScript(), ScriptPosition.Header, ScriptOptions.ScriptTags | ScriptOptions.Prioritize);
-            Register.JQueryUi(Page);
-            Register.JavaScript(Page, DragDropScriptUrl);
+            Page.JavaScript(Register.SelectedQueryKeyRegistrationScript(), ScriptPosition.Header, ScriptOptions.ScriptTags | ScriptOptions.Prioritize);
+            Page.JQueryUi();
+            Page.JavaScript(DragDropScriptUrl);
 
-            Register.JavaScript(Page, DragDropScriptInitialization(CurrentItem), ScriptOptions.DocumentReady);
+            Page.JavaScript(DragDropScriptInitialization(CurrentItem), ScriptOptions.DocumentReady);
         }
 
         protected virtual void AddPlugins(ControlPanelState state)
