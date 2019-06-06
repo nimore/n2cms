@@ -15,7 +15,7 @@ namespace N2.Edit.Tests.FileSystem
 
         public string MapPath(string path)
         {
-            return Path.Combine(basePath, path.TrimStart('~', '/').Replace('/', '\\'));
+            return Path.Combine(basePath, path.TrimStart(Utility.ForwardSlashAndTildePathSeparator).Replace('/', '\\'));
         }
 
         public override bool DirectoryExists(string virtualDir)

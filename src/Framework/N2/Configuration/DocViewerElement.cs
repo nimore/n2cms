@@ -1,5 +1,6 @@
 using NHibernate.Criterion;
 using NHibernate.Mapping;
+using System;
 using System.Configuration;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -96,7 +97,7 @@ namespace N2.Configuration
 
         public string[] FileExtensionsArray
         {
-            get { return FileExtensions.Split(','); }
+            get { return FileExtensions.Split(Utility.CommaPathSeparator, StringSplitOptions.None); }
         }
 
 

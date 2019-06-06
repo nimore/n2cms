@@ -37,7 +37,7 @@ namespace N2.Management.Files.FileSystem
 			if (fuAlternative.PostedFile.ContentLength > 0)
 			{
 				string filename = Regex.Replace(System.IO.Path.GetFileName(fuAlternative.PostedFile.FileName), EditableFileUploadAttribute.InvalidCharactersExpression, "-");
-				string url = Selection.SelectedItem.Url.TrimEnd('/') + "/" + filename;
+				string url = Selection.SelectedItem.Url.TrimEnd(Utility.ForwardSlashPathSeparator) + "/" + filename;
 				N2.Context.Current.Resolve<IFileSystem>().WriteFile(url, fuAlternative.PostedFile.InputStream);
 				Page.RefreshManagementInterface(Selection.SelectedItem);
 			}

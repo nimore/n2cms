@@ -17,7 +17,7 @@ namespace N2.Edit.FileSystem
             base.OnLoad(e);
 
             fileSystem = Engine.Resolve<IFileSystem>();
-            rootPath = Request.QueryString["path"].TrimEnd('/');
+            rootPath = Request.QueryString["path"].TrimEnd(Utility.ForwardSlashPathSeparator);
 
             litRootPath.Text = Server.HtmlEncode(rootPath);
         }

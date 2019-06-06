@@ -41,7 +41,7 @@ namespace N2.Web
 		void parser_PageNotFound(object sender, PageNotFoundEventArgs e)
 		{
 			Url url = e.Url;
-			var segments = url.Path.Trim('~', '/').Split('/');
+			var segments = url.Path.Trim(Utility.ForwardSlashAndTildePathSeparator).Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None);
 			var applicationSegments = Url.ApplicationPath.Count(c => c == '/');
 			for (int i = segments.Length; i >= applicationSegments; i--)
 			{
@@ -86,7 +86,7 @@ namespace N2.Web
 
 		private string ToKey(string url)
 		{
-			return url.Trim('~', '/');
+			return url.Trim(Utility.ForwardSlashAndTildePathSeparator);
 		}
 
 		public void Start()

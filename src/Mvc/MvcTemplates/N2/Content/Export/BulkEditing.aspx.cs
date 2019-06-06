@@ -34,7 +34,7 @@ namespace N2.Management.Content.Export
             }
             else
             {
-                ie.EditableNameFilter = Request[EditableNameFilter.UniqueID].Split(',');
+                ie.EditableNameFilter = Request[EditableNameFilter.UniqueID].Split(Utility.CommaPathSeparator, StringSplitOptions.None);
             }
 
             ie.ParentPath = Selection.SelectedItem.Path;

@@ -60,7 +60,7 @@ namespace N2.Web.Hosting
 
                     string extension = VirtualPathUtility.GetExtension(requestPath).ToLower();
                     if (extension == "")
-                        requestPath = requestPath.TrimEnd('/') + "/Default.aspx"; //context.RewritePath(requestPath.TrimEnd('/') + "/Default.aspx");
+                        requestPath = requestPath.TrimEnd(Utility.ForwardSlashPathSeparator) + "/Default.aspx"; //context.RewritePath(requestPath.TrimEnd('/') + "/Default.aspx");
 
                     // There's a problem with RouteTable.Routes keeping storing the default vpp before we register our vpp, in which case
                     // RouteExistingFiles will not handle files in the zip vpp. This is a workaround.

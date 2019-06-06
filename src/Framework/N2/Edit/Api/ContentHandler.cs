@@ -109,7 +109,7 @@ namespace N2.Management.Api
 							if (context.Request.PathInfo.StartsWith("/", StringComparison.Ordinal))
 							{
 								int id;
-								if (int.TryParse(context.Request.PathInfo.Trim('/'), out id))
+								if (int.TryParse(context.Request.PathInfo.Trim(Utility.ForwardSlashPathSeparator), out id))
 								{
 									var item = engine.Persister.Get(id);
 									context.Response.WriteJson(item);
@@ -522,7 +522,7 @@ namespace N2.Management.Api
 				{
 					Title = t.Language.LanguageTitle,
 					Url = t.EditUrl,
-					IconClass = "sprite " + (t.Language.LanguageCode.Split('-').LastOrDefault() ?? string.Empty).ToLower()
+					IconClass = "sprite " + (t.Language.LanguageCode.Split(Utility.DashPathSeparator, StringSplitOptions.None).LastOrDefault() ?? string.Empty).ToLower()
 				}));
 		}
 

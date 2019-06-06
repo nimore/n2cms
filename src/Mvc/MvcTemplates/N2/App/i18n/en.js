@@ -114,7 +114,7 @@
 	"frameaction": { "text": "" },
 	"close": { "text": "Close" },
 	"me": { },
-	"password": { text: "Change password" },
+	"password": { text: "Account Settings" },
 	"signout": { text: "Sign out", title: "Sign out {{Context.User.Name}}" },
     "confirm": {
         "move": {

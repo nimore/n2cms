@@ -169,7 +169,7 @@ namespace N2.Edit.Navigation
         {
             var ext = VirtualPathUtility.GetExtension(title);
             var filenameWithoutExtension = title.Substring(0, title.LastIndexOf(ext));
-            var arr = filenameWithoutExtension.Split('_');
+            var arr = filenameWithoutExtension.Split(Utility.UnderscorePathSeparator, StringSplitOptions.None);
             if (arr.Length == 1) return "?";
             return arr[arr.Length - 1] + "?";
         }
@@ -296,7 +296,7 @@ namespace N2.Edit.Navigation
                 Path = selectedPath,
                 Total = dirs.Count + files.Count,
                 Trail = selectionTrail.Select(d => new { d.Title, Url = d.Url }).ToList(),
-                Dirs = dirs.Select(d => new { d.Title, Url = VirtualPathUtility.ToAppRelative(d.LocalUrl).Trim('~') }).ToList(),
+                Dirs = dirs.Select(d => new { d.Title, Url = VirtualPathUtility.ToAppRelative(d.LocalUrl).Trim(Utility.TildePathSeparator) }).ToList(),
                 Files = GetFileReducedList(files.ToList(), ImageSizes, selectableExtensions, fsRootPath)
             });
         }

@@ -37,7 +37,7 @@ namespace N2.Persistence.NH
 
         private static string GetName(Type t)
         {
-            return t.FullName + ", " + t.Assembly.FullName.Split(',')[0];
+            return t.FullName + ", " + t.Assembly.FullName.Split(Utility.CommaPathSeparator, StringSplitOptions.None)[0];
         }
 
         // helper classes

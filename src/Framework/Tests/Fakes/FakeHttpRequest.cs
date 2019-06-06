@@ -50,7 +50,7 @@ namespace N2.Tests.Fakes
 
         public override string MapPath(string virtualPath)
         {
-            return Environment.CurrentDirectory + virtualPath.Replace('/', '\\').Trim('~');
+            return Environment.CurrentDirectory + virtualPath.Replace('/', '\\').Trim(N2.Utility.TildePathSeparator);
         }
 
         public NameValueCollection serverVariables = new NameValueCollection();

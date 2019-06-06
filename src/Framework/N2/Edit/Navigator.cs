@@ -28,7 +28,7 @@ namespace N2.Edit
 
             return startingPoint.GetChild(path)
                 ?? sources.ResolvePath(startingPoint, path).CurrentItem
-                ?? virtualNodes.Get(startingPoint.Path + path.TrimStart('/'))
+                ?? virtualNodes.Get(startingPoint.Path + path.TrimStart(Utility.ForwardSlashPathSeparator))
                 ?? virtualNodes.Get(path);
         }
 
@@ -39,9 +39,9 @@ namespace N2.Edit
             if (path == null)
                 return null;
 
-            if (!path.StartsWith("/"))
+            if (!path.StartsWith("/", StringComparison.Ordinal))
             {
-                if (path.StartsWith("~"))
+                if (path.StartsWith("~", StringComparison.Ordinal))
                 {
                     return Navigate(persister.Get(host.CurrentSite.StartPageID), path.Substring(1))
                         ?? sources.ResolvePath(path).CurrentItem

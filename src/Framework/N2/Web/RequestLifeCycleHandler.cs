@@ -177,7 +177,7 @@ namespace N2.Web
 				if (webContext.IsWeb)
 				{
 					string dummy = Url.ServerUrl; // wayne: DOT NOT REMOVE, initialize the server url
-					Url.SetToken(Url.ManagementUrlToken, Url.ToAbsolute(managementUrl).TrimEnd('/'));
+					Url.SetToken(Url.ManagementUrlToken, Url.ToAbsolute(managementUrl).TrimEnd(Utility.ForwardSlashPathSeparator));
 					Url.SetToken("{IconsUrl}", Url.ResolveTokens(Url.ManagementUrlToken + "/Resources/icons"));
                     Url.SetToken(Url.SelectedQueryKeyToken, selectedQueryKey);
 				}

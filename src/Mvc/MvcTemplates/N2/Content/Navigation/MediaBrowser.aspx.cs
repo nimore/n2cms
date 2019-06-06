@@ -73,7 +73,7 @@ namespace N2.Edit.Navigation
                 if (uploadDirectories.Count == 1 || selectionTrail.Count > 1)
                 {
                     var dir = (selectionTrail.Count > 0 ? selectionTrail[0] : uploadDirectories[0].Current) as Directory;
-                    mediaBrowserModel.Path = System.Web.VirtualPathUtility.ToAppRelative(dir.LocalUrl).Trim('~');
+                    mediaBrowserModel.Path = System.Web.VirtualPathUtility.ToAppRelative(dir.LocalUrl).Trim(Utility.TildePathSeparator);
 
                     var directory = FS.GetDirectory(mediaBrowserModel.Path);
                     var fsRootPath = directory != null && !string.IsNullOrWhiteSpace(directory.RootPath) ? directory.RootPath : "";
@@ -84,7 +84,7 @@ namespace N2.Edit.Navigation
                 }
                 else
                 {
-                    mediaBrowserModel.Path = System.Web.VirtualPathUtility.ToAppRelative("/").Trim('~');
+                    mediaBrowserModel.Path = System.Web.VirtualPathUtility.ToAppRelative("/").Trim(Utility.TildePathSeparator);
                     mediaBrowserModel.RootIsSelectable = true;
                     mediaBrowserModel.Dirs = new List<Directory>();
                     foreach (var updDir in uploadDirectories)

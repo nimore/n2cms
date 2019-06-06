@@ -46,7 +46,7 @@ namespace N2.Definitions
 		{
 			if (discriminatorWithTemplateKey == null) return null;
 
-			var pair = discriminatorWithTemplateKey.Split('/');
+			var pair = discriminatorWithTemplateKey.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None);
 			var definition = definitions.GetDefinition(pair[0]);
 
 			return GetTemplate(definition.ItemType, pair.Length > 1 ? pair[1] : null);

@@ -39,7 +39,7 @@ namespace N2.Templates.Mvc.Models.Parts.Questions
             }
 
             string fileName = System.IO.Path.GetFileName(file.FileName);
-            if (!AllowedFileExtensions.Split(',').Any(ext => fileName.EndsWith(ext.Trim(), StringComparison.InvariantCultureIgnoreCase)))
+            if (!AllowedFileExtensions.Split(Utility.CommaPathSeparator, StringSplitOptions.None).Any(ext => fileName.EndsWith(ext.Trim(), StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.ValidationErrors.Add(ElementID, QuestionText + " is not an allowed file type");
                 return;

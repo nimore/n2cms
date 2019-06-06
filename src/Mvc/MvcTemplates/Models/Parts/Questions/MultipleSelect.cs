@@ -13,7 +13,7 @@ namespace N2.Templates.Mvc.Models.Parts.Questions
 
         public override string GetAnswerText(string value)
         {
-            var values = (value ?? String.Empty).Split(',');
+            var values = (value ?? String.Empty).Split(Utility.CommaPathSeparator, StringSplitOptions.None);
 
             var selectedOptions = Options.Where(opt => values.Contains(opt.ID.ToString())).Select(opt => opt.Title).ToArray();
 

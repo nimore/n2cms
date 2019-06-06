@@ -52,7 +52,7 @@ namespace N2.Management.Files
             if (string.IsNullOrEmpty(commaSeparatedListOfSizes))
                 return;
 
-            foreach (var s in commaSeparatedListOfSizes.Split(','))
+            foreach (var s in commaSeparatedListOfSizes.Split(Utility.CommaPathSeparator, StringSplitOptions.None))
             {
                 foreach (var file in preExistingFiles)
                 {
@@ -71,7 +71,7 @@ namespace N2.Management.Files
             if (string.IsNullOrEmpty(commaSeparatedListOfSizes))
                 return;
 
-			foreach (var s in commaSeparatedListOfSizes.Split(','))
+			foreach (var s in commaSeparatedListOfSizes.Split(Utility.CommaPathSeparator, StringSplitOptions.None))
 			{
 				ImageSizeElement size;
 				if (!ConfiguredSizes.TryGetValue(s, out size))

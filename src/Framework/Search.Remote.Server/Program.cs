@@ -45,7 +45,7 @@ namespace N2.Search.Remote.Server
 				{
 					Console.Write(">");
 					var input = Console.ReadLine();
-					var command = input.Split(' ')[0];
+					var command = input.Split(Utility.SpacePathSeparator, StringSplitOptions.None)[0];
 					var argument = input.Substring(command.Length);
 
 					Action<string> action;

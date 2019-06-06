@@ -150,7 +150,7 @@ namespace N2.Web.UI.WebControls
 
             ThumbnailDiv.Attributes["class"] = "thumbnail";
             ThumbnailDiv.Attributes["title"] = Utility.GetGlobalResourceString("UrlSelector", "View") ?? "View";
-            ThumbnailDiv.Style.Add(HtmlTextWriterStyle.Display, ShowThumbnail ? string.Empty : "display:none;");
+            ThumbnailDiv.Style.Add(HtmlTextWriterStyle.Display, ShowThumbnail ? string.Empty : "none");
         }
 
         protected override void OnPreRender(EventArgs e)

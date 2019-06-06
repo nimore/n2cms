@@ -21,7 +21,7 @@ namespace N2.Persistence.NH
             get { return SessionProvider.OpenSession.Session; }
         }
 
-        object zero = 0;
+        private readonly object zero = 0;
         public override ContentItem Get(object id)
         {
             if (zero.Equals(id)) return null;

@@ -28,10 +28,10 @@ namespace Dinamico.Controllers
 
 		public ActionResult NotFound()
 		{
-			var closestMatch = Content.Traverse.Path(Request.AppRelativeCurrentExecutionFilePath.Trim('~', '/')).StopItem;
+			var closestMatch = Content.Traverse.Path(Request.AppRelativeCurrentExecutionFilePath.Trim(Utility.ForwardSlashAndTildePathSeparator)).StopItem;
 
 			var startPage = Content.Traverse.ClosestStartPage(closestMatch);
-			var urlText = Request.AppRelativeCurrentExecutionFilePath.Trim('~', '/').Replace('/', ' ');
+			var urlText = Request.AppRelativeCurrentExecutionFilePath.Trim(Utility.ForwardSlashAndTildePathSeparator).Replace('/', ' ');
 			var similarPages = GetSearchResults(startPage, urlText, 10).ToList();
 
 			ControllerContext.RouteData.ApplyCurrentPath(new PathData(new ContentPage {Parent = startPage}));

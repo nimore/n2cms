@@ -422,7 +422,7 @@ namespace N2.Web.Mvc
 
                 actionUrl = actionUrl.AppendQuery(kvp.Key, kvp.Value);
             }
-            vpd.VirtualPath = actionUrl.PathAndQuery.TrimStart('/');
+            vpd.VirtualPath = actionUrl.PathAndQuery.TrimStart(Utility.ForwardSlashPathSeparator);
             return vpd;
         }
 

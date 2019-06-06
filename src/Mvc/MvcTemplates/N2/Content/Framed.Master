@@ -4,23 +4,23 @@
 <asp:Content ContentPlaceHolderID="Head" runat="server">
 	<asp:PlaceHolder runat="server">
 	<link href="<%=  N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapCssPath) %>" type="text/css" rel="stylesheet" />
-	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapJsPath)  %>" type="text/javascript"></script>
+	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapJsPath)  %>" type="text/javascript" crossorigin="anonymous" integrity="<%=N2.Resources.Register.BootstrapJsSriHash%>"></script>
 
 	<link rel="stylesheet" href="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.IconsCssPath) %>" />
 
 	<link href="<%=  N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapDatePickerCssPath) %>" type="text/css" rel="stylesheet" />
 	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapDatePickerJsPath)  %>" type="text/javascript"></script>
 
-	<link href="<%= ResolveUrl("../Resources/icons/flags.css") %>" rel="stylesheet" />
+	<link href="<%= ResolveUrl("../Resources/icons/flags.css") %>" type="text/css" rel="stylesheet" />
 	<link href="<%= ResolveClientUrl("../Resources/Css/all.css") %>" type="text/css" rel="stylesheet" />
 	<link href="<%= ResolveClientUrl("../Resources/Css/framed.css") %>" type="text/css" rel="stylesheet" />
 
-	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsPath)%>"></script>
-	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsResourcePath) %>"></script>
+	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsPath)%>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularJsSriHash%>"></script>
+	<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.AngularJsResourcePath) %>" crossorigin="anonymous" integrity="<%=N2.Resources.Register.AngularJsResourceSriHash%>"></script>
  	<script src="<%= GetLocalizationPath()%>"></script>
     <script src='<%= N2.Web.Url.ResolveTokens("{ManagementUrl}/App/Js/Services.js") %>'></script>
 	<script src='<%= N2.Web.Url.ResolveTokens("{ManagementUrl}/App/Js/Directives.js") %>'></script>
-	<script src='<%= N2.Web.Url.ResolveTokens("{ManagementUrl}/App/Framed/Framed.js") %>'></script>
+	<script src='<%= N2.Web.Url.ResolveTokens("{ManagementUrl}/App/Framed/Framed.js?v=20190605") %>'></script>
 
 	</asp:PlaceHolder>
 	<asp:ContentPlaceHolder ID="Head" runat="server" />

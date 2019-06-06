@@ -150,9 +150,9 @@ namespace N2
 			return null;
 		}
 
-		#endregion
+        #endregion
 
-		#region Private Fields
+        #region Private Fields        
 
 		private int id;
 		private string title;
@@ -520,9 +520,11 @@ namespace N2
 			get
 			{
 				if (detailName == null)
-					throw new ArgumentNullException("detailName");
+                {
+                    throw new ArgumentNullException(nameof(detailName));
+                }
 
-				switch (detailName)
+                switch (detailName)
 				{
 					case "AlteredPermissions":
 						return AlteredPermissions;
@@ -579,9 +581,11 @@ namespace N2
 			set
 			{
 				if (string.IsNullOrEmpty(detailName))
-					throw new ArgumentNullException("detailName", "Parameter 'detailName' cannot be null or empty.");
+                {
+                    throw new ArgumentNullException(nameof(detailName), "Parameter 'detailName' cannot be null or empty.");
+                }
 
-				switch (detailName)
+                switch (detailName)
 				{
 					case "AlteredPermissions":
 						AlteredPermissions = Utility.Convert<Permission>(value);
@@ -640,20 +644,24 @@ namespace N2
 					default:
 					{
 						var info = GetContentType().GetProperty(detailName);
-						if ((info != null) && info.CanWrite)
-						{
-							if ((value != null) && (info.PropertyType != value.GetType()))
-								value = Utility.Convert(value, info.PropertyType);
-							info.SetValue(this, value, null);
-						}
-						else if (value is DetailCollection)
-							throw new N2Exception(
-								"Cannot set a detail collection this way, add it to the DetailCollections collection instead.");
-						else
-						{
-							SetDetail(detailName, value);
-						}
-					}
+                            if ((info != null) && info.CanWrite)
+                            {
+                                if ((value != null) && (info.PropertyType != value.GetType()))
+                                {
+                                    value = Utility.Convert(value, info.PropertyType);
+                                }
+
+                                info.SetValue(this, value, null);
+                            }
+                            else if (value is DetailCollection)
+                            {
+                                throw new N2Exception("Cannot set a detail collection this way, add it to the DetailCollections collection instead.");
+                            }
+                            else
+                            {
+                                SetDetail(detailName, value);
+                            }
+                        }
 						break;
 				}
 			}
@@ -728,12 +736,18 @@ namespace N2
 			object o = null;
 			try
 			{
-				if (!Details.ContainsKey(detailName)) return defaultValue;
+				if (!Details.ContainsKey(detailName))
+                {
+                    return defaultValue;
+                }
 
-				o = Details[detailName].Value;
+                o = Details[detailName].Value;
 				if (typeof(T).IsEnum && o is string && Enum.IsDefined(typeof(T), o))
-					return (T) Enum.Parse(typeof(T), (string) o); // Special case: Handle enum
-				return (T) o; // Attempt regular cast conversion
+                {
+                    return (T) Enum.Parse(typeof(T), (string) o); // Special case: Handle enum
+                }
+
+                return (T) o; // Attempt regular cast conversion
 			}
 			catch (InvalidCastException inner)
 			{
@@ -850,7 +864,7 @@ namespace N2
 			if (remainingUrl == null)
 				return PathDictionary.GetPath(this, string.Empty);
 
-			remainingUrl = remainingUrl.TrimStart('/');
+			remainingUrl = remainingUrl.TrimStart(Utility.ForwardSlashPathSeparator);
 
 			if (remainingUrl.Length == 0)
 				return PathDictionary.GetPath(this, string.Empty);
@@ -882,7 +896,7 @@ namespace N2
 				return null;
 
 			// Walk all segments, if any (note that double slashes are ignored)
-			var segments = childName.Split(new[] {'/'}, 2, StringSplitOptions.RemoveEmptyEntries);
+			var segments = childName.Split(Utility.ForwardSlashPathSeparator, 2, StringSplitOptions.RemoveEmptyEntries);
 			if (segments.Length == 0) return this;
 
 			// Unscape the segment and find a child node with a matching name

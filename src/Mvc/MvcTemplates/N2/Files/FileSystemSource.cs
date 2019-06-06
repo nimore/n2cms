@@ -66,7 +66,7 @@ namespace N2.Management.Files
         public override PathData ResolvePath(ContentItem startingPoint, string path)
         {
             ////TraceSources.AzureTraceSource.TraceInformation(String.Format("ResolvePath: {0}; {1}", startingPoint.Url, path));
-            return ResolvePath(startingPoint.Path + path.TrimStart('/'));
+            return ResolvePath(startingPoint.Path + path.TrimStart(Utility.ForwardSlashPathSeparator));
         }
 
         public override PathData ResolvePath(string path)

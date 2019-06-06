@@ -21,7 +21,7 @@ namespace N2.Edit
         {
             this.parser = parser;
 
-            ManagementInterfaceUrl = config.Paths.ManagementInterfaceUrl.TrimEnd('/');
+            ManagementInterfaceUrl = config.Paths.ManagementInterfaceUrl.TrimEnd(Utility.ForwardSlashPathSeparator);
             EditTreeUrl = config.Paths.EditTreeUrl;
             EditItemUrl = config.Paths.EditItemUrl;
             EditInterfaceUrl = config.Paths.EditInterfaceUrl;
@@ -119,7 +119,7 @@ namespace N2.Edit
                 && finalUrl.StartsWith("javascript:") == false
                 && finalUrl.Contains(":") == false
                 && finalUrl.StartsWith(managementUrl, StringComparison.InvariantCultureIgnoreCase) == false)
-                finalUrl = managementUrl + "/" + resourceUrl.TrimStart('/');
+                finalUrl = managementUrl + "/" + resourceUrl.TrimStart(Utility.ForwardSlashPathSeparator);
 
             return Url.ToAbsolute(finalUrl);
         }

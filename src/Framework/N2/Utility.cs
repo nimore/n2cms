@@ -32,7 +32,16 @@ namespace N2
 	/// </summary>
 	public static class Utility
 	{
-		public static Func<DateTime> CurrentTime = () => UseUniversalTime ? DateTime.UtcNow : DateTime.Now;
+        public static readonly char[] ForwardSlashAndBackSlashPathSeparator = new char[] { '/', '\\' };
+        public static readonly char[] ForwardSlashPathSeparator = new char[] { '/' };
+        public static readonly char[] TildePathSeparator = new char[] { '~' };
+        public static readonly char[] ForwardSlashAndTildePathSeparator = new char[] { '/', '~' };
+        public static readonly char[] CommaPathSeparator = new char[] { ',' };
+        public static readonly char[] SpacePathSeparator = new char[] { ' ' };
+        public static readonly char[] UnderscorePathSeparator = new char[] { '_' };
+        public static readonly char[] DashPathSeparator = new char[] { '-' };
+
+        public static Func<DateTime> CurrentTime = () => UseUniversalTime ? DateTime.UtcNow : DateTime.Now;
 
 		public static Func<DateTime, DateTime> ToUtc =
 			contentTime => UseUniversalTime ? contentTime : contentTime.ToUniversalTime();
@@ -434,9 +443,9 @@ namespace N2
 		/// <returns></returns>
 		public static string RemapVirtualPath(string physicalPath)
 		{
-			physicalPath = physicalPath.Replace('\\', '/').TrimEnd('/', '\\');
-			var appPhysicalPath = HostingEnvironment.ApplicationPhysicalPath.Replace('\\', '/').TrimEnd('/', '\\');
-			var appVirtualPath = HostingEnvironment.ApplicationVirtualPath.Replace('\\', '/').TrimEnd('/', '\\');
+			physicalPath = physicalPath.Replace('\\', '/').TrimEnd(Utility.ForwardSlashAndBackSlashPathSeparator);
+			var appPhysicalPath = HostingEnvironment.ApplicationPhysicalPath.Replace('\\', '/').TrimEnd(Utility.ForwardSlashAndBackSlashPathSeparator);
+			var appVirtualPath = HostingEnvironment.ApplicationVirtualPath.Replace('\\', '/').TrimEnd(Utility.ForwardSlashAndBackSlashPathSeparator);
 
 			if (!physicalPath.StartsWith(appPhysicalPath, StringComparison.OrdinalIgnoreCase))
 				throw new ArgumentException("Physical path given must map below application physical path");

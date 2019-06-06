@@ -253,8 +253,11 @@ namespace N2.Web.Parts
                 try
                 {
                     Control templateItem = container.Page.LoadControl(userControlPath);
-                    if (templateItem is IContentTemplate)
-                        (templateItem as IContentTemplate).CurrentItem = item;
+                    if (templateItem is IContentTemplate contentTemplate)
+                    {
+                        contentTemplate.CurrentItem = item;
+                    }
+
                     container.Controls.Add(templateItem);
                     return templateItem;
                 }

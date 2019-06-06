@@ -60,7 +60,7 @@ namespace N2.Persistence.Search
 			
 			if (!string.IsNullOrEmpty(query))
 			{
-				var words = query.Split(' ').Where(w => w.Length > 0).Select(w => "%" + w.Trim('*') + "%");
+				var words = query.Split(Utility.SpacePathSeparator, StringSplitOptions.None).Where(w => w.Length > 0).Select(w => "%" + w.Trim('*') + "%");
 				q.Add(new ParameterCollection(Operator.Or, words.Select(word => (Parameter.Like("Title", word) | Parameter.Like(null, word).Detail()))));
 			}
 

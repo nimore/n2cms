@@ -43,7 +43,7 @@ namespace N2.Edit.Api
 
 		protected virtual object HandleDataRequest(System.Web.HttpContextBase context)
 		{
-			var action = context.Request.PathInfo.Substring(PathInfo.Length).Trim('/');
+			var action = context.Request.PathInfo.Substring(PathInfo.Length).Trim(Utility.ForwardSlashPathSeparator);
 			if (string.IsNullOrEmpty(action))
 				action = "Index";
 

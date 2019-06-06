@@ -88,7 +88,7 @@ namespace N2.Persistence
             else if(propertyType == typeof(DateTime))
                 return "DateTime";
             else
-                return propertyType.FullName + ", " + propertyType.Assembly.FullName.Split(',')[0];
+                return propertyType.FullName + ", " + propertyType.Assembly.FullName.Split(Utility.CommaPathSeparator, StringSplitOptions.None)[0];
         }
 
         #region IInterceptableProperty Members

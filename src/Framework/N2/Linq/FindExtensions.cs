@@ -35,12 +35,12 @@ namespace N2.Linq
 
         public static IQueryAction IsAncestor(this IQueryBuilder builder, ContentItem descendant)
         {
-            return builder.ID.In(descendant.GetTrail().Split('/').Where(id => !string.IsNullOrEmpty(id)).Select(id => int.Parse(id)).ToArray());
+            return builder.ID.In(descendant.GetTrail().Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None).Where(id => !string.IsNullOrEmpty(id)).Select(id => int.Parse(id)).ToArray());
         }
 
         public static IQueryAction IsAncestorOrSelf(this IQueryBuilder builder, ContentItem descendant)
         {
-            return builder.ID.In(descendant.GetTrail().Split('/').Where(id => !string.IsNullOrEmpty(id)).Select(id => int.Parse(id)).Union(new [] { descendant.ID }).ToArray());
+            return builder.ID.In(descendant.GetTrail().Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None).Where(id => !string.IsNullOrEmpty(id)).Select(id => int.Parse(id)).Union(new [] { descendant.ID }).ToArray());
         }
     }
 }

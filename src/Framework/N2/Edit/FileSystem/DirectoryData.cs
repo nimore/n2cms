@@ -7,7 +7,7 @@ namespace N2.Edit.FileSystem
     {
         public static DirectoryData Virtual(string virtualDir)
         {
-            return new DirectoryData { Name = virtualDir.Trim('~', '/'), VirtualPath = virtualDir };
+            return new DirectoryData { Name = virtualDir.Trim(Utility.ForwardSlashAndTildePathSeparator), VirtualPath = virtualDir };
         }
     }
 }

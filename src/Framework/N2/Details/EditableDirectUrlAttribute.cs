@@ -76,7 +76,7 @@ namespace N2.Details
                     value = null;
                 if (!AreEqual(value, item[Name]))
                 {
-                    item[Name] = value.TrimEnd('/');
+                    item[Name] = value.TrimEnd(Utility.ForwardSlashPathSeparator);
                     return true;
                 }
             }
@@ -108,7 +108,7 @@ namespace N2.Details
             cv.Text = GetLocalizedText("UniqueUrlText") ?? UniqueUrlText;
             cv.ServerValidate += (object source, ServerValidateEventArgs args) =>
             {
-                var url = ((TextBox)editor).Text.Trim('/');
+                var url = ((TextBox)editor).Text.Trim(Utility.ForwardSlashPathSeparator);
                 url = Engine.RequestContext.Url.HostUrl.Append(url);
                 var existing = Engine.UrlParser.FindPath(url);
                 if (!existing.IsEmpty() && existing.CurrentItem != new SelectionUtility(container, Engine).SelectedItem)

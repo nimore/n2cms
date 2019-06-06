@@ -354,7 +354,7 @@ namespace N2.Web
             if (string.IsNullOrEmpty(pathString))
                 return Empty;
 
-            var parts = pathString.Split('/');
+            var parts = pathString.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None);
             if (parts.Length > 1)
             {
                 int id, pageId;

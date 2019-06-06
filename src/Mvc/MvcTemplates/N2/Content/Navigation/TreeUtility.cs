@@ -95,10 +95,10 @@ namespace N2.Management.Content.Navigation
                 .Union(Utility.GetBaseTypesAndSelf(item.GetContentType()).Select(t => t.Name));
 
             bool isSelectableType = string.IsNullOrEmpty(selectableTypes)
-                || selectableTypes.Split(',').Intersect(baseTypesAndInterfaceNames).Any();
+                || selectableTypes.Split(Utility.CommaPathSeparator, StringSplitOptions.None).Intersect(baseTypesAndInterfaceNames).Any();
 
             bool isSelectableExtension = string.IsNullOrEmpty(selectableExtensions)
-                || selectableExtensions.Split(',').Contains(item.Url.ToUrl().Extension, StringComparer.InvariantCultureIgnoreCase);
+                || selectableExtensions.Split(Utility.CommaPathSeparator, StringSplitOptions.None).Contains(item.Url.ToUrl().Extension, StringComparer.InvariantCultureIgnoreCase);
 
             return isSelectableType && isSelectableExtension;
         }

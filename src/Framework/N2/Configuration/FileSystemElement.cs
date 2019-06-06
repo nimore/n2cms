@@ -22,7 +22,7 @@ namespace N2.Configuration
         public bool IsTextFile(string virtualPath)
         {
             return Array.FindIndex(
-                TextFileExtensions.Split(','),
+                TextFileExtensions.Split(Utility.CommaPathSeparator, StringSplitOptions.None),
                 (extension) => virtualPath.EndsWith(extension, StringComparison.InvariantCultureIgnoreCase)) >= 0;
         }
     }

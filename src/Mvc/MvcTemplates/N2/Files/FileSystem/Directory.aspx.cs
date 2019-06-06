@@ -55,8 +55,8 @@ namespace N2.Edit.FileSystem
             if (string.IsNullOrEmpty(itemsToDelete))
                 return;
 
-            var items = itemsToDelete.Split(',');
-            foreach (string item in items.Select(i => i.TrimEnd('/')).Intersect(allowed.Select(a => a.TrimEnd('/'))))
+            var items = itemsToDelete.Split(Utility.CommaPathSeparator, StringSplitOptions.None);
+            foreach (string item in items.Select(i => i.TrimEnd(Utility.ForwardSlashPathSeparator)).Intersect(allowed.Select(a => a.TrimEnd(Utility.ForwardSlashPathSeparator))))
             {
                 deleteAction(item);
             }

@@ -73,7 +73,7 @@ namespace N2.Definitions
         {
             if (discriminator == null) throw new ArgumentNullException("discriminator");
 
-            var definitionTemplatePair = discriminator.Split('/');
+            var definitionTemplatePair = discriminator.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None);
 
 			var e = new DefinitionEventArgs { Discriminator = discriminator };
             if (definitionTemplatePair.Length > 1)

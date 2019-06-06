@@ -530,7 +530,7 @@ namespace N2.Persistence.NH
 
         protected Stream GetStreamFromName(string name)
         {
-            string[] pathAssemblyPair = name.Split(',');
+            string[] pathAssemblyPair = name.Split(Utility.CommaPathSeparator, StringSplitOptions.None);
             if (pathAssemblyPair.Length != 2) throw new ArgumentException("Expected the property DefaultMapping to be in the format [manifest resource path],[assembly name] but was: " + name);
 
             Assembly a = Assembly.Load(pathAssemblyPair[1]);

@@ -23,7 +23,7 @@ namespace N2.Web.Targeting
 
                 if (httpContext.Request["targets"] != null && httpContext.GetEngine(engine).SecurityManager.IsEditor(httpContext.User))
                 {
-                    var targets = httpContext.Request["targets"].Split(',');
+                    var targets = httpContext.Request["targets"].Split(Utility.CommaPathSeparator, StringSplitOptions.None);
                     return new TargetingContext(httpContext) { TargetedBy = GetRadar(httpContext, engine).Detectors.Where(d => targets.Contains(d.Name)).ToList() };
                 }
                 else

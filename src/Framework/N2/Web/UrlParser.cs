@@ -329,7 +329,7 @@ namespace N2.Web
         {
             url = Url.PathPart(url);
             url = Url.ToRelative(url);
-            url = url.TrimStart('~', '/');
+            url = url.TrimStart(Utility.ForwardSlashAndTildePathSeparator);
             if (url.EndsWith(DefaultDocument))
                 url = url.Substring(0, url.Length - DefaultDocument.Length);
             return url;

@@ -97,7 +97,7 @@ namespace N2.Edit.FileSystem.Items
 
         protected string Combine(string first, string second)
         {
-            return first.TrimEnd('/') + "/" + second.TrimStart('/');
+            return first.TrimEnd(Utility.ForwardSlashPathSeparator) + "/" + second.TrimStart(Utility.ForwardSlashPathSeparator);
         }
 
         #region IActiveChildren Members

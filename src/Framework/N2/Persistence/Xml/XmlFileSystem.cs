@@ -34,8 +34,8 @@ namespace N2.Persistence.Xml
 				logger.Warn(ex);
 			}
 
-			RootDirectoryPath = HostingEnvironment.MapPath("~/" + virtualPath.Trim('~', '/') + "/")
-				?? Environment.CurrentDirectory + "\\" + virtualPath.Trim('~', '/').Replace('/', '\\') + "\\";
+			RootDirectoryPath = HostingEnvironment.MapPath("~/" + virtualPath.Trim(Utility.ForwardSlashAndTildePathSeparator) + "/")
+				?? Environment.CurrentDirectory + "\\" + virtualPath.Trim(Utility.ForwardSlashAndTildePathSeparator).Replace('/', '\\') + "\\";
 		}
 
 		public string GetDirectory<TEntity>()

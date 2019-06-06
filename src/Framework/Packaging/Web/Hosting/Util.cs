@@ -35,7 +35,7 @@ namespace SharpZipLib.Web.VirtualPathProvider
             if (virtualPath[0] == '~')
             {
                 if (!isFile)
-                    return virtualPath.Substring(2).TrimEnd('/') + "/";
+                    return virtualPath.Substring(2).TrimEnd(N2.Utility.ForwardSlashPathSeparator) + "/";
                 else
                     return virtualPath.Substring(2);
             }
@@ -43,7 +43,7 @@ namespace SharpZipLib.Web.VirtualPathProvider
             {
                 virtualPath = ToAppRelative(virtualPath);
                 if (!isFile)
-                    return virtualPath.Substring(2).TrimEnd('/') + "/";
+                    return virtualPath.Substring(2).TrimEnd(N2.Utility.ForwardSlashPathSeparator) + "/";
                 else
                     return virtualPath.Substring(2);
             }

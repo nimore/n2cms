@@ -395,7 +395,7 @@ jQuery(document).ready(function(){{
             if (!string.IsNullOrEmpty(iconUrl))
             {
                 if (iconUrl.StartsWith(C_SPRITE))
-                    icon = string.Format(@"<span class=""{0} sprite""></span>", (iconUrl.Split('-').LastOrDefault() ?? string.Empty).ToLower());
+                    icon = string.Format(@"<span class=""{0} sprite""></span>", (iconUrl.Split(Utility.DashPathSeparator, StringSplitOptions.None).LastOrDefault() ?? string.Empty).ToLower());
                 else
                     icon = string.Format(@"<img src=""{0}"" alt=""icon"" />", iconUrl);
             }

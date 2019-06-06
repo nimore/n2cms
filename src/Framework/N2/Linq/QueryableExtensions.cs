@@ -25,7 +25,7 @@ namespace N2.Linq
 
         public static IQueryable<TSource> WhereAncestorOf<TSource>(this IQueryable<TSource> source, ContentItem descendant) where TSource : ContentItem
         {
-            var ancestorIDs = descendant.AncestralTrail.Split('/').Where(id => !string.IsNullOrEmpty(id)).Select(id => int.Parse(id)).ToArray();
+            var ancestorIDs = descendant.AncestralTrail.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None).Where(id => !string.IsNullOrEmpty(id)).Select(id => int.Parse(id)).ToArray();
             return source.Where(ci => ancestorIDs.Contains(ci.ID));
         }
 

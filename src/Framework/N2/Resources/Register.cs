@@ -270,32 +270,42 @@ namespace N2.Resources
 		/// <param name="options">Script registration options.</param>
 		public static void JavaScript(this Page page, string script, ScriptPosition position, ScriptOptions options, string sriHash = null)
 		{
-			if (page == null) throw new ArgumentNullException("page");
+			if (page == null) throw new ArgumentNullException(nameof(page));
 
 			if (position == ScriptPosition.Header)
 			{
-				JavaScript(page, script, options);
+				JavaScript(page, script, options, sriHash);
 			}
 			else if (position == ScriptPosition.Bottom)
 			{
 				string key = script.GetHashCode().ToString(CultureInfo.InvariantCulture);
-				if (options.Is(ScriptOptions.None))
-					page.ClientScript.RegisterStartupScript(typeof(Register), key, script);
-				else if (options.Is(ScriptOptions.ScriptTags))
-					page.ClientScript.RegisterStartupScript(typeof(Register), key, script, true);
-				else if (options.Is(ScriptOptions.DocumentReady))
-				{
-					page.JQuery();
-					page.ClientScript.RegisterStartupScript(typeof(Register), key, EmbedDocumentReady(script), true);
-				}
-				else if (options.Is(ScriptOptions.Include))
-					page.ClientScript.RegisterClientScriptInclude(key, Url.ResolveTokens(script));
-				else
-					throw new ArgumentException("options");
-			}
+                if (options.Is(ScriptOptions.None))
+                {
+                    page.ClientScript.RegisterStartupScript(typeof(Register), key, script);
+                }
+                else if (options.Is(ScriptOptions.ScriptTags))
+                {
+                    page.ClientScript.RegisterStartupScript(typeof(Register), key, script, true);
+                }
+                else if (options.Is(ScriptOptions.DocumentReady))
+                {
+                    page.JQuery();
+                    page.ClientScript.RegisterStartupScript(typeof(Register), key, EmbedDocumentReady(script), true);
+                }
+                else if (options.Is(ScriptOptions.Include))
+                {
+                    page.ClientScript.RegisterClientScriptInclude(key, Url.ResolveTokens(script));
+                }
+                else
+                {
+                    throw new ArgumentException("options");
+                }
+            }
 			else
-				throw new ArgumentException("position");
-		}
+            {
+                throw new ArgumentException("position");
+            }
+        }
 
 		private static string EmbedDocumentReady(string script)
 		{
@@ -312,7 +322,7 @@ namespace N2.Resources
 
 				if (options.Is(ScriptOptions.Include))
 				{
-					AddScriptInclude(page, script, holder, options.Is(ScriptOptions.Prioritize));
+					AddScriptInclude(page, script, holder, options.Is(ScriptOptions.Prioritize), sriHash);
 				}
 				else if (options.Is(ScriptOptions.None))
 				{
@@ -356,7 +366,7 @@ namespace N2.Resources
 
 		private static Control AddScriptInclude(Page page, string resourceUrl, Control holder, bool priority, string sriHash = null)
 		{
-			if (page == null) throw new ArgumentNullException("page");
+			if (page == null) throw new ArgumentNullException(nameof(page));
 
 			var script = new HtmlGenericControl("script");
 			page.Items[resourceUrl] = script;
@@ -373,11 +383,15 @@ namespace N2.Resources
             }
 
 			if (priority)
-				holder.Controls.AddAt(0, script);
-			else
-				holder.Controls.Add(script);
+            {
+                holder.Controls.AddAt(0, script);
+            }
+            else
+            {
+                holder.Controls.Add(script);
+            }
 
-			return script;
+            return script;
 		}
 
         /// <summary>Registers a script reference in the page's header.</summary>
@@ -386,8 +400,8 @@ namespace N2.Resources
         /// <param name="sriHash">SRI is a new W3C specification that allows web developers to ensure that resources hosted on third-party servers have not been tampered with. Use of SRI is recommended as a best-practice, whenever libraries are loaded from a third-party source.</param>
         public static void JavaScript(this Page page, string resourceUrl, string sriHash = null)
 		{
-			if (page == null) throw new ArgumentNullException("page");
-			if (resourceUrl == null) throw new ArgumentNullException("resourceUrl");
+			if (page == null) throw new ArgumentNullException(nameof(page));
+			if (resourceUrl == null) throw new ArgumentNullException(nameof(resourceUrl));
 
 			JavaScript(page, resourceUrl, ScriptOptions.Include, sriHash);
 		}

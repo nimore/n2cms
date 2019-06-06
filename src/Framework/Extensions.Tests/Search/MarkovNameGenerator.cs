@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using N2;
 
 namespace SCG.General
 {
@@ -24,7 +25,7 @@ namespace SCG.General
             //split comma delimited lines
             foreach (string line in sampleNames)
             {
-                string[] tokens = line.Split(',');
+                string[] tokens = line.Split(Utility.CommaPathSeparator, StringSplitOptions.None);
                 foreach (string word in tokens)
                 {
                     string upper = word.Trim().ToUpper();
@@ -77,7 +78,7 @@ namespace SCG.General
 
                     if (s.Contains(" "))
                     {
-                        string[] tokens = s.Split(' ');
+                        string[] tokens = s.Split(Utility.SpacePathSeparator, StringSplitOptions.None);
                         s = "";
                         for (int t = 0; t < tokens.Length; t++)
                         {

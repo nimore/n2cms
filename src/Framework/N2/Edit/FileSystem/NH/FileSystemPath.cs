@@ -17,7 +17,7 @@ namespace N2.Edit.FileSystem.NH
 
         private FileSystemPath(string virtualPath)
         {
-            var sanitizedPath = virtualPath.TrimStart('~').TrimEnd('/').Replace('\\', '/');
+            var sanitizedPath = virtualPath.TrimStart(Utility.TildePathSeparator).TrimEnd(Utility.ForwardSlashPathSeparator).Replace('\\', '/');
             var lastSlash = sanitizedPath.LastIndexOf('/') + 1;
 
             Parent = sanitizedPath.Substring(0, lastSlash);

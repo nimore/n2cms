@@ -22,7 +22,7 @@ namespace N2.Configuration
 
         public IEnumerable<string> EnumerateIgnoreFiles()
         {
-            return from x in IgnoreFiles.Split(',')
+            return from x in IgnoreFiles.Split(Utility.CommaPathSeparator, StringSplitOptions.None)
                    where (!String.IsNullOrWhiteSpace(x))
                    select x.Trim();
         }

@@ -29,7 +29,7 @@ namespace N2.Edit
             Writers = folder.Writers.ToPermissionMap(Permission.Write, new[] { "Administrators", "Editors" }, new[] { "admin" });
             Site = site;
             if (!string.IsNullOrEmpty(folder.UrlPrefix))
-                UrlPrefix = folder.UrlPrefix.TrimEnd('/');
+                UrlPrefix = folder.UrlPrefix.TrimEnd(Utility.ForwardSlashPathSeparator);
         }
 
         public Site Site { get; set; }
@@ -63,7 +63,7 @@ namespace N2.Edit
 
         public string GetName()
         {
-            return Path.Trim('~', '/');
+            return Path.Trim(Utility.ForwardSlashAndTildePathSeparator);
         }
     }
 

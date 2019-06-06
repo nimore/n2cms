@@ -20,7 +20,7 @@ namespace N2.Persistence.Serialization
 
         public static string GetTypeAndAssemblyName(Type type)
         {
-            return string.Format("{0},{1}", type.AssemblyQualifiedName.Split(','));
+            return string.Format("{0},{1}", type.AssemblyQualifiedName.Split(Utility.CommaPathSeparator, StringSplitOptions.None));
         }
 
         public static string ToUniversalString(DateTime? value)

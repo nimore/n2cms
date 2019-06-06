@@ -215,10 +215,9 @@ namespace N2.Management.Api
 
 			PostProcess(data);
 
-			if (InterfaceBuilt != null)
-				InterfaceBuilt(this, new InterfaceBuiltEventArgs { Data = data });
+            InterfaceBuilt?.Invoke(this, new InterfaceBuiltEventArgs { Data = data });
 
-			return data;
+            return data;
 		}
 
 		public virtual ControlPanelDefinition GetControlPanelDefinition(HttpContextBase context, ContentItem item)
@@ -263,10 +262,9 @@ namespace N2.Management.Api
 
 			PostProcess(data);
 
-			if (ControlPanelBuilt != null)
-				ControlPanelBuilt(this, new InterfaceventArgs<ControlPanelDefinition> { Data = data });
+            ControlPanelBuilt?.Invoke(this, new InterfaceventArgs<ControlPanelDefinition> { Data = data });
 
-			return data;
+            return data;
 		}
 
 		private Node<InterfaceMenuItem> GetControlPanelMenu(HttpContextBase context, ContentItem item)
@@ -274,9 +272,9 @@ namespace N2.Management.Api
 			var state = N2.Web.UI.WebControls.ControlPanel.GetState(engine);
 			var children = new List<Node<InterfaceMenuItem>>();
 			children.AddRange(engine.EditManager.GetPlugins<ControlPanelLinkAttribute>(context.User)
-				.Where(np => !np.Legacy)
-				.Where(np => np.ShowDuring.HasFlag(state))
-				.Select(np => GetNode(context, np, item, state)));
+                .Where(np => !np.Legacy && np.ShowDuring.HasFlag(state))
+                .Select(np => GetNode(context, np, item, state)));
+
 			return new Node<InterfaceMenuItem> { Children = children };
 		}
 
@@ -288,9 +286,11 @@ namespace N2.Management.Api
 		{
 			var removedComponents = new HashSet<string>(engine.Config.Sections.Engine.InterfacePlugins.RemovedElements.Select(re => re.Name));
 			if (removedComponents.Count == 0)
-				return;
+            {
+                return;
+            }
 
-			RemoveRemovedComponentsRecursive(data.MainMenu, removedComponents);
+            RemoveRemovedComponentsRecursive(data.MainMenu, removedComponents);
 			RemoveRemovedComponentsRecursive(data.ActionMenu, removedComponents);
 			RemoveRemovedComponentsRecursive(data.ContextMenu, removedComponents);
 		}
@@ -298,9 +298,11 @@ namespace N2.Management.Api
 		private void RemoveRemovedComponentsRecursive(Node<InterfaceMenuItem> node, HashSet<string> removedComponents)
 		{
 			if (node.Children == null)
-				return;
+            {
+                return;
+            }
 
-			var children = node.Children.ToList();
+            var children = node.Children.ToList();
 			for (int i = children.Count - 1; i >= 0; i--)
 			{
 				if (children[i] != null)
@@ -308,8 +310,10 @@ namespace N2.Management.Api
 					RemoveRemovedComponentsRecursive(children[i], removedComponents);
 
 					if (children[i].Current == null || !removedComponents.Contains(children[i].Current.Name))
-						continue;
-				}
+                    {
+                        continue;
+                    }
+                }
 				children.RemoveAt(i);
 			}
 			node.Children = children.ToArray();
@@ -355,8 +359,8 @@ namespace N2.Management.Api
 		}
 
 		private Node<InterfaceMenuItem> GetNode(HttpContextBase context, ControlPanelLinkAttribute np, ContentItem item, Web.UI.WebControls.ControlPanelState state)
-		{
-			var node = new Node<InterfaceMenuItem>(new InterfaceMenuItem
+		{			    
+			return new Node<InterfaceMenuItem>(new InterfaceMenuItem
 			{
 				Title = np.Title,
 				Name = np.Name,
@@ -364,10 +368,10 @@ namespace N2.Management.Api
 				ToolTip = np.ToolTip,
 				IconUrl = string.IsNullOrEmpty(np.IconClass) ? Retoken(np.IconUrl) : null,
 				Url = Retoken(np.NavigateUrl),
-				IsDivider = np is ControlPanelSeparatorAttribute,
-				IconClass = np.IconClass
+				////IsDivider = np is ControlPanelSeparatorAttribute,
+                IsDivider = false,
+                IconClass = np.IconClass
 			});
-			return node;
 		}
 
 		protected virtual Node<InterfaceMenuItem> GetNode(LinkPluginAttribute np)
@@ -406,7 +410,7 @@ namespace N2.Management.Api
 			});
 		}
 
-		static readonly Dictionary<string, string> replacements = new Dictionary<string, string>
+		private static readonly Dictionary<string, string> replacements = new Dictionary<string, string>
 		{
 			 { "{Selected.Url}", "{{Context.CurrentItem.Url}}" },
 			 { "{Selected.Path}", "{{Context.CurrentItem.Path}}" },
@@ -421,11 +425,16 @@ namespace N2.Management.Api
 		private string Retoken(string urlFormat)
 		{
 			if (string.IsNullOrEmpty(urlFormat))
-				return urlFormat;
+            {
+                return urlFormat;
+            }
 
-			foreach (var kvp in replacements)
-				urlFormat = urlFormat.Replace(kvp.Key, kvp.Value);
-			return urlFormat;
+            foreach (var kvp in replacements)
+            {
+                urlFormat = urlFormat.Replace(kvp.Key, kvp.Value);
+            }
+
+            return urlFormat;
 		}
 
 		protected virtual InterfacePaths GetUrls(HttpContextBase context, ContentItem selectedItem)
@@ -563,12 +572,8 @@ namespace N2.Management.Api
 			{
 				Children = new[]
                     {
-                        new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "password", Title = "Change password", IconClass = "fa fa-user", ToolTip = "Manage password", Target = Targets.Preview, Url = "{Account.EditPassword.PageUrl}".ResolveUrlTokens(), SelectedBy = "EditPassword" }),
-  				        new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "signout", Title = "Sign out", IconClass = "fa fa-sign-out", ToolTip = "Sign out {{Context.User.Name}}", Url = "{Account.Logout.PageUrl}".ResolveUrlTokens() }),
-                        /*
-                        REMOVE: new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "password", Title = "Change password", IconClass = "fa fa-user", ToolTip = "Manage password", Target = Targets.Preview, Url = "{ManagementUrl}/Myself/EditPassword.aspx".ResolveUrlTokens(), SelectedBy = "EditPassword" }),
-                        REMOVE: new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "signout", Title = "Sign out", IconClass = "fa fa-sign-out", ToolTip = "Sign out {{Context.User.Name}}", Url = "{ManagementUrl}/Login.aspx?logout=true".ResolveUrlTokens() }),
-                         */
+                        new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "password", Title = "Account Settings", IconClass = "fa fa-user", ToolTip = "Account Settings", Target = Targets.Preview, Url = "{Account.EditPassword.PageUrl}".ResolveUrlTokens(), SelectedBy = "EditPassword" }),
+  				        new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "signout", Title = "Sign out", IconClass = "fa fa-sign-out", ToolTip = "Sign out {{Context.User.Name}}", Url = "{Account.Logout.PageUrl}".ResolveUrlTokens() }),                        
                     }
 			};
 		}
@@ -588,9 +593,11 @@ namespace N2.Management.Api
 		{
 			var profile = engine.Resolve<IProfileRepository>().GetOrCreate(context.User);
 			if (!profile.Settings.ContainsKey("ViewPreference"))
-				profile.Settings["ViewPreference"] = context.GetViewPreference(engine.Config.Sections.Management.Versions.DefaultViewMode).ToString().ToLower();
+            {
+                profile.Settings["ViewPreference"] = context.GetViewPreference(engine.Config.Sections.Management.Versions.DefaultViewMode).ToString().ToLower();
+            }
 
-			return profile;
+            return profile;
 		}
 
 		protected virtual Node<TreeNode> GetContent(HttpContextBase context, SelectionUtility selection, ContentItem selectedItem)
@@ -607,8 +614,11 @@ namespace N2.Management.Api
 		{
 			var selectedItem = selection.ParseSelectionFromRequest();
 			if (selectedItem == null && profile.Settings.ContainsKey("Selected"))
-				selectedItem = selection.ParseSelected((string)profile.Settings["Selected"]);
-			return selectedItem ?? (selection.Traverse.StartPage);
+            {
+                selectedItem = selection.ParseSelected((string)profile.Settings["Selected"]);
+            }
+
+            return selectedItem ?? (selection.Traverse.StartPage);
 		}
 
 		protected virtual Node<TreeNode> GetStructure(HierarchyNode<ContentItem> structure, ItemFilter filter)
@@ -631,10 +641,13 @@ namespace N2.Management.Api
 
 				new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "users", Title = "Users", IconClass = "fa fa-user shadow", ToolTip = "Manage users", Target = Targets.Preview, Url = "{Account.Users.PageUrl}".ResolveUrlTokens(), RequiredPermission = Permission.Administer, SelectedBy = "UsersUsers" }),
 			};
-			if (Roles.Enabled)
-				items.Add(new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "roles", Title = "Roles", IconClass = "fa fa-group", ToolTip = "Manage roles", Target = Targets.Preview, Url = "{Account.Roles.PageUrl}".ResolveUrlTokens(), RequiredPermission = Permission.Administer, SelectedBy = "RolesList" }));
 
-			return new Node<InterfaceMenuItem> { Children = items.ToArray() };
+			if (Roles.Enabled)
+            {
+                items.Add(new Node<InterfaceMenuItem>(new InterfaceMenuItem { Name = "roles", Title = "Roles", IconClass = "fa fa-group", ToolTip = "Manage roles", Target = Targets.Preview, Url = "{Account.Roles.PageUrl}".ResolveUrlTokens(), RequiredPermission = Permission.Administer, SelectedBy = "RolesList" }));
+            }
+
+            return new Node<InterfaceMenuItem> { Children = items.ToArray() };
 		}
 	}
 }

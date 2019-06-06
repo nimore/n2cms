@@ -60,7 +60,7 @@ namespace N2.Edit.Installation
             try 
             {
                 AuthenticationSection authentication = ConfigurationManager.GetSection("system.web/authentication") as AuthenticationSection;
-                if (currentUrl.Trim('~', '/').StartsWith(Url.ToAbsolute(authentication.Forms.LoginUrl.Trim('~', '/')), StringComparison.InvariantCultureIgnoreCase))
+                if (currentUrl.Trim(Utility.ForwardSlashAndTildePathSeparator).StartsWith(Url.ToAbsolute(authentication.Forms.LoginUrl.Trim(Utility.ForwardSlashAndTildePathSeparator)), StringComparison.InvariantCultureIgnoreCase))
                     // don't redirect from login page
                     return;
             }

@@ -54,7 +54,7 @@ namespace N2.Search.Remote.Server
             UriPrefix = uriPrefix;
             this.sharedSecret = sharedSecret;
             if (!indexPath.Contains(":\\"))
-                indexPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, indexPath.Trim('~', '/').Replace('/', '\\'));
+                indexPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, indexPath.Trim(Utility.ForwardSlashAndTildePathSeparator).Replace('/', '\\'));
             this.indexPath = indexPath;
         }
         
@@ -187,7 +187,7 @@ namespace N2.Search.Remote.Server
                 if (queryString["take"] != null)
                     q.Take(int.Parse(queryString["take"]));
                 if (queryString["type"] != null)
-                    q.OfType(queryString["type"].Split(','));
+                    q.OfType(queryString["type"].Split(Utility.CommaPathSeparator, StringSplitOptions.None));
 
                 var result = ResolveServices(context).searcher.Search(q);
                 WriteQueryResult(result, context.Response);

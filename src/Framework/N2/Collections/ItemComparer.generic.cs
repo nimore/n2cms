@@ -18,6 +18,7 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
 
 namespace N2.Collections
@@ -41,7 +42,7 @@ namespace N2.Collections
         /// <param name="sortExpression">The name of the property to sort on. DESC can be appended to the string to reverse the sort order.</param>
         public ItemComparer(string sortExpression)
         {
-            string[] pair = sortExpression.Split(' ');
+            string[] pair = sortExpression.Split(Utility.SpacePathSeparator, StringSplitOptions.None);
             this.detailToCompare = pair[0];
             if (pair.Length > 1 && string.Compare(pair[1], "DESC", true) == 0)
                 inverse = true;

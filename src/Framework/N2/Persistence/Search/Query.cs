@@ -353,12 +353,12 @@ namespace N2.Persistence.Search
             if (!string.IsNullOrEmpty(request["take"]))
                 q = q.Take(int.Parse(request["take"]));
             if (!string.IsNullOrEmpty(request["types"]))
-                q = q.OfType(request["types"].Split(','));
+                q = q.OfType(request["types"].Split(Utility.CommaPathSeparator, StringSplitOptions.None));
             if (!string.IsNullOrEmpty(request["roles"]))
-                q = q.ReadableBy(request["roles"].Split(','));
+                q = q.ReadableBy(request["roles"].Split(Utility.CommaPathSeparator, StringSplitOptions.None));
             if (!string.IsNullOrEmpty(request["orderBy"]))
             {
-                var by = request["orderBy"].Split(' ');
+                var by = request["orderBy"].Split(Utility.SpacePathSeparator, StringSplitOptions.None);
                 q = q.OrderBy(by[0], by.Length > 1 && string.Equals(by[1], "DESC", StringComparison.InvariantCultureIgnoreCase));
             }
             return q;

@@ -43,8 +43,8 @@ namespace N2.Management.Content.Navigation
                     var attributes = map.GetOrCreateDefinition(parent).GetCustomAttributes<GroupChildrenAttribute>();
                     foreach (var attribute in attributes)
                     {
-                        var name = HttpUtility.UrlDecode(parentPath.Argument).Trim('/');
-                        var argument = name.Split('/')[1];
+                        var name = HttpUtility.UrlDecode(parentPath.Argument).Trim(Utility.ForwardSlashPathSeparator);
+                        var argument = name.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.None)[1];
 
                         var group = Sources.GetChildren(new Query { Parent = parent, OnlyPages = null }).FirstOrDefault(i => i.Name == name);
                         if (group != null)

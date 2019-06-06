@@ -19,9 +19,9 @@ namespace N2.Web
 		public const string ThemesUrlToken = "{ThemesUrl}";
 		public const string SelectedQueryKeyToken = "{SelectedQueryKey}";
 
-		static readonly string[] querySplitter = new[] { "&amp;", Amp };
-		static readonly char[] slashes = new char[] { '/' };
+		static readonly string[] querySplitter = new[] { "&amp;", Amp };		
 		static readonly char[] dotsAndSlashes = new char[] { '.', '/' };
+        static readonly char[] colon = new char[] { ':' };
 		static string defaultExtension = "";
 		static string defaultDocument = "Default.aspx";
 
@@ -202,13 +202,13 @@ namespace N2.Web
 		/// <summary>The domain name information.</summary>
 		public string Domain
 		{
-			get { return authority != null ? authority.Split(':')[0] : null; }
+			get { return authority != null ? authority.Split(colon, StringSplitOptions.None)[0] : null; }
 		}
 
 		/// <summary>The port information.</summary>
 		public int Port
 		{
-			get { return authority != null ? int.Parse(authority.Split(':').Skip(1).FirstOrDefault() ?? "80") : 80; }
+			get { return authority != null ? int.Parse(authority.Split(colon, StringSplitOptions.None).Skip(1).FirstOrDefault() ?? "80") : 80; }
 		}
 
 		/// <summary>The domain name and port information.</summary>
@@ -229,7 +229,7 @@ namespace N2.Web
 			{
 				if (string.IsNullOrEmpty(path) || path == "/")
 					return new string[0];
-				return path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+				return path.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.RemoveEmptyEntries);
 			}
 		}
 
@@ -557,7 +557,7 @@ namespace N2.Web
 
 		public Url SetExtension(string extension)
 		{
-			return new Url(scheme, authority, PathWithoutExtension.TrimEnd('/') + extension, query, fragment);
+			return new Url(scheme, authority, PathWithoutExtension.TrimEnd(Utility.ForwardSlashPathSeparator) + extension, query, fragment);
 		}
 
 
@@ -591,7 +591,7 @@ namespace N2.Web
 			else if (path.EndsWith("/"))
 			{
 				if (segment.StartsWith("/"))
-					newPath = path + segment.TrimStart('/');
+					newPath = path + segment.TrimStart(Utility.ForwardSlashPathSeparator);
 				else
 					newPath = path + segment;
 			}
@@ -631,14 +631,14 @@ namespace N2.Web
 
 			string newPath;
 			if (string.IsNullOrEmpty(path) || path == "/")
-				newPath = "/" + segment.TrimStart('/') + extension;
+				newPath = "/" + segment.TrimStart(Utility.ForwardSlashPathSeparator) + extension;
 			else if (extension != Extension)
 			{
 				newPath = "/" + segment + PathWithoutExtension + extension;
 			}
 			else
 			{
-				newPath = "/" + segment.Trim('/') + "/" + path.TrimStart('/');
+				newPath = "/" + segment.Trim(Utility.ForwardSlashPathSeparator) + "/" + path.TrimStart(Utility.ForwardSlashPathSeparator);
 			}
 
 			return new Url(scheme, authority, newPath, query, fragment);
@@ -837,7 +837,7 @@ namespace N2.Web
 
 			int lastSlashIndex = path.LastIndexOf('/');
 			if (lastSlashIndex == path.Length - 1)
-				lastSlashIndex = path.TrimEnd(slashes).LastIndexOf('/');
+				lastSlashIndex = path.TrimEnd(Utility.ForwardSlashPathSeparator).LastIndexOf('/');
 			if (lastSlashIndex > 0)
 				newPath = path.Substring(0, lastSlashIndex) + (maintainExtension ? Extension : "");
 
@@ -866,7 +866,7 @@ namespace N2.Web
 				return new Url(scheme, authority, path.Substring(slashIndex), query, fragment);
 			}
 
-			string[] segments = PathWithoutExtension.Split(slashes, StringSplitOptions.RemoveEmptyEntries);
+			string[] segments = PathWithoutExtension.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.RemoveEmptyEntries);
 			if (index >= segments.Length)
 				return this;
 

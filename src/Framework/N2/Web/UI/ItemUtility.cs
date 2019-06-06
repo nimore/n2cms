@@ -63,7 +63,7 @@ namespace N2.Web.UI
 
             // walk path
             ContentItem item = startItem;
-            string[] names = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] names = path.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.RemoveEmptyEntries);
             foreach (string name in names)
             {
                 if (item == null)

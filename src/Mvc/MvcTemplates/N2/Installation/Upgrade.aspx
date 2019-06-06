@@ -7,7 +7,7 @@
     <title>Upgrade N2</title>
 	<asp:PlaceHolder runat="server">
 		<link href="<%=  N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapCssPath) %>" type="text/css" rel="stylesheet" />
-		<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapJsPath)  %>" type="text/javascript"></script>
+		<script src="<%= N2.Web.Url.ResolveTokens(N2.Resources.Register.BootstrapJsPath)  %>" type="text/javascript" crossorigin="anonymous" integrity="<%=N2.Resources.Register.BootstrapJsSriHash%>"></script>
 	</asp:PlaceHolder>
     <link rel="stylesheet" type="text/css" href="../Resources/Css/all.css" />
     <link rel="stylesheet" type="text/css" href="../Resources/Css/framed.css" />

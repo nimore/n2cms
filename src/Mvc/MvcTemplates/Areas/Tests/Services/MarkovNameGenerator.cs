@@ -25,7 +25,7 @@ namespace N2.Templates.Mvc.Areas.Tests.Services
             //split comma delimited lines
             foreach (string line in sampleNames)
             {
-                string[] tokens = line.Split(',');
+                string[] tokens = line.Split(Utility.CommaPathSeparator, StringSplitOptions.None);
                 foreach (string word in tokens)
                 {
                     string upper = word.Trim().ToUpper();
@@ -78,7 +78,7 @@ namespace N2.Templates.Mvc.Areas.Tests.Services
 
                     if (s.Contains(" "))
                     {
-                        string[] tokens = s.Split(' ');
+                        string[] tokens = s.Split(Utility.SpacePathSeparator, StringSplitOptions.None);
                         s = "";
                         for (int t = 0; t < tokens.Length; t++)
                         {

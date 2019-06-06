@@ -39,7 +39,7 @@ namespace N2.Persistence.Search
                         AlteredPermissions = (Security.Permission)int.Parse(doc.Get("AlteredPermissions")),
                         State = (ContentState)int.Parse(doc.Get("State")),
                         Visible = Convert.ToBoolean(doc.Get("Visible")),
-                        AuthorizedRoles = doc.Get("Roles").Split(' '),
+                        AuthorizedRoles = doc.Get("Roles").Split(Utility.SpacePathSeparator, StringSplitOptions.None),
                         Path = doc.Get("Path")
                     },
                     Title = doc.Get("Title"),

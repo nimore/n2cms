@@ -527,7 +527,7 @@ namespace N2.Web
 				currentPage = currentPage.VersionOf.Value; // get the published version
 
 			// follow the ancestral trail up to the desired "start from level"
-			var convertedAncestralTrail = Array.ConvertAll(currentPage.AncestralTrail.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), int.Parse);
+			var convertedAncestralTrail = Array.ConvertAll(currentPage.AncestralTrail.Split(Utility.ForwardSlashPathSeparator, StringSplitOptions.RemoveEmptyEntries), int.Parse);
 
 			var xn = menuPart.MenuStartFromLevel;
 			if (xn < 0)

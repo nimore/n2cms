@@ -42,7 +42,7 @@ namespace N2.Management.Api
                 data.ExtendedInfo = CreateExtendedContextData(item, resolveVersions: true);
                 var l = adapter.GetLanguage(item);
                 if (l != null)
-                    data.Language = new ContextLanguage { IconClass = "sprite " + (l.LanguageCode.Split('-').LastOrDefault() ?? string.Empty).ToLower(), LanguageCode = l.LanguageCode, LanguageTitle = l.LanguageTitle };
+                    data.Language = new ContextLanguage { IconClass = "sprite " + (l.LanguageCode.Split(Utility.DashPathSeparator, StringSplitOptions.None).LastOrDefault() ?? string.Empty).ToLower(), LanguageCode = l.LanguageCode, LanguageTitle = l.LanguageTitle };
                 data.Flags = adapter.GetNodeFlags(item).ToList();
             }
             else

@@ -78,7 +78,7 @@ namespace N2.Configuration
         public static ImageSizeElement Parse(string text)
         {
             var s = text.Split('=');
-            var s2 = s[1].Split(',');
+            var s2 = s[1].Split(Utility.CommaPathSeparator, StringSplitOptions.None);
             return new ImageSizeElement 
             { 
                 Name = s[0], 

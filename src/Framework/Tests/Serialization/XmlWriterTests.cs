@@ -59,7 +59,7 @@ namespace N2.Tests.Serialization
             Assert.AreEqual(1, xpn.Select("//item[@sortOrder='2']").Count);
             Assert.AreEqual(1, xpn.Select("//item[@visible='False']").Count);
             Assert.AreEqual(1, xpn.Select("//item[@savedBy='cristian']").Count);
-            Assert.AreEqual(1, xpn.Select("//item[@typeName='" + string.Format("{0},{1}", typeof(XmlableItem).AssemblyQualifiedName.Split(',')) + "']").Count);
+            Assert.AreEqual(1, xpn.Select("//item[@typeName='" + string.Format("{0},{1}", typeof(XmlableItem).AssemblyQualifiedName.Split(N2.Utility.CommaPathSeparator, StringSplitOptions.None)) + "']").Count);
             Assert.AreEqual(1, xpn.Select("//item[@discriminator='"+ typeof(XmlableItem).Name +"']").Count);
         }
 
