@@ -1,4 +1,5 @@
 using System;
+using N2.Definitions;
 using N2.Engine;
 
 namespace N2.Edit.Workflow
@@ -17,12 +18,15 @@ namespace N2.Edit.Workflow
         /// <param name="toState">The next state of the item.</param>
         public virtual void ChangeTo(ContentItem item, ContentState toState)
         {
+            var parent = item.Parent;
+            if (item is IPart && item.ID > 0 && parent != null && parent.State != toState)
+            {
+                return;
+            }
+
             var args = new StateChangedEventArgs(item, item.State);
             item.State = toState;
-            if (StateChanged != null)
-            {
-                StateChanged(this, args);
-            }
+            StateChanged?.Invoke(this, args);
         }
     }
 }

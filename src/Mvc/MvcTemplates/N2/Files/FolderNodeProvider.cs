@@ -61,7 +61,7 @@ namespace N2.Management.Files
                 {
                     yield return CreateDirectory(pair);
                 }
-                else if (path.StartsWith(pair.Path, StringComparison.InvariantCultureIgnoreCase))
+                else if (path != null && path.StartsWith(pair.Path, StringComparison.InvariantCultureIgnoreCase))
                 {
                     ContentItem dir = CreateDirectory(pair);
 

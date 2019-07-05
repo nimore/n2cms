@@ -11,6 +11,10 @@
 #endregion License
 
 using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using N2.Collections;
+using N2.Definitions;
 using N2.Engine;
 using N2.Persistence.Sources;
 
@@ -23,6 +27,7 @@ namespace N2.Persistence
     [Service(typeof(IPersister))]
     public class ContentPersister : IPersister
     {
+        private static Regex trailPattrn = new Regex(@"^\/[0\/]+$", RegexOptions.Compiled);
         private readonly IContentItemRepository repository;
         private readonly ContentSource sources;
 
@@ -68,6 +73,21 @@ namespace N2.Persistence
         /// <param name="unsavedItem">Item to save</param>
         public virtual void Save(ContentItem unsavedItem)
         {
+            var trail = unsavedItem.AncestralTrail;
+
+            if (unsavedItem is IPart && trail != null && trailPattrn.IsMatch(trail))
+            {
+                // prevents unnecessary save when publishing a page w/ EditableChildren
+                // creating a duplicate draft of the child (SCENARIO 3B)
+                return;
+            }
+            else if (unsavedItem is IPage && unsavedItem.Children.Any(c => c is IPart))
+            {
+                // when a page has editablechildren is created in draft mode and then published
+                // without changes made to a grand child, the grand child remains unpublished  (SCENARIO 4)
+                EnsureState(unsavedItem.Children, unsavedItem.State);
+            }
+
             using (var tx = Repository.BeginTransaction())
             {
                 tx.Committed += (s, a) => Invoke(ItemSaved, new ItemEventArgs(unsavedItem));
@@ -182,6 +202,22 @@ namespace N2.Persistence
             {
                 item.Name = item.ID.ToString();
                 Repository.SaveOrUpdate(item);
+            }
+        }
+
+        private void EnsureState(IContentItemList<ContentItem> children, ContentState state)
+        {
+            foreach (var child in children)
+            {
+                if (child is IPart)
+                {
+                    if (child.State != state)
+                    {
+                        child.State = state;
+                    }
+
+                    EnsureState(child.Children, state);
+                }
             }
         }
     }

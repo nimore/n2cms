@@ -30,10 +30,10 @@ namespace N2.Web
             if (!string.IsNullOrEmpty(ifModifiedSince))
             {
                 DateTimeOffset since;
-				if (DateTimeOffset.TryParse(ifModifiedSince, out since))
-					return filePaths.Where(p => p != null)
-						.Where(p => File.Exists(p))
-						.All(p => File.GetLastWriteTimeUtc(p) < since);
+                if (DateTimeOffset.TryParse(ifModifiedSince, out since))
+                    return filePaths.Where(p => p != null)
+                        .Where(p => File.Exists(p))
+                        .All(p => File.GetLastWriteTimeUtc(p) < since);
             }
             return false;
         }
@@ -55,6 +55,14 @@ namespace N2.Web
             return false;
         }
 
+        /// <summary>Ends the response with not modified status.</summary>
+        /// <param name="response">The response to end.</param>
+        public static void NotModified(this HttpResponse response)
+        {
+            response.Status = "304 Not Modified";
+            response.End();
+        }
+
         /// <summary>
         /// Updates response cache settings to prevent client caching
         /// </summary>
@@ -65,6 +73,28 @@ namespace N2.Web
             response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
             response.Cache.SetLastModified(DateTime.UtcNow);
             response.Cache.SetMaxAge(new TimeSpan(0));
+        }
+
+        /// <summary>Sets public cacheablility (ask server if resources is modified) on the response header.</summary>
+        /// <param name="response">The response whose cache to modify.</param>
+        /// <param name="expires">The time the resource expires.</param>
+        public static HttpResponse SetOutputCache(this HttpResponse response, DateTime expires)
+        {
+            response.Cache.SetExpires(expires);
+            response.Cache.SetCacheability(HttpCacheability.ServerAndPrivate);
+            response.Cache.SetValidUntilExpires(true);
+            return response;
+        }
+
+        /// <summary>Sets public cacheablility (ask server if resources is modified) on the response header.</summary>
+        /// <param name="response">The response whose cache to modify.</param>
+        /// <param name="expires">The time the resource expires.</param>
+        public static HttpResponseBase SetOutputCache(this HttpResponseBase response, DateTime expires)
+        {
+            response.Cache.SetExpires(expires);
+            response.Cache.SetCacheability(HttpCacheability.ServerAndPrivate);
+            response.Cache.SetValidUntilExpires(true);
+            return response;
         }
 
         /// <summary>Sets public cacheablility (ask server if resources is modified) on the response header.</summary>
@@ -89,36 +119,6 @@ namespace N2.Web
             response.Cache.SetLastModified(utcLastModified);
             response.Cache.SetMaxAge(TimeSpan.FromDays(31));
             response.Cache.SetValidUntilExpires(true);
-        }
-
-        /// <summary>Ends the response with not modified status.</summary>
-        /// <param name="response">The response to end.</param>
-        public static void NotModified(this HttpResponse response)
-        {
-            response.Status = "304 Not Modified";
-            response.End();
-        }
-
-        /// <summary>Sets public cacheablility (ask server if resources is modified) on the response header.</summary>
-        /// <param name="response">The response whose cache to modify.</param>
-        /// <param name="expires">The time the resource expires.</param>
-        public static HttpResponse SetOutputCache(this HttpResponse response, DateTime expires)
-        {
-            response.Cache.SetExpires(expires);
-            response.Cache.SetCacheability(HttpCacheability.ServerAndPrivate);
-            response.Cache.SetValidUntilExpires(true);
-            return response;
-        }
-
-        /// <summary>Sets public cacheablility (ask server if resources is modified) on the response header.</summary>
-        /// <param name="response">The response whose cache to modify.</param>
-        /// <param name="expires">The time the resource expires.</param>
-        public static HttpResponseBase SetOutputCache(this HttpResponseBase response, DateTime expires)
-        {
-            response.Cache.SetExpires(expires);
-            response.Cache.SetCacheability(HttpCacheability.ServerAndPrivate);
-            response.Cache.SetValidUntilExpires(true);
-            return response;
         }
     }
 }

@@ -85,7 +85,7 @@ namespace N2.Edit.Versioning
 
             ApplyCommonValuesRecursive(item);
 
-            version.Master = GetMaster(item);
+            version.Master = master;
             version.Saved = Utility.CurrentTime();
 			SerializeVersion(version, item);
             version.ItemCount = N2.Find.EnumerateChildren(item, includeSelf: true, useMasterVersion: false).Count();
