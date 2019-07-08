@@ -168,11 +168,11 @@ namespace N2.Tests.Web
         [Test]
         public void DateTime()
         {
-            var date = new DateTime(2010, 06, 16, 10, 00, 00);
+            var date = new DateTime(2010, 06, 16, 10, 00, 00, DateTimeKind.Utc);
             var result = date.ToJson();
-            var milisecondsSince1970 = date.Subtract(new DateTime(1970, 01, 01)).TotalMilliseconds;
+            ////var milisecondsSince1970 = date.Subtract(new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
 
-			result.ShouldBe("\"2010-06-16T08:00:00.000Z\"");
+			result.ShouldBe("\"2010-06-16T10:00:00.000Z\"");
         }
 
         [Test]
@@ -218,7 +218,7 @@ namespace N2.Tests.Web
         [Test]
         public void Properties()
         {
-            var time = new DateTime(2013, 03, 27, 10, 00, 00);
+            var time = new DateTime(2013, 03, 27, 10, 00, 00, DateTimeKind.Utc);
             //time.Subtract(new DateTime(1970, 01, 01, 0, 0, 0)).TotalSeconds
             var item = new CI { AlteredPermissions = N2.Security.Permission.ReadWrite, AncestralTrail = "/1/", ChildState = N2.Collections.CollectionState.ContainsPublicParts, Created = time, Expires = time, ID = 2, Name = "hello-world", Published = time, SavedBy = "theboyz", SortOrder = 666, State = ContentState.Waiting, TemplateKey = "1234", Title = "Hello World", TranslationKey = 5678, VersionIndex = 222, Visible = false, ZoneName = "HelloZone", Updated = time };
 
@@ -244,7 +244,7 @@ namespace N2.Tests.Web
             deserialized["VersionIndex"].ShouldBe(222);
             deserialized["Visible"].ShouldBe(false);
             deserialized["ZoneName"].ShouldBe("HelloZone");
-            deserialized["Updated"].ShouldBe("2013-03-27T09:00:00.000Z");
+            deserialized["Updated"].ShouldBe("2013-03-27T10:00:00.000Z");
         }
 
         [Test]

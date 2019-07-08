@@ -60,7 +60,7 @@ namespace N2.Edit.Workflow
             unpublishedDate = new EnsureNotPublishedCommand();
             ensurePublishedDate = new EnsurePublishedCommand();
             updateReferences = new UpdateReferencesCommand();
-            saveOnPageVersion = new SaveOnPageVersionCommand(versionMaker, persister.Repository);
+            saveOnPageVersion = new SaveOnPageVersionCommand(versionMaker);
         }
 
         /// <summary>Gets the command used to publish an item.</summary>

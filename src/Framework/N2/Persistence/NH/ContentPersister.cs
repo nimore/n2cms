@@ -75,16 +75,10 @@ namespace N2.Persistence
         {
             var trail = unsavedItem.AncestralTrail;
 
-            if (unsavedItem is IPart && trail != null && trailPattrn.IsMatch(trail))
-            {
-                // prevents unnecessary save when publishing a page w/ EditableChildren
-                // creating a duplicate draft of the child (SCENARIO 3B)
-                return;
-            }
-            else if (unsavedItem is IPage && unsavedItem.Children.Any(c => c is IPart))
+            if (unsavedItem is IPage && unsavedItem.Children.Any(c => c is IPart))
             {
                 // when a page has editablechildren is created in draft mode and then published
-                // without changes made to a grand child, the grand child remains unpublished  (SCENARIO 4)
+                // without changes made to a grand child, the grand child remains unpublished
                 EnsureState(unsavedItem.Children, unsavedItem.State);
             }
 
