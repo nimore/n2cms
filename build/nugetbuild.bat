@@ -1,1 +1,1 @@
-build /t:Build-NuGet & pause
+build /t:Build-NuGet /p:VisualStudioVersion=14.0 & pause
