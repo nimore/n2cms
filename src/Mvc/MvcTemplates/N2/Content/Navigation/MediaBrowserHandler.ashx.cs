@@ -97,16 +97,33 @@ namespace N2.Edit.Navigation
         {
             var regIsImage = new Regex(@"^.*\.(jpg|jpeg|gif|png)$", RegexOptions.IgnoreCase);
 
-            var ret = files.Select(d => new FileReducedListModel
+            var ret = files.Select(d =>
             {
-                Title = d.Title,
-                Url = fsRootPath + d.LocalUrl,
-                IsImage = regIsImage.IsMatch(d.Title),
-                Thumb = regIsImage.IsMatch(d.Title) ? fsRootPath + N2.Web.Drawing.ImagesUtility.GetExistingImagePath(d.LocalUrl, "thumb") : null,
-                Size = d.Size,
-                Date = string.Format("{0:s}", d.Created),
-                SCount = d.Children.Count,
-                Children = regIsImage.IsMatch(d.Title) ? GetFileReducedChildren(d, imageSizes, fsRootPath) : null
+                bool isImg = regIsImage.IsMatch(d.Title);
+                string thumb = null;
+                if (isImg)
+                {
+                    if (fsRootPath == "")
+                    {
+                        thumb = d.Url.Substring(0, d.Url.IndexOf(d.LocalUrl)) + N2.Web.Drawing.ImagesUtility.GetExistingImagePath(d.LocalUrl, "thumb");
+                    }
+                    else
+                    {
+                        thumb = fsRootPath + N2.Web.Drawing.ImagesUtility.GetExistingImagePath(d.LocalUrl, "thumb");
+                    }
+                }
+
+                return new FileReducedListModel
+                {
+                    Title = d.Title,
+                    Url = fsRootPath == "" ? d.Url : fsRootPath + d.LocalUrl,
+                    IsImage = isImg,
+                    Thumb = thumb,
+                    Size = d.Size,
+                    Date = string.Format("{0:s}", d.Created),
+                    SCount = d.Children.Count,
+                    Children = regIsImage.IsMatch(d.Title) ? GetFileReducedChildren(d, imageSizes, fsRootPath) : null
+                };
             }).ToList();
 
             if (!string.IsNullOrEmpty(exts))
@@ -154,7 +171,7 @@ namespace N2.Edit.Navigation
                     cc => new FileReducedChildrenModel
                     {
                         SizeName = imageSizes.GetSizeName(cc.Title) ?? GetUnreferencedImageSize(cc.Title),
-                        Url = fsRootPath + cc.Url,
+                        Url = fsRootPath == "" ? cc.Url : fsRootPath + ((File)cc).LocalUrl,
                         Size = cc is File ? (cc as File).Size : -1
                     }
                     ).ToList();
@@ -270,7 +287,6 @@ namespace N2.Edit.Navigation
             var dir = selected as Directory;
             if (dir == null)
             {
-                
                 var uploadDirectories = MediaBrowserUtils.GetAvailableUploadFoldersForAllSites(context, root, selectionTrail, Engine, FS);
                 dirs = new List<Directory>();
                 files = new List<File>();
@@ -500,7 +516,6 @@ namespace N2.Edit.Navigation
             {
                 context.Response.WriteJson(new { Status = "Error", Message = "Create directory failed", Detail = e.Message });
             }
-
         }
 
         #endregion RegionPrivateActions

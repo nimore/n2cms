@@ -8,9 +8,10 @@
  * the License, or (at your option) any later version.
  */
 
-#endregion
+#endregion License
 
 using System;
+using System.Diagnostics;
 using N2.Configuration;
 using N2.Definitions;
 using N2.Edit;
@@ -19,12 +20,11 @@ using N2.Persistence;
 using N2.Plugin;
 using N2.Security;
 using N2.Web;
-using System.Diagnostics;
 
 namespace N2.Engine
 {
     /// <summary>
-    /// This principal gateway to N2 services. The class is responsible for 
+    /// This principal gateway to N2 services. The class is responsible for
     /// initializing and providing access to the services that compose N2.
     /// </summary>
     public class ContentEngine : IEngine
@@ -50,6 +50,7 @@ namespace N2.Engine
         /// <summary>Sets the current container to the given container.</summary>
         /// <param name="container">An previously prepared service container.</param>
         /// <param name="broker"></param>
+        /// <param name="configurer"></param>
         public ContentEngine(IServiceContainer container, EventBroker broker, ContainerConfigurer configurer)
         {
             this.container = container;
@@ -59,7 +60,9 @@ namespace N2.Engine
         /// <summary>Tries to determine runtime parameters from the given configuration.</summary>
         /// <param name="config">The configuration to use.</param>
         /// <param name="sectionGroup">The configuration section to retrieve configuration from</param>
+        /// <param name="container"></param>
         /// <param name="broker">Web ap event provider</param>
+        /// <param name="configurer"></param>
         public ContentEngine(System.Configuration.Configuration config, string sectionGroup, IServiceContainer container, EventBroker broker, ContainerConfigurer configurer)
         {
             if (config == null) throw new ArgumentNullException("config");
@@ -69,9 +72,14 @@ namespace N2.Engine
             configurer.Configure(this, broker, new ConfigurationReadingWrapper(config, sectionGroup));
         }
 
+        public ConfigurationManagerWrapper Config
+        {
+            get { return Resolve<ConfigurationManagerWrapper>(); }
+        }
+
         private class ConfigurationReadingWrapper : ConfigurationManagerWrapper
         {
-            System.Configuration.Configuration config;
+            private System.Configuration.Configuration config;
 
             public ConfigurationReadingWrapper(System.Configuration.Configuration config, string sectionGroup)
                 : base(sectionGroup)
@@ -92,22 +100,43 @@ namespace N2.Engine
             get { return container; }
         }
 
-        /// <summary>Gets N2 persistence manager used for database persistence of content.</summary>
-        public IPersister Persister
-        {
-            get { return Resolve<IPersister>(); }
-        }
-
         /// <summary>Gets N2 definition manager</summary>
         public IDefinitionManager Definitions
         {
             get { return Resolve<IDefinitionManager>(); }
         }
 
+        /// <summary>Gets the edit manager responsible for plugins in edit mode.</summary>
+        public IEditManager EditManager
+        {
+            get { return Resolve<IEditManager>(); }
+        }
+
+        public IHost Host
+        {
+            get { return Resolve<IHost>(); }
+        }
+
         /// <summary>Gets N2 integrity manager </summary>
         public IIntegrityManager IntegrityManager
         {
             get { return Resolve<IIntegrityManager>(); }
+        }
+
+        public IEditUrlManager ManagementPaths
+        {
+            get { return Resolve<IEditUrlManager>(); }
+        }
+
+        /// <summary>Gets N2 persistence manager used for database persistence of content.</summary>
+        public IPersister Persister
+        {
+            get { return Resolve<IPersister>(); }
+        }
+
+        public IWebContext RequestContext
+        {
+            get { return Resolve<IWebContext>(); }
         }
 
         /// <summary>Gets N2 security manager responsible of item access checks.</summary>
@@ -122,28 +151,7 @@ namespace N2.Engine
             get { return Resolve<IUrlParser>(); }
         }
 
-        /// <summary>Gets the edit manager responsible for plugins in edit mode.</summary>
-        public IEditManager EditManager
-        {
-            get { return Resolve<IEditManager>(); }
-        }
-
-        public IEditUrlManager ManagementPaths
-        {
-            get { return Resolve<IEditUrlManager>(); }
-        }
-
-        public IWebContext RequestContext
-        {
-            get { return Resolve<IWebContext>(); }
-        }
-
-        public IHost Host
-        {
-            get { return Resolve<IHost>(); }
-        }
-
-        #endregion
+        #endregion Properties
 
         #region Methods
 
@@ -156,20 +164,13 @@ namespace N2.Engine
             container.StartComponents();
         }
 
-        #endregion
+        #endregion Methods
 
         #region Container Methods
 
-        /// <summary>Resolves a service configured in the factory.</summary>
-        [DebuggerStepThrough]
-        public T Resolve<T>() where T : class
+        public ContentHelperBase Content
         {
-            return (T) Container.Resolve(typeof (T));
-        }
-
-        public object Resolve(Type serviceType)
-        {
-            return Container.Resolve(serviceType);
+            get { return new ContentHelperBase(() => this, () => RequestContext.CurrentPath); }
         }
 
         /// <summary>Registers a component in the IoC container.</summary>
@@ -201,6 +202,16 @@ namespace N2.Engine
             Container.AddComponentInstance(key, serviceType, instance);
         }
 
+        [Obsolete("Use Container.AddComponentInstance")]
+        public T AddComponentInstance<T>(T instance) where T : class
+        {
+            if (instance != null)
+            {
+                AddComponentInstance(typeof(T).Name, typeof(T), instance);
+            }
+            return instance;
+        }
+
         [Obsolete("Use Container.AddComponentLifeStyle")]
         public void AddComponentLifeStyle(string key, Type classType, ComponentLifeStyle lifeStyle)
         {
@@ -213,26 +224,18 @@ namespace N2.Engine
             Container.Release(instance);
         }
 
-        [Obsolete("Use Container.AddComponentInstance")]
-        public T AddComponentInstance<T>(T instance) where T : class
+        /// <summary>Resolves a service configured in the factory.</summary>
+        [DebuggerStepThrough]
+        public T Resolve<T>() where T : class
         {
-            if (instance != null)
-            {
-                AddComponentInstance(typeof (T).Name, typeof (T), instance);
-            }
-            return instance;
+            return (T)Container.Resolve(typeof(T));
         }
 
-        public ContentHelperBase Content
+        public object Resolve(Type serviceType)
         {
-            get { return new ContentHelperBase(() => this, () => RequestContext.CurrentPath); }
+            return Container.Resolve(serviceType);
         }
 
-        #endregion
-
-        public ConfigurationManagerWrapper Config
-        {
-            get { return Resolve<ConfigurationManagerWrapper>(); }
-        }
+        #endregion Container Methods
     }
 }

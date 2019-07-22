@@ -72,6 +72,7 @@ namespace N2.Edit.FileSystem.Items
         }
 
         public string NewName { get; set; }
+
         public long Size { get; set; }
 
         public override string Url
