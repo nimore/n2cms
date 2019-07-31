@@ -69,21 +69,63 @@ namespace N2.Management.Files
             }
         }
 
+        public virtual void CreateSize(Url virtualPath, Stream sourceStream, ImageSizeElement size)
+        {
+            if (!size.ResizeOnUpload)
+                return;
+
+            string resizedPath = ImagesUtility.GetResizedPath(virtualPath, size.Name);
+            
+            if (size.Width <= 0 && size.Height <= 0)
+            {
+                files.WriteFile(resizedPath, sourceStream);
+            }
+            else
+            {
+                // Delete the image before writing.
+                // Fixes a weird bug where overwriting the original file while it still exists
+                //  leaves the resized image the with the exact same file size as the original even
+                //  though it should be smaller.
+                if (files.FileExists(resizedPath))
+                {
+                    files.DeleteFile(resizedPath);
+                }
+
+                try
+                {
+                    using (var destinationStream = files.OpenFile(resizedPath))
+                    {
+                        resizer.Resize(sourceStream, new ImageResizeParameters(size.Width, size.Height, size.Mode) { Quality = size.Quality }, destinationStream);
+                    }
+                }
+                catch
+                {
+                }
+            }    
+        }        
+
+        private byte[] ReadToEnd(Stream stream)
+        {
+            byte[] image = new byte[stream.Length];
+            int numBytesRead = 0;
+            long numBytesToRead = stream.Length;
+            do
+            {
+                int n = stream.Read(image, numBytesRead, (int)Math.Min(4 * 1024 * 1024, numBytesToRead)); // max 4MB read for Azure compatability
+                numBytesRead += n;
+                numBytesToRead -= n;
+            }
+            while (numBytesToRead > 0);
+
+            return image;
+        }
+
         public virtual byte[] GetImageBytes(string virtualPath)
         {
             byte[] image;
             using (var s = files.OpenFile(virtualPath, readOnly: true))
             {
-                image = new byte[s.Length];
-                int numBytesRead = 0;
-                long numBytesToRead = s.Length;
-                do
-                {
-                    int n = s.Read(image, numBytesRead, (int)Math.Min(4 * 1024 * 1024, numBytesToRead)); // max 4MB read for Azure compatability
-                    numBytesRead += n;
-                    numBytesToRead -= n;
-                }
-                while (numBytesToRead > 0);
+                image = ReadToEnd(s);
             }
             return image;
         }
@@ -174,11 +216,35 @@ namespace N2.Management.Files
             if (images.Sizes.Count == 0)
                 return;
 
-            byte[] image = GetImageBytes(virtualPath);
+            ////byte[] image = GetImageBytes(virtualPath);
 
-            foreach (ImageSizeElement size in images.Sizes.AllElements)
+            ////foreach (ImageSizeElement size in images.Sizes.AllElements)
+            ////{
+            ////    CreateSize(virtualPath, image, size);
+            ////}
+
+            using (var s = files.OpenFile(virtualPath, readOnly: true))
             {
-                CreateSize(virtualPath, image, size);
+                if (s.CanSeek)
+                {
+                    foreach (ImageSizeElement size in images.Sizes.AllElements)
+                    {
+                        s.Position = 0;
+                        CreateSize(virtualPath, s, size);
+                    }
+                }
+                else
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        s.CopyTo(ms);
+                        foreach (ImageSizeElement size in images.Sizes.AllElements)
+                        {
+                            ms.Position = 0;
+                            CreateSize(virtualPath, ms, size);
+                        }
+                    }
+                }
             }
         }
 
