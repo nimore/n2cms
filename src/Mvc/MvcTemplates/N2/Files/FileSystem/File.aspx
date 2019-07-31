@@ -24,9 +24,9 @@
             { %>/<a href="<%= Url.Parse(node is N2.Definitions.IFileSystemDirectory ? "Directory.aspx" : "File.aspx").AppendSelection(node) %>"><%= node.Title %></a><% } %></h1>
 
     <div class="tabPanel" data-flag="Unclosable">
-        <a href="<%= SelectedFile.RemoteUrl %>">
+        <a href="<%= SelectedFile.Url %>">
             <img src="<%= N2.Web.Url.ToAbsolute(Selection.SelectedItem.IconUrl) %>" alt="icon" />
-            <%= SelectedItem.Title %>
+            <%= SelectedFile.Name %>
 		(<%= GetFileSize(SelectedFile.Size) %>)
 	</a>
 
