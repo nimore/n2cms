@@ -66,7 +66,8 @@ namespace N2.Details
             ParameterCollection query = Parameter.Equal("State", ContentState.Published);
 
             if (LinkedType != null && LinkedType != typeof(ContentItem))
-                query &= Parameter.TypeEqual(LinkedType);
+                ////query &= Parameter.TypeEqual(LinkedType);
+                query &= Parameter.TypeIn(Engine.Definitions.GetDefinitions().Where(d => LinkedType.IsAssignableFrom(d.ItemType)).Select(d => d.Discriminator).ToArray());
 
             if (ExcludedType != null)
                 query &= Parameter.TypeNotIn(Engine.Definitions.GetDefinitions().Where(d => ExcludedType.IsAssignableFrom(d.ItemType)).Select(d => d.Discriminator).ToArray());
