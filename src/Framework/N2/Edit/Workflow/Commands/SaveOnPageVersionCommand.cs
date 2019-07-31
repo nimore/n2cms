@@ -1,15 +1,23 @@
 using System;
 using N2.Edit.Versioning;
+using N2.Persistence;
 
 namespace N2.Edit.Workflow.Commands
 {
     public class SaveOnPageVersionCommand : CommandBase<CommandContext>
     {
         private readonly IVersionManager versionMaker;
+        private readonly IContentItemRepository itemRepository;
 
-        public SaveOnPageVersionCommand(IVersionManager versionMaker)
+        public SaveOnPageVersionCommand(IVersionManager versionMaker, IContentItemRepository itemRepository)
         {
+            if (versionMaker == null)
+            {
+                throw new ArgumentNullException(nameof(versionMaker));
+            }
+
             this.versionMaker = versionMaker;
+            this.itemRepository = itemRepository;
         }
 
         public override void Process(CommandContext state)
@@ -40,6 +48,8 @@ namespace N2.Edit.Workflow.Commands
                 }
             }
 
+            var s = state.GetItemsToSave();
+
             if (page.VersionOf.HasValue)
             {
                 versionMaker.UpdateVersion(page);
@@ -47,6 +57,10 @@ namespace N2.Edit.Workflow.Commands
             else
             {
                 versionMaker.AddVersion(page, asPreviousVersion: false);
+                if(item.ID == 0)
+                {
+                    itemRepository.SaveOrUpdate(item);
+                }
             }
         }
     }

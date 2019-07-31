@@ -17,6 +17,10 @@ namespace N2.Edit.Workflow.Commands
             {
                 if (item != state.Content)
                 {
+                    if(item.Parent != null && item.Parent.ID == 0 && item.Parent.VersionOf.HasValue && item.Parent.VersionOf.ID == state.Content.ID)
+                    {
+                        item.AddTo(state.Content);
+                    }
                     persister.Save(item);
 					SaveChildren(item);
                 }

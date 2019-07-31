@@ -37,7 +37,7 @@ namespace N2.Edit.Workflow
         UpdateReferencesCommand updateReferences;
         SaveOnPageVersionCommand saveOnPageVersion;
 
-        public CommandFactory(IPersister persister, ISecurityManager security, IVersionManager versionMaker, IEditUrlManager editUrlManager, IContentAdapterProvider adapters, StateChanger changer)
+        public CommandFactory(IPersister persister, ISecurityManager security, IVersionManager versionMaker, IEditUrlManager editUrlManager, IContentAdapterProvider adapters, StateChanger changer, IContentItemRepository itemRepository)
         {
             this.persister = persister;
 			this.security = security;
@@ -60,7 +60,7 @@ namespace N2.Edit.Workflow
             unpublishedDate = new EnsureNotPublishedCommand();
             ensurePublishedDate = new EnsurePublishedCommand();
             updateReferences = new UpdateReferencesCommand();
-            saveOnPageVersion = new SaveOnPageVersionCommand(versionMaker);
+            saveOnPageVersion = new SaveOnPageVersionCommand(versionMaker, itemRepository);
         }
 
         /// <summary>Gets the command used to publish an item.</summary>
