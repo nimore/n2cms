@@ -28,9 +28,8 @@ h4 { font-size:1.1em; }
 }
 
 /* toolbar */
-
 body {
-	padding-top:30px;
+	/*padding-top:30px;*/
 }
 /*TODO: Remove when no longer needed. 
 .framed-navbar {

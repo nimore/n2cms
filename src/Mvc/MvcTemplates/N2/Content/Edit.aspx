@@ -34,7 +34,7 @@
     <edit:permissionpanel id="ppPermitted" requiredpermission="Write" runat="server" meta:resourcekey="ppPermitted">
     
     <div ng-controller="EditLayoutCtrl" class="row-fluid">
-        <div class="primary" ng-class="{ span8: sidebarOpen, span12: !sidebarOpen }">
+        <div class="primary" ng-class="{ span8: sidebarOpen, span12: !sidebarOpen }" style="position:relative;">
 	        <!-- main area --> 
             <a href class="rightOpener" ng-click="toggleSidebar()">
                 <span class="rightOpener-open" ng-hide="sidebarOpen">&laquo;</span>
