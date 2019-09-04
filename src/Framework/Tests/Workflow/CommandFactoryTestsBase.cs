@@ -73,7 +73,7 @@ namespace N2.Tests.Workflow
             validator.AssertWasCalled(b => b.Validate(context));
         }
 
-        [Test]
+        [TestCase]
         public void DoesntMakeVersion_OfUnsavedItem()
         {
             var context = new CommandContext(definitions.GetDefinition(typeof(StatefulPage)), new StatefulPage(), Interfaces.Editing, CreatePrincipal("admin"), nullBinder, nullValidator);
@@ -84,7 +84,7 @@ namespace N2.Tests.Workflow
             versions.Repository.Repository.Count().ShouldBe(0);
         }
 
-        [Test]
+        [TestCase]
         public void PreviouslyPublishedVersion_CausesNewVersion()
         {
             var version = MakeVersion(item);
@@ -98,7 +98,7 @@ namespace N2.Tests.Workflow
             Assert.That(versions.GetVersionsOf(item).Count(), Is.EqualTo(3));
         }
 
-        [Test]
+        [TestCase]
         public void CreatesVersion_OfVersionableItem()
         {
             var context = new CommandContext(definitions.GetDefinition(item.GetContentType()), item, Interfaces.Editing, CreatePrincipal("admin"), nullBinder, nullValidator);
@@ -108,7 +108,7 @@ namespace N2.Tests.Workflow
             versions.Repository.Repository.Count().ShouldBeGreaterThan(0);
         }
 
-        [Test]
+        [TestCase]
         public void DoesntCreateVersion_OfNonVersionableItem()
         {
             var unversionable = new UnversionableStatefulItem();
