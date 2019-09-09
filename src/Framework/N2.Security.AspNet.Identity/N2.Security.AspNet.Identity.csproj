@@ -54,7 +54,7 @@
     <Compile Include="IdentityStore\CompatibilityModePasswordHasher.cs" />
     <Compile Include="IdentityStore\IdentityRoleStore.cs" />
     <Compile Include="IdentityStore\IdentityUserStore.cs" />
-    <Compile Include="NamespaceDoc.cs" />
+    <None Include="NamespaceDoc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="_Doc\HowTo_MvcProject.cs" />
     <Compile Include="_Doc\HowTo_SeeAlso.cs" />
