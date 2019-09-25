@@ -226,7 +226,9 @@ namespace N2.Security
             Items.UserList users = GetUserContainer(false);
             if (users == null)
                 return 0;
-            return users.Children.OfType<User>().Count();
+
+            return (int)Repository.Count(Parameter.Equal("Parent", users)
+                    & Parameter.TypeEqual(userType.Name));
         }
 
         /// <summary>Returns user identified by email, null: not found </summary>
@@ -241,14 +243,10 @@ namespace N2.Security
                 if (users == null)
                     return null;
                 
-                // Note: email case sensitivity is defined by underlying storege settings
-                var usersByEmail = Repository.Find((Parameter.Equal("Parent", users) & Parameter.Equal("Email", email).Detail(true))).OfType<User>().ToList();
-                if (usersByEmail.Count == 0)
-                    return null;
-                else if(usersByEmail.Count == 1)
-                    return usersByEmail[0];
-                else /* multiple users found, the first one returned */
-                    return usersByEmail[0];
+                // Note: email case sensitivity is defined by underlying storage settings
+                return Repository.Find(Parameter.Equal("Parent", users)
+                    & Parameter.TypeEqual(userType.Name)
+                    & Parameter.Equal("Email", email).Detail(true)).OfType<User>().FirstOrDefault();
             }
             catch (Exception ex)
             {
