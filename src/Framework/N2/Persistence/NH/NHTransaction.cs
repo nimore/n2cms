@@ -14,6 +14,7 @@ namespace N2.Persistence.NH
         bool isOriginator = true;
 
         public bool IsCommitted { get; set; }
+
         public bool IsRollbacked { get; set; }
 
         public NHTransaction(ISessionProvider sessionProvider)
@@ -70,7 +71,7 @@ namespace N2.Persistence.NH
         private void OnCommit()
         {
             if (Committed != null)
-                Committed(this, new EventArgs());
+                Committed(this, EventArgs.Empty);
         }
 
         /// <summary>Rollsbacks the transaction</summary>
@@ -94,7 +95,7 @@ namespace N2.Persistence.NH
         private void OnRollback()
         {
             if (Rollbacked != null)
-                Rollbacked(this, new EventArgs());
+                Rollbacked(this, EventArgs.Empty);
         }
 
         #endregion
@@ -119,7 +120,7 @@ namespace N2.Persistence.NH
         private void OnDispose()
         {
             if (Disposed != null)
-                Disposed(this, new EventArgs());
+                Disposed(this, EventArgs.Empty);
         }
 
         #endregion
