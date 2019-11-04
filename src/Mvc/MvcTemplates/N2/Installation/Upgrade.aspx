@@ -41,7 +41,7 @@
 			<% if (Checker.Status.NeedsUpgrade){ %>
 			<p class="alert alert-info">The database needs to be upgraded.</p>
 				<% if(Checker.Status.ConnectionType == "MySqlConnection") {%>
-			<p class="alert">MySQL database might not be upgradeable from this interface. Execute <a href="mysql.upgrade.2.sql">mysql.upgrade.2.sql</a> with an SQL admin tool and manually execute migrations from advanced optins.</p>
+			<p class="alert alert-warning">MySQL database might not be upgradeable from this interface. Execute <a href="mysql.upgrade.2.sql">mysql.upgrade.2.sql</a> with an SQL admin tool and manually execute migrations from advanced optins.</p>
 				<% } %>
 			<% } else if (!Checker.Status.IsInstalled){ %>
 			<p class="alert alert-error">No database to be upgraded. Please <a href="Default.aspx">install using the installation wizard</a>.</p>
@@ -49,7 +49,9 @@
 			<% } else {%>
 			<p class="alert alert-success">All core tables are up to date. Happy <a href="..">editing</a>.</p>
 			<%} %>
-			
+			            
+            <asp:Label ID="lblResult" runat="server" CssClass="alert alert-warning help-block" Visible="false" />
+
 			<fieldset>
 				<legend>SQL Schema</legend>
 				<p>Please review this schema update script.</p>
@@ -75,8 +77,7 @@
 			</div>
 			<p>
 				<asp:Button ID="btnUpgrade" runat="server" OnClick="btnInstallAndMigrate_Click" Text="Update tables and run migrations" OnClientClick="return confirm('Updating the database makes changes to the information on the site. I confirm that everything is backed-up and want to continue.');" ToolTip="Click this button to update the database and execute the migrations" CausesValidation="false" CssClass="btn btn-primary btn-large"/>
-			</p>
-			<asp:Label ID="lblResult" runat="server" />
+			</p>			
 		    <script type="text/javascript">
 		    	function showadvancedcontentoptions() {
 		    		document.getElementById("advancedcontentoptions").style.display = "block";

@@ -137,8 +137,11 @@ namespace N2.Edit.Install
 
 			CurrentAction = action;
 			CurrentActionProgress = "Preparing...";
-			ShowProgress();
-			ThreadPool.QueueUserWorkItem((obj) =>
+            
+            ShowProgress();
+            var flag = new ManualResetEventSlim(false);
+
+            ThreadPool.QueueUserWorkItem((state) =>
 			{
 				try
 				{
@@ -153,15 +156,18 @@ namespace N2.Edit.Install
 				finally
 				{
 					CurrentAction = null;
-					HideProgress();
-				}
+                    flag.Set();
+                }
 			});
-		}
+
+            flag.Wait(TimeSpan.FromMinutes(2));
+            HideProgress();
+        }
 
         private void ShowResults(IEnumerable<MigrationResult> results)
         {
             StringBuilder errorText = new StringBuilder();
-            lblResult.Text += "<ul>";
+            lblResult.Text = "<ul>";
             foreach (var result in results)
             {
                 string message = result.Migration.Title + " executed updating " + result.UpdatedItems + " items.";
@@ -177,9 +183,9 @@ namespace N2.Edit.Install
 
             }
             lblResult.Text += "</ul>";
-
-			HideProgress();
-			errorLabel.Text = errorText.ToString();
+            lblResult.Visible = true;            
+            
+            errorLabel.Text = errorText.ToString();
             errorLabel.Visible = !string.IsNullOrEmpty(errorLabel.Text);
         }
 
@@ -199,7 +205,6 @@ namespace N2.Edit.Install
             if (ex == null)
                 return "Unknown error";
             return "<b>" + ex.Message + "</b>" + ex.StackTrace;
-        }
-
+        }        
     }
 }
