@@ -30,6 +30,8 @@ namespace N2.Edit
             set { title = value; }
         }
 
+        public string Description { get; set; }
+
         /// <summary>
         /// The plugin's url format. These magic strings are interpreted by the 
         /// client and inserted in the url before the frame is loaded: 

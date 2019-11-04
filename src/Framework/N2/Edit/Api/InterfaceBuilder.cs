@@ -380,6 +380,7 @@ namespace N2.Management.Api
 			{
 				Title = np.Title,
 				Name = np.Name,
+                Description = np.Description,
 				Target = np.Target,
 				ToolTip = np.ToolTip,
 				IconUrl = string.IsNullOrEmpty(np.IconClass) ? Retoken(np.IconUrl) : null,

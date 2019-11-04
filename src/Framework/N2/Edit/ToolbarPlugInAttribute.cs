@@ -65,7 +65,7 @@ namespace N2.Edit
         {
             get { return containerName; }
             set { containerName = value; }
-        }
+        }        
 
         /// <summary>
         /// A type implementing N2.Engine.IProvider(Of ToolbarOption)
