@@ -15,6 +15,7 @@ using System.IO;
 using N2.Web.Parts;
 using N2.Edit.Api;
 using N2.Edit.Versioning;
+using N2.Resources;
 
 namespace N2.Management.Api
 {
@@ -130,6 +131,8 @@ namespace N2.Management.Api
 		public List<TemplateInfo> Templates { get; internal set; }
 		public DraftInfo Draft { get; internal set; }
 		public string[] Dependencies { get; internal set; }
+
+		public string[] DependenciesSriHashes { get; internal set; }
 	}
 	public class ActivityTrackingConfiguration
 	{
@@ -236,7 +239,7 @@ namespace N2.Management.Api
 				}
 			}
 
-			var angularRoot = engine.Config.Sections.Web.PreviewResources.AngularJsRoot;
+			var angularRoot = Register.AngularJsRoot; //engine.Config.Sections.Web.PreviewResources.AngularJsRoot;			
 			var data = new ControlPanelDefinition
 			{
 				Menu = GetControlPanelMenu(context, item),
@@ -257,7 +260,8 @@ namespace N2.Management.Api
 					"{ManagementUrl}/App/Js/Directives.js",
 					"{ManagementUrl}/App/Js/Services.js",
 					"{ManagementUrl}/App/Preview/Preview.js"
-				}).Select(p => p.ResolveUrlTokens()).ToArray()
+				}).Select(p => p.ResolveUrlTokens()).ToArray(),
+				DependenciesSriHashes = new[] { Register.AngularJsSriHash, Register.AngularJsResourceSriHash }
 			};
 
 			PostProcess(data);

@@ -8,21 +8,32 @@ $(function () {
 			document.body.appendChild(el);
 			return el;
 		},
-		appendScripts: function (sources, callback) {
+		appendScripts: function (sources, sriHashes, callback) {
 			var count = 0;
-			$.each(sources, function () {
-				n2.boostrapper.append("script", {
-					src: this, async: false, onload: function () {
-						if (++count == sources.length)
-							callback && callback();
-					}
-				});
+			$.each(sources, function (idx) {
+				if (sriHashes && idx < sriHashes.length && sriHashes[idx]) {
+					n2.boostrapper.append("script", {
+						src: this, async: false, integrity: sriHashes[idx], onload: function () {
+							if (++count === sources.length)
+								callback && callback();
+						}
+					}, {
+						crossorigin: "anonymous"
+					});
+				} else {
+					n2.boostrapper.append("script", {
+						src: this, async: false, onload: function () {
+							if (++count === sources.length)
+								callback && callback();
+						}
+					});
+				}
 			});
 		},
 		init: function (div) {
 			var result = angular.bootstrap(div, ["n2preview"]);		
 		}
 	};
-	var div = n2.boostrapper.append("div", null, { "class": "n2-preview n2-loading", "n2-preview": "" })
-	n2.boostrapper.appendScripts(n2.settings.Dependencies, function () { n2.boostrapper.init(div) });
+	var div = n2.boostrapper.append("div", null, { "class": "n2-preview n2-loading", "n2-preview": "" });
+	n2.boostrapper.appendScripts(n2.settings.Dependencies, n2.settings.DependenciesSriHashes, function () { n2.boostrapper.init(div); });
 });

@@ -50,7 +50,6 @@ namespace N2.Resources
 			PartsCssPath = DefaultPartsCssPath;
 			AngularUiJsPath = DefaultAngularUiJsPath;
             AngularUiJsSriHash = DefaultAngularUiJsSriHash;
-
         }
 
 		private static bool? _debug;
