@@ -1,3 +1,4 @@
+using System.Linq;
 using N2.Persistence;
 
 namespace N2.Edit.Workflow.Commands
@@ -17,12 +18,16 @@ namespace N2.Edit.Workflow.Commands
             {
                 if (item != state.Content)
                 {
-                    if(item.Parent != null && item.Parent.ID == 0 && item.Parent.VersionOf.HasValue && item.Parent.VersionOf.ID == state.Content.ID)
+                    if(item.Parent != null && item.Parent.ID == 0 && item.Parent.VersionOf.HasValue && item.Parent.VersionOf.ID == state.Content.ID && !state.Content.Children.Any(c => c.Name == item.Name))
                     {
                         item.AddTo(state.Content);
+                        persister.Save(item);
+                        SaveChildren(item);
                     }
-                    persister.Save(item);
-					SaveChildren(item);
+                    else
+                    {
+                        persister.Save(item);
+                    }
                 }
             }
         }
