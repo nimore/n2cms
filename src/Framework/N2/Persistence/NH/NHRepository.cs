@@ -38,29 +38,29 @@ using System.Diagnostics;
 
 namespace N2.Persistence.NH
 {
-    [Obsolete("Use NHRepository<TEntity>")]
-	[Service(typeof(IRepository<,>), Configuration = "sql", Key = "n2.repository.generic2")]
-    public class NHRepository<TKey, TEntity> : NHRepository<TEntity>, IRepository<int, TEntity> where TEntity : class
-    {
-        public NHRepository(ISessionProvider sessionProvider)
-            : base(sessionProvider)
-        {
-        }
+ ////   [Obsolete("Use NHRepository<TEntity>")]
+	////[Service(typeof(IRepository<,>), Configuration = "sql", Key = "n2.repository.generic2")]
+ ////   public class NHRepository<TKey, TEntity> : NHRepository<TEntity>, IRepository<int, TEntity> where TEntity : class
+ ////   {
+ ////       public NHRepository(ISessionProvider sessionProvider)
+ ////           : base(sessionProvider)
+ ////       {
+ ////       }
 
-        #region IRepository<int,TEntity> Members
+ ////       #region IRepository<int,TEntity> Members
 
-        public TEntity Get(int id)
-        {
-            return base.Get(id);
-        }
+ ////       public TEntity Get(int id)
+ ////       {
+ ////           return base.Get(id);
+ ////       }
 
-        public T Get<T>(int id)
-        {
-            return base.Get<T>(id);
-        }
+ ////       public T Get<T>(int id)
+ ////       {
+ ////           return base.Get<T>(id);
+ ////       }
 
-        #endregion
-    }
+ ////       #endregion
+ ////   }
 
     [Service(typeof(IRepository<>), Configuration = "sql", Key = "n2.repository.generic")]
 #pragma warning disable 612, 618
