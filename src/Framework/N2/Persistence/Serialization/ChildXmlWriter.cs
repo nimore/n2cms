@@ -32,7 +32,13 @@ namespace N2.Persistence.Serialization
                 childElement.WriteAttribute("versionIndex", child.VersionIndex);
 
                 if (child.VersionOf.HasValue)
-                    childElement.WriteAttribute("versionOf", child.VersionOf.Value.ID);
+                {
+                    var v = child.VersionOf.Value;
+                    if (v != null)
+                    {
+                        childElement.WriteAttribute("versionOf", v.ID);
+                    }
+                }
                 if (child.GetVersionKey() != null)
                     childElement.WriteAttribute("versionKey", child.GetVersionKey());
             }
