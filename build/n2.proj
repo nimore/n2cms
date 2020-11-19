@@ -8,6 +8,7 @@
   </Target>
 
   <PropertyGroup>
+	<CurrentDate>$([System.DateTime]::Now.ToString(yyyyMMdd-HHmm))</CurrentDate>
     <RootFolder>$(MSBuildProjectDirectory)\..</RootFolder>
     <LibFolder>$(RootFolder)\lib</LibFolder>
     <DocFolder>$(RootFolder)\docs</DocFolder>
@@ -22,7 +23,9 @@
 
     <Examples-Folder>$(RootFolder)\examples</Examples-Folder>
 
-    <Version Condition="'$(Version)' == ''">2.9.6.16-dpw-20190904</Version>
+    <!-- <Version Condition="'$(Version)' == ''">2.9.6.20-dpw-20191209-1607</Version> -->
+	<Version Condition="'$(Version)' == ''">2.9.6.20-dpw-$(CurrentDate)</Version>
+	
     <DeployPrefix>n2cms_$(Version)_</DeployPrefix>
     <DeployFolder>$(RootFolder)\output</DeployFolder>
     <ArtifactsFolder>$(DeployFolder)\buildartifacts</ArtifactsFolder>
